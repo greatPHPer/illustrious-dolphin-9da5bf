@@ -1,5 +1,5 @@
----
-title: "🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package"
+﻿---
+title: "ðŸ”§ How to Fix NU1107: Version Conflict Detected for NuGet Package"
 layout: layouts/base.njk
 permalink: "/fix-nu1107-version-conflict-nuget-package/"
 legacyId: 418
@@ -77,62 +77,33 @@ description: "Are you seeing the NU1107 error in Visual Studio when you restore 
 
 <div class="crumb-wrap">
 
-    <a href="/">🏠 Home</a>
-    <span>›</span>
+    <a href="/">ðŸ  Home</a>
+    <span>â€º</span>
 
-    <a href="/tutorials/">📚 Tutorials</a>
-    <span>›</span>
+    <a href="/tutorials/">ðŸ“š Tutorials</a>
+    <span>â€º</span>
 
     <div style="display:inline-block;position:relative;">
         <a href="/csharp-tutorials/" class="crumb-trigger" data-menu="nuget">
-            💻 C# Tutorials ▾
+            ðŸ’» C# Tutorials â–¾
         </a>
 
         <div class="crumb-menu" id="menu-nuget">
-
-            <a href="/fix-nuget-package-version-conflicts-visual-studio/"
-               class="crumb-current">
-                📦 How to Fix NuGet Package Version Conflicts in Visual Studio
-            </a>
-
-            <a href="/fix-nu1107-version-conflict-nuget-package/">
-                🔧 How to Fix NU1107 Version Conflict in NuGet Package
-            </a>
-
-            <a href="/fix-nu1605-nuget-package-downgrade/">
-                ⚠️ How to Fix NU1605 Package Downgrade Warning in NuGet
-            </a>
-
-            <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
-                🔍 How to Find Which NuGet Package Is Causing a Dependency Conflict
-            </a>
-
-            <a href="/direct-vs-transitive-nuget-dependencies/">
-                📦 Direct vs Transitive NuGet Dependencies
-            </a>
-
-            <a href="/update-nuget-packages-safely/">
-                🔄 How to Update NuGet Packages Safely
-            </a>
-
-            <a href="/package-reference-vs-packages-config/">
-                📦 PackageReference vs packages.config
-            </a>
-
-            <a href="/central-package-management-dotnet/">
-                📦 Central Package Management in .NET
-            </a>
-
-            <a href="/clean-restore-nuget-packages-visual-studio/">
-                🧹 How to Clean and Restore NuGet Packages in Visual Studio
-            </a>
-
-        </div>
+            <a href="/fix-nuget-package-version-conflicts-visual-studio/">📦 How to Fix NuGet Package Version Conflicts in Visual Studio</a>
+            <a href="/fix-nu1107-version-conflict-nuget-package/" class="crumb-current">🔧 How to Fix NU1107 Version Conflict in NuGet Package</a>
+            <a href="/fix-nu1605-nuget-package-downgrade/">⚠️ How to Fix NU1605 Package Downgrade Warning in NuGet</a>
+            <a href="/how-to-find-nuget-package-causing-dependency-conflict/">🔍 How to Find Which NuGet Package Is Causing a Dependency Conflict</a>
+            <a href="/direct-vs-transitive-nuget-dependencies/">📦 Direct vs Transitive NuGet Dependencies</a>
+            <a href="/update-nuget-packages-safely/">🔄 How to Update NuGet Packages Safely</a>
+            <a href="/package-reference-vs-packages-config/">📦 PackageReference vs packages.config</a>
+            <a href="/central-package-management-dotnet/">📦 Central Package Management in .NET</a>
+            <a href="/clean-restore-nuget-packages-visual-studio/">🧹 How to Clean and Restore NuGet Packages in Visual Studio</a>
+</div>
     </div>
 
-    <span>›</span>
+    <span>â€º</span>
 
-    <a href="/197-2/">💼 Portfolio</a>
+    <a href="/197-2/">ðŸ’¼ Portfolio</a>
 
 </div>
 
@@ -205,7 +176,7 @@ description: "Are you seeing the NU1107 error in Visual Studio when you restore 
 
 <hr>
 
-<h2>📌 What Is NU1107?</h2>
+<h2>ðŸ“Œ What Is NU1107?</h2>
 
 <p>
     <strong>NU1107</strong> is a NuGet dependency conflict error. It occurs when
@@ -216,8 +187,8 @@ description: "Are you seeing the NU1107 error in Visual Studio when you restore 
     For example, imagine your project references two packages:
 </p>
 
-<pre><code>PackageA → requires DependencyX 5.0.0
-PackageB → requires DependencyX 6.0.0</code></pre>
+<pre><code>PackageA â†’ requires DependencyX 5.0.0
+PackageB â†’ requires DependencyX 6.0.0</code></pre>
 
 <p>
     If NuGet cannot resolve a version of <code>DependencyX</code> that satisfies
@@ -239,7 +210,7 @@ to resolve this issue.</code></pre>
 
 <hr>
 
-<h2>🔍 Why Does NU1107 Happen?</h2>
+<h2>ðŸ” Why Does NU1107 Happen?</h2>
 
 <p>
     NU1107 usually occurs because different NuGet packages have incompatible
@@ -251,12 +222,12 @@ to resolve this issue.</code></pre>
 </p>
 
 <pre><code>YourProject
-│
-├── PackageA
-│   └── DependencyX 5.x
-│
-└── PackageB
-    └── DependencyX 6.x</code></pre>
+â”‚
+â”œâ”€â”€ PackageA
+â”‚   â””â”€â”€ DependencyX 5.x
+â”‚
+â””â”€â”€ PackageB
+    â””â”€â”€ DependencyX 6.x</code></pre>
 
 <p>
     Your project depends on both <code>PackageA</code> and
@@ -275,7 +246,7 @@ to resolve this issue.</code></pre>
 
 <hr>
 
-<h2>🧪 A Simple NU1107 Example</h2>
+<h2>ðŸ§ª A Simple NU1107 Example</h2>
 
 <p>
     Suppose your project contains these package references:
@@ -291,10 +262,10 @@ to resolve this issue.</code></pre>
 </p>
 
 <pre><code>PackageA 2.0.0
-    → DependencyX 5.x
+    â†’ DependencyX 5.x
 
 PackageB 3.0.0
-    → DependencyX 6.x</code></pre>
+    â†’ DependencyX 6.x</code></pre>
 
 <p>
     NuGet may be unable to satisfy both dependency requirements and produce
@@ -303,7 +274,7 @@ PackageB 3.0.0
 
 <hr>
 
-<h2>🔎 How to Find the Conflicting Package</h2>
+<h2>ðŸ”Ž How to Find the Conflicting Package</h2>
 
 <p>
     The first step is to read the complete NU1107 message in the
@@ -320,10 +291,10 @@ PackageB 3.0.0
 </p>
 
 <pre><code>PackageA
-    → DependencyX (≥ 5.0.0)
+    â†’ DependencyX (â‰¥ 5.0.0)
 
 PackageB
-    → DependencyX (≥ 6.0.0)
+    â†’ DependencyX (â‰¥ 6.0.0)
 
 NU1107: Version conflict detected for DependencyX</code></pre>
 
@@ -334,7 +305,7 @@ NU1107: Version conflict detected for DependencyX</code></pre>
 
 <hr>
 
-<h2>🛠️ Fix 1: Update the Packages Causing the Conflict</h2>
+<h2>ðŸ› ï¸ Fix 1: Update the Packages Causing the Conflict</h2>
 
 <p>
     The easiest solution is often to update the packages involved in the
@@ -359,7 +330,7 @@ NU1107: Version conflict detected for DependencyX</code></pre>
 
 <hr>
 
-<h2>🛠️ Fix 2: Reference the Conflicting Package Directly</h2>
+<h2>ðŸ› ï¸ Fix 2: Reference the Conflicting Package Directly</h2>
 
 <p>
     The NU1107 message may recommend installing or referencing the conflicting
@@ -387,7 +358,7 @@ NU1107: Version conflict detected for DependencyX</code></pre>
 
 <hr>
 
-<h2>🛠️ Fix 3: Check the .csproj File</h2>
+<h2>ðŸ› ï¸ Fix 3: Check the .csproj File</h2>
 
 <p>
     SDK-style .NET projects normally store NuGet package references inside the
@@ -414,24 +385,24 @@ NU1107: Version conflict detected for DependencyX</code></pre>
 
 <hr>
 
-<h2>🔗 Direct vs Transitive Dependencies</h2>
+<h2>ðŸ”— Direct vs Transitive Dependencies</h2>
 
 <p>
     Understanding the difference between direct and transitive dependencies
     makes NU1107 much easier to troubleshoot.
 </p>
 
-<h3>📦 Direct Dependency</h3>
+<h3>ðŸ“¦ Direct Dependency</h3>
 
 <p>
     A direct dependency is a package that your project explicitly references.
 </p>
 
 <pre><code>YourProject
-    ↓
+    â†“
 PackageA</code></pre>
 
-<h3>📦 Transitive Dependency</h3>
+<h3>ðŸ“¦ Transitive Dependency</h3>
 
 <p>
     A transitive dependency is brought into your project through another
@@ -439,9 +410,9 @@ PackageA</code></pre>
 </p>
 
 <pre><code>YourProject
-    ↓
+    â†“
 PackageA
-    ↓
+    â†“
 DependencyX</code></pre>
 
 <p>
@@ -455,7 +426,7 @@ DependencyX</code></pre>
 
 <hr>
 
-<h2>🧰 Check Installed NuGet Packages in Visual Studio</h2>
+<h2>ðŸ§° Check Installed NuGet Packages in Visual Studio</h2>
 
 <p>
     You can inspect your project's installed packages through Visual Studio.
@@ -464,8 +435,8 @@ DependencyX</code></pre>
 <p>Open:</p>
 
 <pre><code>Right-click Project
-→ Manage NuGet Packages
-→ Installed</code></pre>
+â†’ Manage NuGet Packages
+â†’ Installed</code></pre>
 
 <p>
     Check the versions of the packages involved in the NU1107 message.
@@ -478,7 +449,7 @@ DependencyX</code></pre>
 
 <hr>
 
-<h2>🧹 Clean and Restore the Project</h2>
+<h2>ðŸ§¹ Clean and Restore the Project</h2>
 
 <p>
     After changing package references, restore the project and rebuild it.
@@ -487,10 +458,10 @@ DependencyX</code></pre>
 <p>In Visual Studio, you can use:</p>
 
 <pre><code>Build
-→ Clean Solution
+â†’ Clean Solution
 
 Build
-→ Rebuild Solution</code></pre>
+â†’ Rebuild Solution</code></pre>
 
 <p>
     You can also restore packages using the .NET CLI:
@@ -510,7 +481,7 @@ Build
 
 <hr>
 
-<h2>🛠️ Use the .NET CLI to Investigate Dependencies</h2>
+<h2>ðŸ› ï¸ Use the .NET CLI to Investigate Dependencies</h2>
 
 <p>
     For SDK-style projects, the .NET CLI can help you inspect the dependency
@@ -541,7 +512,7 @@ Build
 
 <hr>
 
-<h2>⚠️ Don't Just Pick a Random Package Version</h2>
+<h2>âš ï¸ Don't Just Pick a Random Package Version</h2>
 
 <p>
     One common mistake when fixing NU1107 is changing package versions until
@@ -560,7 +531,7 @@ Build
 
 <hr>
 
-<h2>💡 Recommended Way to Fix NU1107</h2>
+<h2>ðŸ’¡ Recommended Way to Fix NU1107</h2>
 
 <p>
     When you encounter NU1107, follow this order:
@@ -580,7 +551,7 @@ Build
 
 <hr>
 
-<h2>🔄 NU1107 vs NU1605</h2>
+<h2>ðŸ”„ NU1107 vs NU1605</h2>
 
 <p>
     NU1107 and NU1605 are both related to NuGet dependency versions, but they
@@ -602,7 +573,7 @@ Build
 </p>
 
 <p>
-    👉
+    ðŸ‘‰
     <a href="/fix-nu1605-nuget-package-downgrade/">
         NuGet Package Downgrade Detected: How to Fix NU1605 in Visual Studio
     </a>
@@ -610,7 +581,7 @@ Build
 
 <hr>
 
-<h2>🔗 More NuGet Package Version Troubleshooting</h2>
+<h2>ðŸ”— More NuGet Package Version Troubleshooting</h2>
 
 <p>
     NU1107 is one of several package dependency problems you can encounter in
@@ -622,7 +593,7 @@ Build
 </p>
 
 <p>
-    👉
+    ðŸ‘‰
     <a href="/fix-nuget-package-version-conflicts-visual-studio/">
         How to Fix NuGet Package Version Conflicts in Visual Studio
     </a>
@@ -630,7 +601,7 @@ Build
 
 <hr>
 
-<h2>🎯 Conclusion</h2>
+<h2>ðŸŽ¯ Conclusion</h2>
 
 <p>
     <strong>NU1107</strong> occurs when NuGet detects incompatible dependency
@@ -651,13 +622,15 @@ Build
 
 <div style="margin-top:30px;padding:20px;border:1px solid #ddd;border-radius:10px;background:#f7f7f7;">
 
-    <strong>📚 More NuGet &amp; Visual Studio Tutorials</strong>
+    <strong>ðŸ“š More NuGet &amp; Visual Studio Tutorials</strong>
 
     <p style="margin-bottom:0;">
         Having another NuGet dependency problem?
         <a href="/fix-nuget-package-version-conflicts-visual-studio/">
-            Read the complete NuGet Package Version Conflicts guide →
+            Read the complete NuGet Package Version Conflicts guide â†’
         </a>
     </p>
 
 </div>
+
+

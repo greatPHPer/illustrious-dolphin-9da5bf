@@ -1,38 +1,174 @@
 <!doctype html>
 <html lang="en">
 <head>
+
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>📦 NuGet Package Downgrade Detected: How to Fix NU1605 in Visual Studio | Algolassi</title>
-  <meta name="description" content="Getting the NU1605: Detected package downgrade warning or error in Visual Studio? This usually happens when different NuGet packages require different...">
-  <meta name="generator" content="Eleventy">
-  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
-  <link rel="stylesheet" href="/assets/css/site.css">
-  <link rel="canonical" href="https://algolassi.online/fix-nu1605-nuget-package-downgrade/">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>ðŸ“¦ NuGet Package Downgrade Detected: How to Fix NU1605 in Visual Studio | Algolassi</title>
+
+  
+    <meta name="description"
+          content="Getting the NU1605: Detected package downgrade warning or error in Visual Studio? This usually happens when different NuGet packages require different...">
+  
+
+  <meta name="generator"
+        content="Eleventy">
+
+  <link rel="icon"
+        href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+
+  <link rel="stylesheet"
+        href="/assets/css/site.css">
+
+  
+    <link rel="canonical"
+          href="https://algolassi.online/fix-nu1605-nuget-package-downgrade/">
+  
+
+  <style>
+
+    .algolassi-breadcrumb {
+      max-width: 1100px;
+      margin: 0 auto 24px;
+      padding: 14px 18px;
+      font-size: 14px;
+    }
+
+    .breadcrumb-main {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .breadcrumb-main a {
+      text-decoration: none;
+    }
+
+    .breadcrumb-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .breadcrumb-pillar-button {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      font: inherit;
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+    }
+
+    .breadcrumb-arrow {
+      margin-left: 3px;
+      font-size: 11px;
+    }
+
+    .breadcrumb-menu {
+      display: none;
+      position: absolute;
+      z-index: 9999;
+      top: calc(100% + 8px);
+      left: 0;
+      min-width: 360px;
+      max-width: 480px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.15);
+      padding: 6px;
+    }
+
+    .breadcrumb-dropdown.open .breadcrumb-menu {
+      display: block;
+    }
+
+    .breadcrumb-menu a {
+      display: block;
+      padding: 9px 11px;
+      border-radius: 6px;
+      text-decoration: none;
+      line-height: 1.4;
+    }
+
+    .breadcrumb-menu a:hover {
+      background: #f2f2f2;
+    }
+
+    .breadcrumb-menu a.breadcrumb-current {
+      font-weight: 700;
+      background: #e9f2ff;
+    }
+
+    .breadcrumb-current-page {
+      font-weight: 600;
+    }
+
+    @media (max-width: 700px) {
+
+      .breadcrumb-menu {
+        min-width: 280px;
+        max-width: calc(100vw - 40px);
+      }
+
+    }
+
+  </style>
+
 </head>
+
 <body>
+
 <header class="site-header">
+
   <div class="site-header-inner">
+
     <a class="brand" href="/">
-      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+
+      <img
+        src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png"
+        alt="Algolassi"
+        width="32"
+        height="32">
+
       <span>Algolassi</span>
+
     </a>
-    <nav class="site-nav" aria-label="Main navigation">
+
+    <nav class="site-nav"
+         aria-label="Main navigation">
+
       <a href="/tutorials/">Tutorials</a>
+
       <a href="/csharp-tutorials/">C#</a>
+
       <a href="/net-tutorials/">.NET</a>
+
       <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+
       <a href="/blazor-tutorials/">Blazor</a>
+
       <a href="/sql-server-tutorials/">SQL Server</a>
+
       <a href="/about-algolassi/">About</a>
+
     </nav>
+
   </div>
+
 </header>
 
+
 <main class="site-main">
+
   
-  <div class="page-content">
-    
+
+    <div class="page-content">
+      
 <style>
 /* Suppress iframe scrollbars inside WordPress Editor preview */
 html, body {
@@ -134,21 +270,21 @@ html, body {
 
     <!-- Home -->
     <span class="crumb-trigger" data-menu="home">
-        <a href="/">🏠 Home ▼</a>
+        <a href="/">ðŸ  Home â–¼</a>
     </span>
 
     &gt;
 
     <!-- Tutorials -->
     <span class="crumb-trigger" data-menu="tutorials">
-        <a href="/tutorials/">📚 Tutorials ▼</a>
+        <a href="/tutorials/">ðŸ“š Tutorials â–¼</a>
     </span>
 
     &gt;
 
     <!-- C# -->
     <span class="crumb-trigger" data-menu="csharp">
-        <a href="/csharp-tutorials/">💻 C# Tutorials ▼</a>
+        <a href="/csharp-tutorials/">ðŸ’» C# Tutorials â–¼</a>
     </span>
 
     &gt;
@@ -156,7 +292,7 @@ html, body {
     <!-- Current Article -->
     <a href="/fix-nu1605-nuget-package-downgrade/"
        class="crumb-last">
-        🔧 NuGet Package Downgrade Detected: How to Fix NU1605 in Visual Studio
+        ðŸ”§ NuGet Package Downgrade Detected: How to Fix NU1605 in Visual Studio
     </a>
 
 </div>
@@ -165,13 +301,13 @@ html, body {
 <!-- Home Menu -->
 <div class="crumb-teleport-menu" id="menu-home">
 
-    <a href="/tutorials/">📚 Tutorials</a>
+    <a href="/tutorials/">ðŸ“š Tutorials</a>
 
-    <a href="/about-algolassi/">🌟 About Algolassi</a>
+    <a href="/about-algolassi/">ðŸŒŸ About Algolassi</a>
 
-    <a href="/197-2/">💼 Portfolio</a>
+    <a href="/197-2/">ðŸ’¼ Portfolio</a>
 
-    <a href="/contact-algolassi/">📧 Contact</a>
+    <a href="/contact-algolassi/">ðŸ“§ Contact</a>
 
 </div>
 
@@ -179,19 +315,19 @@ html, body {
 <!-- Tutorials Menu -->
 <div class="crumb-teleport-menu" id="menu-tutorials">
 
-    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
+    <a href="/csharp-tutorials/">ðŸ’» C# Tutorials</a>
 
-    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
+    <a href="/net-tutorials/">âš™ï¸ .NET Tutorials</a>
 
-    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
+    <a href="/asp-net-core-tutorials/">ðŸŒ ASP.NET Core Tutorials</a>
 
-    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
+    <a href="/blazor-tutorials/">âš¡ Blazor Tutorials</a>
 
-    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
+    <a href="/sql-server-tutorials/">ðŸ—„ï¸ SQL Server Tutorials</a>
 
-    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
+    <a href="/visual-studio-tutorials/">ðŸ–¥ï¸ Visual Studio Tutorials</a>
 
-    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
+    <a href="/net-maui-tutorials/">ðŸ“± .NET MAUI Tutorials</a>
 
 </div>
 
@@ -199,18 +335,16 @@ html, body {
 <!-- C# Menu -->
 <div class="crumb-teleport-menu" id="menu-csharp">
 
-    <a href="/fix-nuget-package-version-conflicts-visual-studio/"
-       style="color:#0d6efd !important;font-weight:600;text-decoration:none;">
-        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        ðŸ“¦ How to Fix NuGet Package Version Conflicts in Visual Studio
     </a>
 
-    <a href="/fix-nu1605-nuget-package-downgrade/"
-       style="color:#0d6efd !important;font-weight:600;text-decoration:none;">
-        🔧 NuGet Package Downgrade Detected: How to Fix NU1605
+    <a href="/fix-nu1605-nuget-package-downgrade/">
+        ðŸ”§ NuGet Package Downgrade Detected: How to Fix NU1605
     </a>
 
     <a href="/async-await-csharp-best-practices/">
-        ⚡ Async and Await in C#: Common Mistakes and Best Practices
+        âš¡ Async and Await in C#: Common Mistakes and Best Practices
     </a>
 
 </div>
@@ -297,7 +431,7 @@ html, body {
 
 <hr>
 
-<h2>📌 What Is NU1605?</h2>
+<h2>ðŸ“Œ What Is NU1605?</h2>
 
 <p>
   <strong>NU1605</strong> is a NuGet package downgrade warning that occurs when
@@ -307,8 +441,8 @@ html, body {
 
 <p>For example, imagine your project has these dependencies:</p>
 
-<pre><code>PackageA → requires Newtonsoft.Json 13.0.3
-PackageB → requires Newtonsoft.Json 12.0.3</code></pre>
+<pre><code>PackageA â†’ requires Newtonsoft.Json 13.0.3
+PackageB â†’ requires Newtonsoft.Json 12.0.3</code></pre>
 
 <p>
   If your project directly references an older version, NuGet may detect that
@@ -327,7 +461,7 @@ Reference the package directly from the project to select a different version.</
 
 <hr>
 
-<h2>🔍 Why Does NU1605 Happen?</h2>
+<h2>ðŸ” Why Does NU1605 Happen?</h2>
 
 <p>
   NU1605 is usually caused by a <strong>dependency version conflict</strong>.
@@ -338,12 +472,12 @@ Reference the package directly from the project to select a different version.</
 <p>A typical dependency tree might look like this:</p>
 
 <pre><code>YourProject
-│
-├── PackageA
-│   └── DependencyX 5.0.0
-│
-└── PackageB
-    └── DependencyX 4.0.0</code></pre>
+â”‚
+â”œâ”€â”€ PackageA
+â”‚   â””â”€â”€ DependencyX 5.0.0
+â”‚
+â””â”€â”€ PackageB
+    â””â”€â”€ DependencyX 4.0.0</code></pre>
 
 <p>
   NuGet has to determine which version of <code>DependencyX</code> should be
@@ -357,7 +491,7 @@ Reference the package directly from the project to select a different version.</
 
 <hr>
 
-<h2>🧪 Example of NU1605</h2>
+<h2>ðŸ§ª Example of NU1605</h2>
 
 <p>
   Suppose your project contains:
@@ -385,7 +519,7 @@ Reference the package directly from the project to select a different version.</
 
 <hr>
 
-<h2>🔎 How to Find the Package Causing NU1605</h2>
+<h2>ðŸ”Ž How to Find the Package Causing NU1605</h2>
 
 <p>
   The first thing you should do is read the complete NU1605 message in the
@@ -400,13 +534,13 @@ Reference the package directly from the project to select a different version.</
 <p>For example:</p>
 
 <pre><code>PackageA 2.0.0
-  → DependencyX (≥ 5.0.0)
+  â†’ DependencyX (â‰¥ 5.0.0)
 
 PackageB 1.5.0
-  → DependencyX (≥ 4.0.0)
+  â†’ DependencyX (â‰¥ 4.0.0)
 
 Project
-  → DependencyX 4.0.0</code></pre>
+  â†’ DependencyX 4.0.0</code></pre>
 
 <p>
   In this example, <code>DependencyX 4.0.0</code> is the package you should
@@ -415,7 +549,7 @@ Project
 
 <hr>
 
-<h2>🛠️ Fix 1: Update the Direct Package Reference</h2>
+<h2>ðŸ› ï¸ Fix 1: Update the Direct Package Reference</h2>
 
 <p>
   One of the most common solutions is to explicitly reference a compatible
@@ -445,7 +579,7 @@ Project
 
 <hr>
 
-<h2>🛠️ Fix 2: Update the Package Causing the Conflict</h2>
+<h2>ðŸ› ï¸ Fix 2: Update the Package Causing the Conflict</h2>
 
 <p>
   Sometimes the better solution is to update the package that depends on the
@@ -470,7 +604,7 @@ Project
 
 <hr>
 
-<h2>🛠️ Fix 3: Check Transitive Dependencies</h2>
+<h2>ðŸ› ï¸ Fix 3: Check Transitive Dependencies</h2>
 
 <p>
   The package you need to update may not be directly installed in your project.
@@ -485,9 +619,9 @@ Project
 <p>For example:</p>
 
 <pre><code>YourProject
-   ↓
+   â†“
 PackageA
-   ↓
+   â†“
 DependencyX</code></pre>
 
 <p>
@@ -502,7 +636,7 @@ DependencyX</code></pre>
 
 <hr>
 
-<h2>🛠️ Fix 4: Use the Visual Studio NuGet Package Manager</h2>
+<h2>ðŸ› ï¸ Fix 4: Use the Visual Studio NuGet Package Manager</h2>
 
 <p>
   You can inspect package versions directly from Visual Studio.
@@ -511,8 +645,8 @@ DependencyX</code></pre>
 <p>Open:</p>
 
 <pre><code>Right-click Project
-→ Manage NuGet Packages
-→ Installed</code></pre>
+â†’ Manage NuGet Packages
+â†’ Installed</code></pre>
 
 <p>
   Look for packages involved in the NU1605 message and compare their versions.
@@ -525,7 +659,7 @@ DependencyX</code></pre>
 
 <hr>
 
-<h2>🛠️ Fix 5: Check the .csproj File</h2>
+<h2>ðŸ› ï¸ Fix 5: Check the .csproj File</h2>
 
 <p>
   For SDK-style .NET projects, package references are normally stored in the
@@ -550,7 +684,7 @@ DependencyX</code></pre>
 
 <hr>
 
-<h2>🧹 Fix 6: Clean and Restore NuGet Packages</h2>
+<h2>ðŸ§¹ Fix 6: Clean and Restore NuGet Packages</h2>
 
 <p>
   After changing package versions, it can sometimes help to clean the project
@@ -560,10 +694,10 @@ DependencyX</code></pre>
 <p>In Visual Studio, try:</p>
 
 <pre><code>Build
-→ Clean Solution
+â†’ Clean Solution
 
 Build
-→ Rebuild Solution</code></pre>
+â†’ Rebuild Solution</code></pre>
 
 <p>
   You can also restore NuGet packages from the solution or project context
@@ -583,7 +717,7 @@ Build
 
 <hr>
 
-<h2>⚠️ Should You Ignore NU1605?</h2>
+<h2>âš ï¸ Should You Ignore NU1605?</h2>
 
 <p>
   Generally, <strong>don't ignore NU1605 blindly</strong>.
@@ -602,7 +736,7 @@ Build
 
 <hr>
 
-<h2>💡 Best Practice for NuGet Version Conflicts</h2>
+<h2>ðŸ’¡ Best Practice for NuGet Version Conflicts</h2>
 
 <p>
   When resolving NU1605, don't simply change random package versions until the
@@ -624,7 +758,7 @@ Build
 
 <hr>
 
-<h2>🔗 NU1605 vs Other NuGet Version Conflicts</h2>
+<h2>ðŸ”— NU1605 vs Other NuGet Version Conflicts</h2>
 
 <p>
   NU1605 is only one type of NuGet dependency conflict. You may also encounter
@@ -638,14 +772,14 @@ Build
 </p>
 
 <p>
-  👉 <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+  ðŸ‘‰ <a href="/fix-nuget-package-version-conflicts-visual-studio/">
     How to Fix NuGet Package Version Conflicts in Visual Studio
   </a>
 </p>
 
 <hr>
 
-<h2>🎯 Conclusion</h2>
+<h2>ðŸŽ¯ Conclusion</h2>
 
 <p>
   <strong>NU1605</strong> usually means that NuGet has detected a package
@@ -665,25 +799,131 @@ Build
 </p>
 
 <div style="margin-top:30px;padding:20px;border:1px solid #ddd;border-radius:10px;background:#f7f7f7;">
-  <strong>📚 More NuGet &amp; Visual Studio Tutorials</strong>
+  <strong>ðŸ“š More NuGet &amp; Visual Studio Tutorials</strong>
   <p style="margin-bottom:0;">
     Having another NuGet dependency problem?
     <a href="/fix-nuget-package-version-conflicts-visual-studio/">
-      Read the complete NuGet Package Version Conflicts guide →
+      Read the complete NuGet Package Version Conflicts guide â†’
     </a>
   </p>
 </div>
 
-  </div>
+
+    </div>
+
   
+
 </main>
 
+
 <footer class="site-footer">
+
   <div class="footer-inner">
-    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
-    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+
+    <div>
+      <strong>Algolassi</strong>
+      <p>Practical software development tutorials.</p>
+    </div>
+
+    <nav>
+
+      <a href="/tutorials/">Tutorials</a>
+
+      <a href="/197-2/">Portfolio</a>
+
+      <a href="/about-algolassi/">About</a>
+
+      <a href="/contact-algolassi/">Contact</a>
+
+      <a href="/privacy-policy-2/">Privacy</a>
+
+    </nav>
+
   </div>
-  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+
+  <p class="copyright">
+    © 2026 Algolassi. All rights reserved.
+  </p>
+
 </footer>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  document
+    .querySelectorAll(".breadcrumb-pillar-button")
+    .forEach(function (button) {
+
+      button.addEventListener("click", function (event) {
+
+        event.stopPropagation();
+
+        const dropdown =
+          button.closest(".breadcrumb-dropdown");
+
+        const isOpen =
+          dropdown.classList.contains("open");
+
+        document
+          .querySelectorAll(".breadcrumb-dropdown.open")
+          .forEach(function (item) {
+            item.classList.remove("open");
+
+            const itemButton =
+              item.querySelector(".breadcrumb-pillar-button");
+
+            if (itemButton) {
+              itemButton.setAttribute(
+                "aria-expanded",
+                "false"
+              );
+            }
+          });
+
+        if (!isOpen) {
+
+          dropdown.classList.add("open");
+
+          button.setAttribute(
+            "aria-expanded",
+            "true"
+          );
+
+        }
+
+      });
+
+    });
+
+
+  document.addEventListener("click", function () {
+
+    document
+      .querySelectorAll(".breadcrumb-dropdown.open")
+      .forEach(function (dropdown) {
+
+        dropdown.classList.remove("open");
+
+        const button =
+          dropdown.querySelector(".breadcrumb-pillar-button");
+
+        if (button) {
+          button.setAttribute(
+            "aria-expanded",
+            "false"
+          );
+        }
+
+      });
+
+  });
+
+});
+
+</script>
+
+
 </body>
 </html>

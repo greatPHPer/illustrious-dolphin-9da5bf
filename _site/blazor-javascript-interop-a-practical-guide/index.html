@@ -1,38 +1,174 @@
 <!doctype html>
 <html lang="en">
 <head>
+
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
   <title>Blazor JavaScript Interop: A Practical Guide | Algolassi</title>
-  <meta name="description" content="Blazor lets developers build modern web applications using C#. However, some browser features and third-party libraries are only available through JavaScript.">
-  <meta name="generator" content="Eleventy">
-  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
-  <link rel="stylesheet" href="/assets/css/site.css">
-  <link rel="canonical" href="https://algolassi.online/blazor-javascript-interop-a-practical-guide/">
+
+  
+    <meta name="description"
+          content="Blazor lets developers build modern web applications using C#. However, some browser features and third-party libraries are only available through JavaScript.">
+  
+
+  <meta name="generator"
+        content="Eleventy">
+
+  <link rel="icon"
+        href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+
+  <link rel="stylesheet"
+        href="/assets/css/site.css">
+
+  
+    <link rel="canonical"
+          href="https://algolassi.online/blazor-javascript-interop-a-practical-guide/">
+  
+
+  <style>
+
+    .algolassi-breadcrumb {
+      max-width: 1100px;
+      margin: 0 auto 24px;
+      padding: 14px 18px;
+      font-size: 14px;
+    }
+
+    .breadcrumb-main {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .breadcrumb-main a {
+      text-decoration: none;
+    }
+
+    .breadcrumb-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .breadcrumb-pillar-button {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      font: inherit;
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+    }
+
+    .breadcrumb-arrow {
+      margin-left: 3px;
+      font-size: 11px;
+    }
+
+    .breadcrumb-menu {
+      display: none;
+      position: absolute;
+      z-index: 9999;
+      top: calc(100% + 8px);
+      left: 0;
+      min-width: 360px;
+      max-width: 480px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.15);
+      padding: 6px;
+    }
+
+    .breadcrumb-dropdown.open .breadcrumb-menu {
+      display: block;
+    }
+
+    .breadcrumb-menu a {
+      display: block;
+      padding: 9px 11px;
+      border-radius: 6px;
+      text-decoration: none;
+      line-height: 1.4;
+    }
+
+    .breadcrumb-menu a:hover {
+      background: #f2f2f2;
+    }
+
+    .breadcrumb-menu a.breadcrumb-current {
+      font-weight: 700;
+      background: #e9f2ff;
+    }
+
+    .breadcrumb-current-page {
+      font-weight: 600;
+    }
+
+    @media (max-width: 700px) {
+
+      .breadcrumb-menu {
+        min-width: 280px;
+        max-width: calc(100vw - 40px);
+      }
+
+    }
+
+  </style>
+
 </head>
+
 <body>
+
 <header class="site-header">
+
   <div class="site-header-inner">
+
     <a class="brand" href="/">
-      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+
+      <img
+        src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png"
+        alt="Algolassi"
+        width="32"
+        height="32">
+
       <span>Algolassi</span>
+
     </a>
-    <nav class="site-nav" aria-label="Main navigation">
+
+    <nav class="site-nav"
+         aria-label="Main navigation">
+
       <a href="/tutorials/">Tutorials</a>
+
       <a href="/csharp-tutorials/">C#</a>
+
       <a href="/net-tutorials/">.NET</a>
+
       <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+
       <a href="/blazor-tutorials/">Blazor</a>
+
       <a href="/sql-server-tutorials/">SQL Server</a>
+
       <a href="/about-algolassi/">About</a>
+
     </nav>
+
   </div>
+
 </header>
 
+
 <main class="site-main">
+
   
-  <div class="page-content">
-    
+
+    <div class="page-content">
+      
 <style>
 /* Suppress iframe scrollbars inside WordPress Editor preview */
 html, body {
@@ -121,25 +257,25 @@ html, body {
 <div class="breadcrumb">
 
     <span class="crumb-trigger" data-menu="home">
-        <a href="/">🏠 Home ▼</a>
+        <a href="/">ðŸ  Home â–¼</a>
     </span>
 
     &gt;
 
     <span class="crumb-trigger" data-menu="tutorials">
-        <a href="/tutorials/">📚 Tutorials ▼</a>
+        <a href="/tutorials/">ðŸ“š Tutorials â–¼</a>
     </span>
 
     &gt;
 
     <span class="crumb-trigger" data-menu="blazor">
-        <a href="/blazor-tutorials/">⚡ Blazor Tutorials ▼</a>
+        <a href="/blazor-tutorials/">âš¡ Blazor Tutorials â–¼</a>
     </span>
 
     &gt;
 
     <a href="/blazor-javascript-interop-a-practical-guide/">
-        🔄 Blazor JavaScript Interop: A Practical Guide
+        ðŸ”„ Blazor JavaScript Interop: A Practical Guide
     </a>
 
 </div>
@@ -147,32 +283,32 @@ html, body {
 <!-- Home Menu -->
 <div class="crumb-teleport-menu" id="menu-home">
 
-    <a href="/tutorials/">📚 Tutorials</a>
+    <a href="/tutorials/">ðŸ“š Tutorials</a>
 
-    <a href="/about-algolassi/">🌟 About Algolassi</a>
+    <a href="/about-algolassi/">ðŸŒŸ About Algolassi</a>
 
-    <a href="/197-2/">💼 Portfolio</a>
+    <a href="/197-2/">ðŸ’¼ Portfolio</a>
 
-    <a href="/contact-algolassi/">📧 Contact</a>
+    <a href="/contact-algolassi/">ðŸ“§ Contact</a>
 
 </div>
 
 <!-- Tutorials Menu -->
 <div class="crumb-teleport-menu" id="menu-tutorials">
 
-    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
+    <a href="/csharp-tutorials/">ðŸ’» C# Tutorials</a>
 
-    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
+    <a href="/net-tutorials/">âš™ï¸ .NET Tutorials</a>
 
-    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
+    <a href="/asp-net-core-tutorials/">ðŸŒ ASP.NET Core Tutorials</a>
 
-    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
+    <a href="/blazor-tutorials/">âš¡ Blazor Tutorials</a>
 
-    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
+    <a href="/sql-server-tutorials/">ðŸ—„ï¸ SQL Server Tutorials</a>
 
-    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
+    <a href="/visual-studio-tutorials/">ðŸ–¥ï¸ Visual Studio Tutorials</a>
 
-    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
+    <a href="/net-maui-tutorials/">ðŸ“± .NET MAUI Tutorials</a>
 
 </div>
 
@@ -180,11 +316,11 @@ html, body {
 <div class="crumb-teleport-menu" id="menu-blazor">
 
     <a href="/blazor-server-vs-webassembly/">
-        ⚖️ Blazor Server vs Blazor WebAssembly: Complete Comparison
+        âš–ï¸ Blazor Server vs Blazor WebAssembly: Complete Comparison
     </a>
 
-    <a href="/blazor-javascript-interop-a-practical-guide/" class="crumb-current">
-        🔄 Blazor JavaScript Interop: A Practical Guide
+    <a href="/blazor-javascript-interop-a-practical-guide/">
+        ðŸ”„ Blazor JavaScript Interop: A Practical Guide
     </a>
 
 </div>
@@ -280,13 +416,13 @@ html, body {
 
 
 <pre class="wp-block-code"><code>Blazor (C#)
-      │
-      ▼
+      â”‚
+      â–¼
  JavaScript
 
 JavaScript
-      │
-      ▼
+      â”‚
+      â–¼
  Blazor (.NET)</code></pre>
 
 
@@ -619,15 +755,15 @@ await JS.InvokeAsync&lt;string&gt;("getUser");</code></pre>
 
 <pre class="wp-block-code"><code>Blazor
 
-↓
+â†“
 
 JavaScript Wrapper
 
-↓
+â†“
 
 Chart.js
 
-↓
+â†“
 
 Browser</code></pre>
 
@@ -910,16 +1046,122 @@ await JS.InvokeAsync&lt;IJSObjectReference&gt;("import", "./js/site.js");</code>
 
 <p>This usually happens when the JavaScript file isn't loaded, the function name is incorrect, or the script is referenced after the Blazor application starts.</p>
 
-  </div>
+
+    </div>
+
   
+
 </main>
 
+
 <footer class="site-footer">
+
   <div class="footer-inner">
-    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
-    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+
+    <div>
+      <strong>Algolassi</strong>
+      <p>Practical software development tutorials.</p>
+    </div>
+
+    <nav>
+
+      <a href="/tutorials/">Tutorials</a>
+
+      <a href="/197-2/">Portfolio</a>
+
+      <a href="/about-algolassi/">About</a>
+
+      <a href="/contact-algolassi/">Contact</a>
+
+      <a href="/privacy-policy-2/">Privacy</a>
+
+    </nav>
+
   </div>
-  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+
+  <p class="copyright">
+    © 2026 Algolassi. All rights reserved.
+  </p>
+
 </footer>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  document
+    .querySelectorAll(".breadcrumb-pillar-button")
+    .forEach(function (button) {
+
+      button.addEventListener("click", function (event) {
+
+        event.stopPropagation();
+
+        const dropdown =
+          button.closest(".breadcrumb-dropdown");
+
+        const isOpen =
+          dropdown.classList.contains("open");
+
+        document
+          .querySelectorAll(".breadcrumb-dropdown.open")
+          .forEach(function (item) {
+            item.classList.remove("open");
+
+            const itemButton =
+              item.querySelector(".breadcrumb-pillar-button");
+
+            if (itemButton) {
+              itemButton.setAttribute(
+                "aria-expanded",
+                "false"
+              );
+            }
+          });
+
+        if (!isOpen) {
+
+          dropdown.classList.add("open");
+
+          button.setAttribute(
+            "aria-expanded",
+            "true"
+          );
+
+        }
+
+      });
+
+    });
+
+
+  document.addEventListener("click", function () {
+
+    document
+      .querySelectorAll(".breadcrumb-dropdown.open")
+      .forEach(function (dropdown) {
+
+        dropdown.classList.remove("open");
+
+        const button =
+          dropdown.querySelector(".breadcrumb-pillar-button");
+
+        if (button) {
+          button.setAttribute(
+            "aria-expanded",
+            "false"
+          );
+        }
+
+      });
+
+  });
+
+});
+
+</script>
+
+
 </body>
 </html>

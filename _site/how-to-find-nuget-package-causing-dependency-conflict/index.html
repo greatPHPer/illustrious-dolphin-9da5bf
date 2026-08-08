@@ -1,38 +1,174 @@
 <!doctype html>
 <html lang="en">
 <head>
+
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict | Algolassi</title>
-  <meta name="description" content="NuGet package conflicts can be frustrating, especially when Visual Studio reports an error involving packages that you never directly installed. You may...">
-  <meta name="generator" content="Eleventy">
-  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
-  <link rel="stylesheet" href="/assets/css/site.css">
-  <link rel="canonical" href="https://algolassi.online/how-to-find-nuget-package-causing-dependency-conflict/">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>ðŸ” How to Check Which NuGet Package Is Causing a Dependency Conflict | Algolassi</title>
+
+  
+    <meta name="description"
+          content="NuGet package conflicts can be frustrating, especially when Visual Studio reports an error involving packages that you never directly installed. You may...">
+  
+
+  <meta name="generator"
+        content="Eleventy">
+
+  <link rel="icon"
+        href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+
+  <link rel="stylesheet"
+        href="/assets/css/site.css">
+
+  
+    <link rel="canonical"
+          href="https://algolassi.online/how-to-find-nuget-package-causing-dependency-conflict/">
+  
+
+  <style>
+
+    .algolassi-breadcrumb {
+      max-width: 1100px;
+      margin: 0 auto 24px;
+      padding: 14px 18px;
+      font-size: 14px;
+    }
+
+    .breadcrumb-main {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .breadcrumb-main a {
+      text-decoration: none;
+    }
+
+    .breadcrumb-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .breadcrumb-pillar-button {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      font: inherit;
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+    }
+
+    .breadcrumb-arrow {
+      margin-left: 3px;
+      font-size: 11px;
+    }
+
+    .breadcrumb-menu {
+      display: none;
+      position: absolute;
+      z-index: 9999;
+      top: calc(100% + 8px);
+      left: 0;
+      min-width: 360px;
+      max-width: 480px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.15);
+      padding: 6px;
+    }
+
+    .breadcrumb-dropdown.open .breadcrumb-menu {
+      display: block;
+    }
+
+    .breadcrumb-menu a {
+      display: block;
+      padding: 9px 11px;
+      border-radius: 6px;
+      text-decoration: none;
+      line-height: 1.4;
+    }
+
+    .breadcrumb-menu a:hover {
+      background: #f2f2f2;
+    }
+
+    .breadcrumb-menu a.breadcrumb-current {
+      font-weight: 700;
+      background: #e9f2ff;
+    }
+
+    .breadcrumb-current-page {
+      font-weight: 600;
+    }
+
+    @media (max-width: 700px) {
+
+      .breadcrumb-menu {
+        min-width: 280px;
+        max-width: calc(100vw - 40px);
+      }
+
+    }
+
+  </style>
+
 </head>
+
 <body>
+
 <header class="site-header">
+
   <div class="site-header-inner">
+
     <a class="brand" href="/">
-      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+
+      <img
+        src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png"
+        alt="Algolassi"
+        width="32"
+        height="32">
+
       <span>Algolassi</span>
+
     </a>
-    <nav class="site-nav" aria-label="Main navigation">
+
+    <nav class="site-nav"
+         aria-label="Main navigation">
+
       <a href="/tutorials/">Tutorials</a>
+
       <a href="/csharp-tutorials/">C#</a>
+
       <a href="/net-tutorials/">.NET</a>
+
       <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+
       <a href="/blazor-tutorials/">Blazor</a>
+
       <a href="/sql-server-tutorials/">SQL Server</a>
+
       <a href="/about-algolassi/">About</a>
+
     </nav>
+
   </div>
+
 </header>
 
+
 <main class="site-main">
+
   
-  <div class="page-content">
-    
+
+    <div class="page-content">
+      
 <style>
 html, body {
     overflow: visible !important;
@@ -118,21 +254,21 @@ html, body {
 
     <!-- Home -->
     <span class="crumb-trigger" data-menu="home">
-        <a href="/">🏠 Home ▼</a>
+        <a href="/">ðŸ  Home â–¼</a>
     </span>
 
     &gt;
 
     <!-- Tutorials -->
     <span class="crumb-trigger" data-menu="tutorials">
-        <a href="/tutorials/">📚 Tutorials ▼</a>
+        <a href="/tutorials/">ðŸ“š Tutorials â–¼</a>
     </span>
 
     &gt;
 
     <!-- C# Tutorials -->
     <span class="crumb-trigger" data-menu="csharp">
-        <a href="/csharp-tutorials/">💻 C# Tutorials ▼</a>
+        <a href="/csharp-tutorials/">ðŸ’» C# Tutorials â–¼</a>
     </span>
 
     &gt;
@@ -140,7 +276,7 @@ html, body {
     <!-- Article #3 -->
     <a href="/how-to-find-nuget-package-causing-dependency-conflict/"
        class="crumb-last">
-        🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict
+        ðŸ” How to Check Which NuGet Package Is Causing a Dependency Conflict
     </a>
 
 </div>
@@ -149,13 +285,13 @@ html, body {
 <!-- Home Dropdown -->
 <div class="crumb-teleport-menu" id="menu-home">
 
-    <a href="/tutorials/">📚 Tutorials</a>
+    <a href="/tutorials/">ðŸ“š Tutorials</a>
 
-    <a href="/about-algolassi/">🌟 About Algolassi</a>
+    <a href="/about-algolassi/">ðŸŒŸ About Algolassi</a>
 
-    <a href="/197-2/">💼 Portfolio</a>
+    <a href="/197-2/">ðŸ’¼ Portfolio</a>
 
-    <a href="/contact-algolassi/">📧 Contact</a>
+    <a href="/contact-algolassi/">ðŸ“§ Contact</a>
 
 </div>
 
@@ -163,19 +299,19 @@ html, body {
 <!-- Tutorials Dropdown -->
 <div class="crumb-teleport-menu" id="menu-tutorials">
 
-    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
+    <a href="/csharp-tutorials/">ðŸ’» C# Tutorials</a>
 
-    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
+    <a href="/net-tutorials/">âš™ï¸ .NET Tutorials</a>
 
-    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
+    <a href="/asp-net-core-tutorials/">ðŸŒ ASP.NET Core Tutorials</a>
 
-    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
+    <a href="/blazor-tutorials/">âš¡ Blazor Tutorials</a>
 
-    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
+    <a href="/sql-server-tutorials/">ðŸ—„ï¸ SQL Server Tutorials</a>
 
-    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
+    <a href="/visual-studio-tutorials/">ðŸ–¥ï¸ Visual Studio Tutorials</a>
 
-    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
+    <a href="/net-maui-tutorials/">ðŸ“± .NET MAUI Tutorials</a>
 
 </div>
 
@@ -185,18 +321,17 @@ html, body {
 
     <!-- Article #1 -->
     <a href="/fix-nuget-package-version-conflicts-visual-studio/">
-        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+        ðŸ“¦ How to Fix NuGet Package Version Conflicts in Visual Studio
     </a>
 
     <!-- Article #2 -->
     <a href="/fix-nu1107-version-conflict-nuget-package/">
-        🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package
+        ðŸ”§ How to Fix NU1107: Version Conflict Detected for NuGet Package
     </a>
 
     <!-- Article #3 - Current -->
-    <a href="/how-to-find-nuget-package-causing-dependency-conflict/"
-       style="color:#0d6efd !important;font-weight:600;text-decoration:none;">
-        🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        ðŸ” How to Check Which NuGet Package Is Causing a Dependency Conflict
     </a>
 
 </div>
@@ -295,7 +430,7 @@ html, body {
 
 <hr>
 
-<h2>🔍 What Is a NuGet Dependency Conflict?</h2>
+<h2>ðŸ” What Is a NuGet Dependency Conflict?</h2>
 
 <p>
     A NuGet dependency conflict occurs when two or more packages require
@@ -307,12 +442,12 @@ html, body {
 </p>
 
 <pre><code>Your Application
-    │
-    ├── Package A
-    │      └── Newtonsoft.Json 12.x
-    │
-    └── Package B
-           └── Newtonsoft.Json 13.x</code></pre>
+    â”‚
+    â”œâ”€â”€ Package A
+    â”‚      â””â”€â”€ Newtonsoft.Json 12.x
+    â”‚
+    â””â”€â”€ Package B
+           â””â”€â”€ Newtonsoft.Json 13.x</code></pre>
 
 <p>
     Both packages depend on <code>Newtonsoft.Json</code>, but they require
@@ -326,7 +461,7 @@ html, body {
 
 <hr>
 
-<h2>🚨 Why Is It Sometimes Difficult to Find the Problem?</h2>
+<h2>ðŸš¨ Why Is It Sometimes Difficult to Find the Problem?</h2>
 
 <p>
     The package causing the conflict is not always a package that you
@@ -338,13 +473,13 @@ html, body {
 </p>
 
 <pre><code>YourProject
-    │
-    ├── PackageA
-    │      └── DependencyX
-    │             └── DependencyY
-    │
-    └── PackageB
-           └── DependencyY</code></pre>
+    â”‚
+    â”œâ”€â”€ PackageA
+    â”‚      â””â”€â”€ DependencyX
+    â”‚             â””â”€â”€ DependencyY
+    â”‚
+    â””â”€â”€ PackageB
+           â””â”€â”€ DependencyY</code></pre>
 
 <p>
     Your project only references <code>PackageA</code> and
@@ -363,7 +498,7 @@ html, body {
 
 <hr>
 
-<h2>🥇 Method 1: Read the Complete NuGet Error</h2>
+<h2>ðŸ¥‡ Method 1: Read the Complete NuGet Error</h2>
 
 <p>
     The first thing you should do is read the complete warning or error
@@ -375,16 +510,16 @@ html, body {
 </p>
 
 <pre><code>View
-→ Error List</code></pre>
+â†’ Error List</code></pre>
 
 <p>
     Look for messages containing codes such as:
 </p>
 
 <ul>
-    <li><strong>NU1107</strong> – version conflict</li>
-    <li><strong>NU1605</strong> – package downgrade</li>
-    <li><strong>NU1603</strong> – dependency version resolution issue</li>
+    <li><strong>NU1107</strong> â€“ version conflict</li>
+    <li><strong>NU1605</strong> â€“ package downgrade</li>
+    <li><strong>NU1603</strong> â€“ dependency version resolution issue</li>
 </ul>
 
 <p>
@@ -407,7 +542,7 @@ to resolve this issue.</code></pre>
 
 <hr>
 
-<h2>📦 Method 2: Check Installed NuGet Packages in Visual Studio</h2>
+<h2>ðŸ“¦ Method 2: Check Installed NuGet Packages in Visual Studio</h2>
 
 <p>
     Visual Studio provides a convenient interface for viewing the packages
@@ -435,7 +570,7 @@ to resolve this issue.</code></pre>
 
 <hr>
 
-<h2>💻 Method 3: Use dotnet list package</h2>
+<h2>ðŸ’» Method 3: Use dotnet list package</h2>
 
 <p>
     One of the easiest ways to inspect your project's package dependencies is
@@ -468,7 +603,7 @@ to resolve this issue.</code></pre>
 
 <hr>
 
-<h2>🔎 Method 4: Include Transitive Dependencies</h2>
+<h2>ðŸ”Ž Method 4: Include Transitive Dependencies</h2>
 
 <p>
     If you cannot find the conflicting package in the direct package list,
@@ -510,7 +645,7 @@ Transitive Package
 
 <hr>
 
-<h2>🧭 Method 5: Trace the Dependency Chain</h2>
+<h2>ðŸ§­ Method 5: Trace the Dependency Chain</h2>
 
 <p>
     Once you identify the conflicting dependency, work backwards through the
@@ -522,13 +657,13 @@ Transitive Package
 </p>
 
 <pre><code>Your Application
-    ↓
+    â†“
 Package A
-    ↓
+    â†“
 Package B
-    ↓
+    â†“
 Package C
-    ↓
+    â†“
 Dependency X</code></pre>
 
 <p>
@@ -543,7 +678,7 @@ Dependency X</code></pre>
 
 <hr>
 
-<h2>🛠️ Method 6: Inspect the .csproj File</h2>
+<h2>ðŸ› ï¸ Method 6: Inspect the .csproj File</h2>
 
 <p>
     Open your project's <code>.csproj</code> file.
@@ -569,9 +704,9 @@ Dependency X</code></pre>
 
 <hr>
 
-<h2>🧩 Direct vs Transitive NuGet Dependencies</h2>
+<h2>ðŸ§© Direct vs Transitive NuGet Dependencies</h2>
 
-<h3>📌 Direct Dependency</h3>
+<h3>ðŸ“Œ Direct Dependency</h3>
 
 <p>
     A direct dependency is explicitly referenced by your project:
@@ -583,16 +718,16 @@ Dependency X</code></pre>
     Your application directly requested <code>PackageA</code>.
 </p>
 
-<h3>📌 Transitive Dependency</h3>
+<h3>ðŸ“Œ Transitive Dependency</h3>
 
 <p>
     A transitive dependency is installed because another package requires it:
 </p>
 
 <pre><code>YourProject
-    ↓
+    â†“
 PackageA
-    ↓
+    â†“
 DependencyB</code></pre>
 
 <p>
@@ -607,7 +742,7 @@ DependencyB</code></pre>
 
 <hr>
 
-<h2>🔍 How to Find Which Package Introduced the Conflict</h2>
+<h2>ðŸ” How to Find Which Package Introduced the Conflict</h2>
 
 <p>
     Suppose the error mentions:
@@ -639,11 +774,11 @@ DependencyB</code></pre>
 </p>
 
 <pre><code>YourProject
-    ↓
+    â†“
 PackageA
-    ↓
+    â†“
 PackageB
-    ↓
+    â†“
 DependencyX</code></pre>
 
 <p>
@@ -654,19 +789,19 @@ DependencyX</code></pre>
 
 <hr>
 
-<h2>⚠️ What If Two Packages Require Different Versions?</h2>
+<h2>âš ï¸ What If Two Packages Require Different Versions?</h2>
 
 <p>
     Consider this example:
 </p>
 
 <pre><code>YourProject
-    │
-    ├── PackageA
-    │      └── DependencyX 1.x
-    │
-    └── PackageB
-           └── DependencyX 2.x</code></pre>
+    â”‚
+    â”œâ”€â”€ PackageA
+    â”‚      â””â”€â”€ DependencyX 1.x
+    â”‚
+    â””â”€â”€ PackageB
+           â””â”€â”€ DependencyX 2.x</code></pre>
 
 <p>
     Now you have a dependency conflict because PackageA and PackageB require
@@ -684,7 +819,7 @@ DependencyX</code></pre>
 
 <hr>
 
-<h2>🔄 Method 7: Check for Package Updates</h2>
+<h2>ðŸ”„ Method 7: Check for Package Updates</h2>
 
 <p>
     In Visual Studio:
@@ -709,7 +844,7 @@ DependencyX</code></pre>
 
 <hr>
 
-<h2>🛠️ Method 8: Explicitly Reference the Dependency</h2>
+<h2>ðŸ› ï¸ Method 8: Explicitly Reference the Dependency</h2>
 
 <p>
     Sometimes the NuGet error itself recommends explicitly referencing a
@@ -733,7 +868,7 @@ DependencyX</code></pre>
 
 <hr>
 
-<h2>🧹 Method 9: Restore Packages After Making Changes</h2>
+<h2>ðŸ§¹ Method 9: Restore Packages After Making Changes</h2>
 
 <p>
     After changing package versions, restore the project's packages:
@@ -752,10 +887,10 @@ DependencyX</code></pre>
 </p>
 
 <pre><code>Build
-→ Clean Solution
+â†’ Clean Solution
 
 Build
-→ Rebuild Solution</code></pre>
+â†’ Rebuild Solution</code></pre>
 
 <p>
     This ensures that the project is rebuilt using the updated dependency
@@ -764,7 +899,7 @@ Build
 
 <hr>
 
-<h2>🧪 Example: Finding the Problem Step by Step</h2>
+<h2>ðŸ§ª Example: Finding the Problem Step by Step</h2>
 
 <p>
     Imagine Visual Studio reports a dependency conflict involving
@@ -795,11 +930,11 @@ Build
 </p>
 
 <pre><code>PackageA
-    ↓
+    â†“
 DependencyX 1.0.0
 
 PackageB
-    ↓
+    â†“
 DependencyX 2.0.0</code></pre>
 
 <p>
@@ -814,7 +949,7 @@ DependencyX 2.0.0</code></pre>
 
 <hr>
 
-<h2>❌ Don't Just Delete the Conflicting Package</h2>
+<h2>âŒ Don't Just Delete the Conflicting Package</h2>
 
 <p>
     A common mistake is to remove a package simply because it appears in the
@@ -839,7 +974,7 @@ DependencyX 2.0.0</code></pre>
 
 <hr>
 
-<h2>❌ Don't Always Force the Newest Version</h2>
+<h2>âŒ Don't Always Force the Newest Version</h2>
 
 <p>
     Installing the newest dependency version can sometimes remove a warning,
@@ -858,7 +993,7 @@ DependencyX 2.0.0</code></pre>
 
 <hr>
 
-<h2>📋 Quick Checklist</h2>
+<h2>ðŸ“‹ Quick Checklist</h2>
 
 <p>
     When you encounter a NuGet dependency conflict, follow this checklist:
@@ -881,7 +1016,7 @@ DependencyX 2.0.0</code></pre>
 
 <hr>
 
-<h2>🔗 Related NuGet Articles</h2>
+<h2>ðŸ”— Related NuGet Articles</h2>
 
 <p>
     Once you've identified the package causing the conflict, the next step
@@ -889,21 +1024,21 @@ DependencyX 2.0.0</code></pre>
 </p>
 
 <p>
-    📦
+    ðŸ“¦
     <a href="/fix-nuget-package-version-conflicts-visual-studio/">
         How to Fix NuGet Package Version Conflicts in Visual Studio
     </a>
 </p>
 
 <p>
-    🔧
+    ðŸ”§
     <a href="/fix-nu1605-nuget-package-downgrade/">
         How to Fix NU1605: Package Downgrade Detected in Visual Studio
     </a>
 </p>
 
 <p>
-    🔧
+    ðŸ”§
     <a href="/fix-nu1107-version-conflict-nuget-package/">
         How to Fix NU1107: Version Conflict Detected for NuGet Package
     </a>
@@ -911,7 +1046,7 @@ DependencyX 2.0.0</code></pre>
 
 <hr>
 
-<h2>🎯 Conclusion</h2>
+<h2>ðŸŽ¯ Conclusion</h2>
 
 <p>
     Finding the NuGet package responsible for a dependency conflict becomes
@@ -943,27 +1078,133 @@ DependencyX 2.0.0</code></pre>
 
 <div style="margin-top:30px;padding:20px;border:1px solid #ddd;border-radius:10px;background:#f7f7f7;">
 
-    <strong>📦 Having a NuGet Version Conflict?</strong>
+    <strong>ðŸ“¦ Having a NuGet Version Conflict?</strong>
 
     <p style="margin-bottom:0;">
         Start with our complete guide:
         <a href="/fix-nuget-package-version-conflicts-visual-studio/">
-            How to Fix NuGet Package Version Conflicts in Visual Studio →
+            How to Fix NuGet Package Version Conflicts in Visual Studio â†’
         </a>
     </p>
 
 </div>
 
-  </div>
+
+    </div>
+
   
+
 </main>
 
+
 <footer class="site-footer">
+
   <div class="footer-inner">
-    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
-    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+
+    <div>
+      <strong>Algolassi</strong>
+      <p>Practical software development tutorials.</p>
+    </div>
+
+    <nav>
+
+      <a href="/tutorials/">Tutorials</a>
+
+      <a href="/197-2/">Portfolio</a>
+
+      <a href="/about-algolassi/">About</a>
+
+      <a href="/contact-algolassi/">Contact</a>
+
+      <a href="/privacy-policy-2/">Privacy</a>
+
+    </nav>
+
   </div>
-  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+
+  <p class="copyright">
+    © 2026 Algolassi. All rights reserved.
+  </p>
+
 </footer>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  document
+    .querySelectorAll(".breadcrumb-pillar-button")
+    .forEach(function (button) {
+
+      button.addEventListener("click", function (event) {
+
+        event.stopPropagation();
+
+        const dropdown =
+          button.closest(".breadcrumb-dropdown");
+
+        const isOpen =
+          dropdown.classList.contains("open");
+
+        document
+          .querySelectorAll(".breadcrumb-dropdown.open")
+          .forEach(function (item) {
+            item.classList.remove("open");
+
+            const itemButton =
+              item.querySelector(".breadcrumb-pillar-button");
+
+            if (itemButton) {
+              itemButton.setAttribute(
+                "aria-expanded",
+                "false"
+              );
+            }
+          });
+
+        if (!isOpen) {
+
+          dropdown.classList.add("open");
+
+          button.setAttribute(
+            "aria-expanded",
+            "true"
+          );
+
+        }
+
+      });
+
+    });
+
+
+  document.addEventListener("click", function () {
+
+    document
+      .querySelectorAll(".breadcrumb-dropdown.open")
+      .forEach(function (dropdown) {
+
+        dropdown.classList.remove("open");
+
+        const button =
+          dropdown.querySelector(".breadcrumb-pillar-button");
+
+        if (button) {
+          button.setAttribute(
+            "aria-expanded",
+            "false"
+          );
+        }
+
+      });
+
+  });
+
+});
+
+</script>
+
+
 </body>
 </html>

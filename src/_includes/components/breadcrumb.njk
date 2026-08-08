@@ -1,0 +1,72 @@
+{% set currentUrl = permalink | default(page.url) %}
+
+{% set currentPillar = null %}
+
+{% for key, pillar in pillars %}
+  {% for article in pillar.articles %}
+    {% if article.url == currentUrl %}
+      {% set currentPillar = pillar %}
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+
+<nav class="algolassi-breadcrumb" aria-label="Breadcrumb">
+
+  <div class="breadcrumb-main">
+
+    <a href="/">🏠 Home</a>
+
+    <span>›</span>
+
+    <a href="/tutorials/">📚 Tutorials</a>
+
+    {% if currentPillar %}
+
+      <span>›</span>
+
+      <div class="breadcrumb-dropdown">
+
+        <button
+          type="button"
+          class="breadcrumb-pillar-button"
+          aria-haspopup="true"
+          aria-expanded="false">
+          {{ currentPillar.title }}
+          <span class="breadcrumb-arrow">▾</span>
+        </button>
+
+        <div class="breadcrumb-menu">
+
+          {% for article in currentPillar.articles %}
+
+            <a
+              href="{{ article.url }}"
+              class="{% if article.url == currentUrl %}breadcrumb-current{% endif %}">
+              {{ article.title }}
+            </a>
+
+          {% endfor %}
+
+        </div>
+
+      </div>
+
+      <span>›</span>
+
+      <span class="breadcrumb-current-page">
+        {{ title }}
+      </span>
+
+    {% else %}
+
+      <span>›</span>
+
+      <span class="breadcrumb-current-page">
+        {{ title }}
+      </span>
+
+    {% endif %}
+
+  </div>
+
+</nav>

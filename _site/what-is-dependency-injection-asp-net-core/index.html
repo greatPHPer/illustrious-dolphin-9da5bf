@@ -1,38 +1,174 @@
 <!doctype html>
 <html lang="en">
 <head>
+
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
   <title>What Is Dependency Injection in ASP.NET Core? A Beginner&#39;s Guide | Algolassi</title>
-  <meta name="description" content="Dependency Injection (DI) is one of the most important concepts in ASP.NET Core. It allows your application to provide the objects and services that a...">
-  <meta name="generator" content="Eleventy">
-  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
-  <link rel="stylesheet" href="/assets/css/site.css">
-  <link rel="canonical" href="https://algolassi.online/what-is-dependency-injection-asp-net-core/">
+
+  
+    <meta name="description"
+          content="Dependency Injection (DI) is one of the most important concepts in ASP.NET Core. It allows your application to provide the objects and services that a...">
+  
+
+  <meta name="generator"
+        content="Eleventy">
+
+  <link rel="icon"
+        href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+
+  <link rel="stylesheet"
+        href="/assets/css/site.css">
+
+  
+    <link rel="canonical"
+          href="https://algolassi.online/what-is-dependency-injection-asp-net-core/">
+  
+
+  <style>
+
+    .algolassi-breadcrumb {
+      max-width: 1100px;
+      margin: 0 auto 24px;
+      padding: 14px 18px;
+      font-size: 14px;
+    }
+
+    .breadcrumb-main {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .breadcrumb-main a {
+      text-decoration: none;
+    }
+
+    .breadcrumb-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .breadcrumb-pillar-button {
+      border: 0;
+      background: transparent;
+      padding: 0;
+      font: inherit;
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+    }
+
+    .breadcrumb-arrow {
+      margin-left: 3px;
+      font-size: 11px;
+    }
+
+    .breadcrumb-menu {
+      display: none;
+      position: absolute;
+      z-index: 9999;
+      top: calc(100% + 8px);
+      left: 0;
+      min-width: 360px;
+      max-width: 480px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.15);
+      padding: 6px;
+    }
+
+    .breadcrumb-dropdown.open .breadcrumb-menu {
+      display: block;
+    }
+
+    .breadcrumb-menu a {
+      display: block;
+      padding: 9px 11px;
+      border-radius: 6px;
+      text-decoration: none;
+      line-height: 1.4;
+    }
+
+    .breadcrumb-menu a:hover {
+      background: #f2f2f2;
+    }
+
+    .breadcrumb-menu a.breadcrumb-current {
+      font-weight: 700;
+      background: #e9f2ff;
+    }
+
+    .breadcrumb-current-page {
+      font-weight: 600;
+    }
+
+    @media (max-width: 700px) {
+
+      .breadcrumb-menu {
+        min-width: 280px;
+        max-width: calc(100vw - 40px);
+      }
+
+    }
+
+  </style>
+
 </head>
+
 <body>
+
 <header class="site-header">
+
   <div class="site-header-inner">
+
     <a class="brand" href="/">
-      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+
+      <img
+        src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png"
+        alt="Algolassi"
+        width="32"
+        height="32">
+
       <span>Algolassi</span>
+
     </a>
-    <nav class="site-nav" aria-label="Main navigation">
+
+    <nav class="site-nav"
+         aria-label="Main navigation">
+
       <a href="/tutorials/">Tutorials</a>
+
       <a href="/csharp-tutorials/">C#</a>
+
       <a href="/net-tutorials/">.NET</a>
+
       <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+
       <a href="/blazor-tutorials/">Blazor</a>
+
       <a href="/sql-server-tutorials/">SQL Server</a>
+
       <a href="/about-algolassi/">About</a>
+
     </nav>
+
   </div>
+
 </header>
 
+
 <main class="site-main">
+
   
-  <div class="page-content">
-    
+
+    <div class="page-content">
+      
 <style>
 /* ==========================================
    ARTICLE CONTENT
@@ -195,14 +331,14 @@ body {
 
     <!-- Home -->
     <span class="crumb-trigger" data-menu="home">
-        <a href="/">🏠 Home ▼</a>
+        <a href="/">ðŸ  Home â–¼</a>
     </span>
 
     &gt;
 
     <!-- Tutorials -->
     <span class="crumb-trigger" data-menu="tutorials">
-        <a href="/tutorials/">📚 Tutorials ▼</a>
+        <a href="/tutorials/">ðŸ“š Tutorials â–¼</a>
     </span>
 
     &gt;
@@ -210,7 +346,7 @@ body {
     <!-- ASP.NET Core Tutorials -->
     <span class="crumb-trigger" data-menu="aspnetcore">
         <a href="/asp-net-core-tutorials/">
-            🌐 ASP.NET Core Tutorials ▼
+            ðŸŒ ASP.NET Core Tutorials â–¼
         </a>
     </span>
 
@@ -218,7 +354,7 @@ body {
 
     <!-- Current Article -->
     <a href="/what-is-dependency-injection-asp-net-core/">
-        💉 What Is Dependency Injection in ASP.NET Core? A Beginner's Guide
+        ðŸ’‰ What Is Dependency Injection in ASP.NET Core? A Beginner's Guide
     </a>
 
 </div>
@@ -231,20 +367,20 @@ body {
 
 <div class="crumb-teleport-menu" id="menu-home">
 
-    <a href="/tutorials/" class="crumb-current">
-        📚 Tutorials
+    <a href="/tutorials/">
+        ðŸ“š Tutorials
     </a>
 
     <a href="/about-algolassi/">
-        🌟 About Algolassi
+        ðŸŒŸ About Algolassi
     </a>
 
     <a href="/197-2/">
-        💼 Portfolio
+        ðŸ’¼ Portfolio
     </a>
 
     <a href="/contact-algolassi/">
-        📧 Contact
+        ðŸ“§ Contact
     </a>
 
 </div>
@@ -258,31 +394,31 @@ body {
 <div class="crumb-teleport-menu" id="menu-tutorials">
 
     <a href="/csharp-tutorials/">
-        💻 C# Tutorials
+        ðŸ’» C# Tutorials
     </a>
 
     <a href="/net-tutorials/">
-        ⚙️ .NET Tutorials
+        âš™ï¸ .NET Tutorials
     </a>
 
-    <a href="/asp-net-core-tutorials/" class="crumb-current">
-        🌐 ASP.NET Core Tutorials
+    <a href="/asp-net-core-tutorials/">
+        ðŸŒ ASP.NET Core Tutorials
     </a>
 
     <a href="/blazor-tutorials/">
-        ⚡ Blazor Tutorials
+        âš¡ Blazor Tutorials
     </a>
 
     <a href="/sql-server-tutorials/">
-        🗄️ SQL Server Tutorials
+        ðŸ—„ï¸ SQL Server Tutorials
     </a>
 
     <a href="/visual-studio-tutorials/">
-        🖥️ Visual Studio Tutorials
+        ðŸ–¥ï¸ Visual Studio Tutorials
     </a>
 
     <a href="/net-maui-tutorials/">
-        📱 .NET MAUI Tutorials
+        ðŸ“± .NET MAUI Tutorials
     </a>
 
 </div>
@@ -297,43 +433,42 @@ body {
 
     <!-- Pillar -->
     <a href="/aspnet-core-dependency-injection-explained/">
-        🏛️ ASP.NET Core Dependency Injection Explained with Examples
+        ðŸ›ï¸ ASP.NET Core Dependency Injection Explained with Examples
     </a>
 
     <!-- Article #1 -->
-    <a href="/what-is-dependency-injection-asp-net-core/"
-       class="crumb-current">
-        💉 What Is Dependency Injection in ASP.NET Core? A Beginner's Guide
+    <a href="/what-is-dependency-injection-asp-net-core/">
+        ðŸ’‰ What Is Dependency Injection in ASP.NET Core? A Beginner's Guide
     </a>
 
     <!-- Article #2 -->
     <a href="/register-services-asp-net-core-dependency-injection/">
-        ⚙️ How to Register Services in ASP.NET Core Dependency Injection
+        âš™ï¸ How to Register Services in ASP.NET Core Dependency Injection
     </a>
 
     <!-- Article #3 -->
     <a href="/singleton-scoped-transient-asp-net-core/">
-        🔄 Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
+        ðŸ”„ Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
     </a>
 
     <!-- Article #4 -->
     <a href="/constructor-injection-asp-net-core/">
-        🧩 How to Use Constructor Injection in ASP.NET Core
+        ðŸ§© How to Use Constructor Injection in ASP.NET Core
     </a>
 
     <!-- Article #5 -->
     <a href="/inject-services-controllers-razor-pages-blazor/">
-        💉 How to Inject Services into Controllers, Razor Pages, and Blazor
+        ðŸ’‰ How to Inject Services into Controllers, Razor Pages, and Blazor
     </a>
 
     <!-- Article #6 -->
     <a href="/common-dependency-injection-errors-asp-net-core/">
-        🚨 Common Dependency Injection Errors in ASP.NET Core and How to Fix Them
+        ðŸš¨ Common Dependency Injection Errors in ASP.NET Core and How to Fix Them
     </a>
 
     <!-- Article #7 -->
     <a href="/advanced-dependency-injection-asp-net-core/">
-        🚀 Advanced Dependency Injection in ASP.NET Core: Factory, Keyed Services, and Service Lifetimes
+        ðŸš€ Advanced Dependency Injection in ASP.NET Core: Factory, Keyed Services, and Service Lifetimes
     </a>
 
 </div>
@@ -373,7 +508,7 @@ body {
 </p>
 
 
-<h2>📌 What Is Dependency Injection?</h2>
+<h2>ðŸ“Œ What Is Dependency Injection?</h2>
 
 <p>
     A dependency is an object that another class needs to perform its work.
@@ -424,7 +559,7 @@ body {
 </p>
 
 
-<h2>🎯 Why Is Dependency Injection Useful?</h2>
+<h2>ðŸŽ¯ Why Is Dependency Injection Useful?</h2>
 
 <p>
     Dependency Injection provides several important benefits when building
@@ -441,7 +576,7 @@ body {
 </ul>
 
 
-<h2>🏗️ Dependency Injection in ASP.NET Core</h2>
+<h2>ðŸ—ï¸ Dependency Injection in ASP.NET Core</h2>
 
 <p>
     ASP.NET Core includes a built-in Dependency Injection container.
@@ -464,7 +599,7 @@ body {
 </p>
 
 
-<h2>⚙️ A Simple Complete Example</h2>
+<h2>âš™ï¸ A Simple Complete Example</h2>
 
 <p>
     Let's create a small service that returns a message.
@@ -519,7 +654,7 @@ body {
 </p>
 
 
-<h2>🧩 Constructor Injection</h2>
+<h2>ðŸ§© Constructor Injection</h2>
 
 <p>
     Constructor Injection is one of the most common forms of Dependency
@@ -551,7 +686,7 @@ body {
 </p>
 
 
-<h2>🔌 Using Interfaces with Dependency Injection</h2>
+<h2>ðŸ”Œ Using Interfaces with Dependency Injection</h2>
 
 <p>
     Dependency Injection becomes especially useful when you program against
@@ -606,7 +741,7 @@ body {
 </p>
 
 
-<h2>⏱️ Service Lifetimes in ASP.NET Core</h2>
+<h2>â±ï¸ Service Lifetimes in ASP.NET Core</h2>
 
 <p>
     ASP.NET Core provides three commonly used service lifetimes:
@@ -614,17 +749,17 @@ body {
 
 <ul>
     <li>
-        <strong>Transient</strong> — a new instance is created each time
+        <strong>Transient</strong> â€” a new instance is created each time
         the service is requested.
     </li>
 
     <li>
-        <strong>Scoped</strong> — one instance is generally created for
+        <strong>Scoped</strong> â€” one instance is generally created for
         each scope.
     </li>
 
     <li>
-        <strong>Singleton</strong> — one instance is used for the lifetime
+        <strong>Singleton</strong> â€” one instance is used for the lifetime
         of the application.
     </li>
 </ul>
@@ -641,7 +776,7 @@ builder.Services.AddSingleton&lt;IApplicationService, ApplicationService&gt;();<
 
 <div class="article-tip">
 
-    <strong>💡 Tip:</strong>
+    <strong>ðŸ’¡ Tip:</strong>
 
     Choosing the correct service lifetime is important. A service that holds
     state or depends on another scoped service should not automatically be
@@ -655,12 +790,12 @@ builder.Services.AddSingleton&lt;IApplicationService, ApplicationService&gt;();<
 
 <p>
     <a href="/singleton-scoped-transient-asp-net-core/">
-        🔄 Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
+        ðŸ”„ Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
     </a>
 </p>
 
 
-<h2>🧪 Dependency Injection and Unit Testing</h2>
+<h2>ðŸ§ª Dependency Injection and Unit Testing</h2>
 
 <p>
     One of the major advantages of Dependency Injection is that it makes
@@ -683,7 +818,7 @@ builder.Services.AddSingleton&lt;IApplicationService, ApplicationService&gt;();<
 </p>
 
 
-<h2>🚨 What Happens If a Service Is Not Registered?</h2>
+<h2>ðŸš¨ What Happens If a Service Is Not Registered?</h2>
 
 <p>
     If ASP.NET Core tries to resolve a service that hasn't been registered,
@@ -711,7 +846,7 @@ builder.Services.AddSingleton&lt;IApplicationService, ApplicationService&gt;();<
 <pre><code>builder.Services.AddScoped&lt;IMessageService, MessageService&gt;();</code></pre>
 
 
-<h2>📚 Dependency Injection in Blazor</h2>
+<h2>ðŸ“š Dependency Injection in Blazor</h2>
 
 <p>
     Dependency Injection is not limited to MVC controllers. ASP.NET Core's
@@ -733,7 +868,7 @@ builder.Services.AddSingleton&lt;IApplicationService, ApplicationService&gt;();<
 </p>
 
 
-<h2>🧠 Dependency Injection vs Creating Objects Manually</h2>
+<h2>ðŸ§  Dependency Injection vs Creating Objects Manually</h2>
 
 <table style="width:100%;border-collapse:collapse;margin:20px 0;">
 
@@ -806,10 +941,10 @@ builder.Services.AddSingleton&lt;IApplicationService, ApplicationService&gt;();<
 </table>
 
 
-<h2>📖 Related Dependency Injection Articles</h2>
+<h2>ðŸ“– Related Dependency Injection Articles</h2>
 
 <p>
-    🏛️
+    ðŸ›ï¸
     <a href="/aspnet-core-dependency-injection-explained/">
         ASP.NET Core Dependency Injection Explained with Examples
         (Beginner to Advanced)
@@ -817,42 +952,42 @@ builder.Services.AddSingleton&lt;IApplicationService, ApplicationService&gt;();<
 </p>
 
 <p>
-    ⚙️
+    âš™ï¸
     <a href="/register-services-asp-net-core-dependency-injection/">
         How to Register Services in ASP.NET Core Dependency Injection
     </a>
 </p>
 
 <p>
-    🔄
+    ðŸ”„
     <a href="/singleton-scoped-transient-asp-net-core/">
         Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
     </a>
 </p>
 
 <p>
-    🧩
+    ðŸ§©
     <a href="/constructor-injection-asp-net-core/">
         How to Use Constructor Injection in ASP.NET Core
     </a>
 </p>
 
 <p>
-    💉
+    ðŸ’‰
     <a href="/inject-services-controllers-razor-pages-blazor/">
         How to Inject Services into Controllers, Razor Pages, and Blazor
     </a>
 </p>
 
 <p>
-    🚨
+    ðŸš¨
     <a href="/common-dependency-injection-errors-asp-net-core/">
         Common Dependency Injection Errors in ASP.NET Core and How to Fix Them
     </a>
 </p>
 
 <p>
-    🚀
+    ðŸš€
     <a href="/advanced-dependency-injection-asp-net-core/">
         Advanced Dependency Injection in ASP.NET Core: Factory, Keyed Services,
         and Service Lifetimes
@@ -860,7 +995,7 @@ builder.Services.AddSingleton&lt;IApplicationService, ApplicationService&gt;();<
 </p>
 
 
-<h2>🎯 Conclusion</h2>
+<h2>ðŸŽ¯ Conclusion</h2>
 
 <p>
     Dependency Injection is a fundamental part of ASP.NET Core development.
@@ -878,7 +1013,7 @@ builder.Services.AddSingleton&lt;IApplicationService, ApplicationService&gt;();<
 
 <div class="article-tip">
 
-    <strong>🚀 What's next?</strong>
+    <strong>ðŸš€ What's next?</strong>
 
     <p>
         Learn how to register your own services in ASP.NET Core:
@@ -887,7 +1022,7 @@ builder.Services.AddSingleton&lt;IApplicationService, ApplicationService&gt;();<
     <p style="margin-bottom:0;">
 
         <a href="/register-services-asp-net-core-dependency-injection/">
-            ⚙️ How to Register Services in ASP.NET Core Dependency Injection
+            âš™ï¸ How to Register Services in ASP.NET Core Dependency Injection
         </a>
 
     </p>
@@ -999,16 +1134,122 @@ builder.Services.AddSingleton&lt;IApplicationService, ApplicationService&gt;();<
 })();
 </script>
 
-  </div>
+
+    </div>
+
   
+
 </main>
 
+
 <footer class="site-footer">
+
   <div class="footer-inner">
-    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
-    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+
+    <div>
+      <strong>Algolassi</strong>
+      <p>Practical software development tutorials.</p>
+    </div>
+
+    <nav>
+
+      <a href="/tutorials/">Tutorials</a>
+
+      <a href="/197-2/">Portfolio</a>
+
+      <a href="/about-algolassi/">About</a>
+
+      <a href="/contact-algolassi/">Contact</a>
+
+      <a href="/privacy-policy-2/">Privacy</a>
+
+    </nav>
+
   </div>
-  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+
+  <p class="copyright">
+    © 2026 Algolassi. All rights reserved.
+  </p>
+
 </footer>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  document
+    .querySelectorAll(".breadcrumb-pillar-button")
+    .forEach(function (button) {
+
+      button.addEventListener("click", function (event) {
+
+        event.stopPropagation();
+
+        const dropdown =
+          button.closest(".breadcrumb-dropdown");
+
+        const isOpen =
+          dropdown.classList.contains("open");
+
+        document
+          .querySelectorAll(".breadcrumb-dropdown.open")
+          .forEach(function (item) {
+            item.classList.remove("open");
+
+            const itemButton =
+              item.querySelector(".breadcrumb-pillar-button");
+
+            if (itemButton) {
+              itemButton.setAttribute(
+                "aria-expanded",
+                "false"
+              );
+            }
+          });
+
+        if (!isOpen) {
+
+          dropdown.classList.add("open");
+
+          button.setAttribute(
+            "aria-expanded",
+            "true"
+          );
+
+        }
+
+      });
+
+    });
+
+
+  document.addEventListener("click", function () {
+
+    document
+      .querySelectorAll(".breadcrumb-dropdown.open")
+      .forEach(function (dropdown) {
+
+        dropdown.classList.remove("open");
+
+        const button =
+          dropdown.querySelector(".breadcrumb-pillar-button");
+
+        if (button) {
+          button.setAttribute(
+            "aria-expanded",
+            "false"
+          );
+        }
+
+      });
+
+  });
+
+});
+
+</script>
+
+
 </body>
 </html>
