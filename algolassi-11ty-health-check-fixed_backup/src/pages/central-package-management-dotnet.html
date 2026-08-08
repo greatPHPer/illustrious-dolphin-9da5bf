@@ -1,0 +1,961 @@
+---
+title: "📦 How to Use Central Package Management in .NET"
+layout: layouts/base.njk
+permalink: "/central-package-management-dotnet/"
+legacyId: 447
+contentType: "page"
+date: "2026-08-08T01:58:42"
+description: "Managing NuGet package versions can become difficult when a solution contains multiple projects. If every project specifies its own package versions,..."
+---
+
+<style>
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.crumb-trigger a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 340px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+.crumb-active {
+    color: #0d6efd !important;
+    font-weight: 600 !important;
+    background: #eef5ff !important;
+}
+
+.crumb-last {
+    color: #0d6efd !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.crumb-last:hover {
+    color: #0b5ed7 !important;
+    text-decoration: underline;
+}
+</style>
+
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- C# Tutorials -->
+    <span class="crumb-trigger" data-menu="csharp">
+        <a href="/csharp-tutorials/">💻 C# Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Article #7 -->
+    <a href="/central-package-management-dotnet/"
+       class="crumb-last">
+        📦 How to Use Central Package Management in .NET
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Home Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <a href="/tutorials/" class="crumb-active">
+        📚 Tutorials
+    </a>
+
+    <a href="/about-algolassi/">
+        🌟 About Algolassi
+    </a>
+
+    <a href="/197-2/">
+        💼 Portfolio
+    </a>
+
+    <a href="/contact-algolassi/">
+        📧 Contact
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Tutorials Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/" class="crumb-active">
+        💻 C# Tutorials
+    </a>
+
+    <a href="/net-tutorials/">
+        ⚙️ .NET Tutorials
+    </a>
+
+    <a href="/asp-net-core-tutorials/">
+        🌐 ASP.NET Core Tutorials
+    </a>
+
+    <a href="/blazor-tutorials/">
+        ⚡ Blazor Tutorials
+    </a>
+
+    <a href="/sql-server-tutorials/">
+        🗄️ SQL Server Tutorials
+    </a>
+
+    <a href="/visual-studio-tutorials/">
+        🖥️ Visual Studio Tutorials
+    </a>
+
+    <a href="/net-maui-tutorials/">
+        📱 .NET MAUI Tutorials
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- C# Tutorials Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-csharp">
+
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+
+    <a href="/direct-vs-transitive-nuget-dependencies/">
+        📦 Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+
+    <a href="/update-nuget-packages-safely/">
+        🔄 How to Update NuGet Packages Safely Without Breaking Your Project
+    </a>
+
+    <a href="/package-reference-vs-packages-config/">
+        📦 PackageReference vs packages.config: Which Should You Use?
+    </a>
+
+    <a href="/central-package-management-dotnet/"
+       class="crumb-active">
+        📦 How to Use Central Package Management in .NET
+    </a>
+
+</div>
+
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(function (trigger) {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById('menu-' + menuName);
+
+        if (!menu) return;
+
+        /*
+         * Move dropdown outside the WordPress
+         * content container so it is not clipped.
+         */
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect = trigger.getBoundingClientRect();
+
+            menu.style.left = rect.left + 'px';
+            menu.style.top = (rect.bottom + 5) + 'px';
+
+        }
+
+        function showMenu() {
+
+            document
+                .querySelectorAll('.crumb-teleport-menu')
+                .forEach(function (m) {
+                    m.style.display = 'none';
+                });
+
+            updatePosition();
+
+            menu.style.display = 'block';
+
+        }
+
+        function hideMenu() {
+
+            setTimeout(function () {
+
+                if (!trigger.matches(':hover') &&
+                    !menu.matches(':hover')) {
+
+                    menu.style.display = 'none';
+
+                }
+
+            }, 100);
+
+        }
+
+        trigger.addEventListener('mouseenter', showMenu);
+        trigger.addEventListener('mouseleave', hideMenu);
+
+        menu.addEventListener('mouseenter', showMenu);
+        menu.addEventListener('mouseleave', hideMenu);
+
+        window.addEventListener('resize', updatePosition);
+
+        window.addEventListener('scroll', updatePosition, true);
+
+    });
+
+})();
+</script>
+
+<p>
+    Managing NuGet package versions can become difficult when a solution
+    contains multiple projects. If every project specifies its own package
+    versions, keeping those versions synchronized can quickly become a
+    maintenance problem.
+</p>
+
+<p>
+    <strong>Central Package Management (CPM)</strong> provides a way to manage
+    NuGet package versions from a central location instead of repeating
+    package versions across every project.
+</p>
+
+<p>
+    In this guide, you'll learn what Central Package Management is, how to
+    enable it, how to define package versions centrally, and how to use it
+    in a multi-project .NET solution.
+</p>
+
+<hr>
+
+<h2>📦 What Is Central Package Management?</h2>
+
+<p>
+    Central Package Management allows you to define NuGet package versions in
+    a central MSBuild file called:
+</p>
+
+<pre><code>Directory.Packages.props</code></pre>
+
+<p>
+    Instead of defining the version separately in every project's
+    <code>.csproj</code> file, the package version can be defined once.
+</p>
+
+<p>
+    For example, without Central Package Management, you might have:
+</p>
+
+<pre><code>&lt;PackageReference Include="Newtonsoft.Json" Version="13.0.3" /&gt;</code></pre>
+
+<p>
+    If several projects use the same package, the version may be repeated
+    throughout the solution.
+</p>
+
+<p>
+    With Central Package Management, the version can be moved to
+    <code>Directory.Packages.props</code>.
+</p>
+
+<hr>
+
+<h2>🏗️ Why Use Central Package Management?</h2>
+
+<p>
+    Imagine a solution containing several projects:
+</p>
+
+<pre><code>MySolution
+│
+├── MyApp.Web
+├── MyApp.API
+├── MyApp.Services
+├── MyApp.Data
+└── MyApp.Tests</code></pre>
+
+<p>
+    Suppose all five projects use the same NuGet package.
+</p>
+
+<p>
+    Without centralized version management, you may have to maintain the
+    package version in several project files.
+</p>
+
+<p>
+    This can lead to situations where one project uses:
+</p>
+
+<pre><code>PackageX 5.0.0</code></pre>
+
+<p>
+    while another project uses:
+</p>
+
+<pre><code>PackageX 4.8.0</code></pre>
+
+<p>
+    Central Package Management helps keep package versions consistent across
+    the solution.
+</p>
+
+<hr>
+
+<h2>📁 Where Should Directory.Packages.props Go?</h2>
+
+<p>
+    Create <code>Directory.Packages.props</code> in the directory that
+    contains your solution or project structure.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>MySolution/
+│
+├── Directory.Packages.props
+├── MySolution.sln
+│
+├── MyApp.Web/
+│   └── MyApp.Web.csproj
+│
+├── MyApp.API/
+│   └── MyApp.API.csproj
+│
+├── MyApp.Data/
+│   └── MyApp.Data.csproj
+│
+└── MyApp.Tests/
+    └── MyApp.Tests.csproj</code></pre>
+
+<p>
+    The central package file can then apply to projects underneath that
+    directory.
+</p>
+
+<hr>
+
+<h2>⚙️ Step 1: Create Directory.Packages.props</h2>
+
+<p>
+    Create a new file named:
+</p>
+
+<pre><code>Directory.Packages.props</code></pre>
+
+<p>
+    A basic example looks like this:
+</p>
+
+<pre><code>&lt;Project&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;ManagePackageVersionsCentrally&gt;true&lt;/ManagePackageVersionsCentrally&gt;
+  &lt;/PropertyGroup&gt;
+
+&lt;/Project&gt;</code></pre>
+
+<p>
+    The <code>ManagePackageVersionsCentrally</code> property enables Central
+    Package Management.
+</p>
+
+<hr>
+
+<h2>📌 Step 2: Add Central Package Versions</h2>
+
+<p>
+    Once Central Package Management is enabled, package versions can be
+    defined using <code>PackageVersion</code>.
+</p>
+
+<pre><code>&lt;Project&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;ManagePackageVersionsCentrally&gt;true&lt;/ManagePackageVersionsCentrally&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageVersion Include="Newtonsoft.Json"
+                    Version="13.0.3" /&gt;
+
+    &lt;PackageVersion Include="Serilog"
+                    Version="4.0.0" /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</code></pre>
+
+<p>
+    Now the package versions are managed centrally.
+</p>
+
+<hr>
+
+<h2>🧩 Step 3: Remove Versions from .csproj Files</h2>
+
+<p>
+    With Central Package Management enabled, your project files can reference
+    packages without specifying their versions.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>&lt;ItemGroup&gt;
+
+    &lt;PackageReference Include="Newtonsoft.Json" /&gt;
+
+    &lt;PackageReference Include="Serilog" /&gt;
+
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+    The versions are obtained from <code>Directory.Packages.props</code>.
+</p>
+
+<p>
+    This gives you a much cleaner separation between:
+</p>
+
+<ul>
+    <li><strong>Which packages a project uses</strong></li>
+    <li><strong>Which versions the solution uses</strong></li>
+</ul>
+
+<hr>
+
+<h2>🔍 Before and After</h2>
+
+<h3>❌ Without Central Package Management</h3>
+
+<pre><code>&lt;ItemGroup&gt;
+
+    &lt;PackageReference Include="Newtonsoft.Json"
+                      Version="13.0.3" /&gt;
+
+    &lt;PackageReference Include="Serilog"
+                      Version="4.0.0" /&gt;
+
+&lt;/ItemGroup&gt;</code></pre>
+
+<h3>✅ With Central Package Management</h3>
+
+<p>
+    In <code>Directory.Packages.props</code>:
+</p>
+
+<pre><code>&lt;ItemGroup&gt;
+
+    &lt;PackageVersion Include="Newtonsoft.Json"
+                    Version="13.0.3" /&gt;
+
+    &lt;PackageVersion Include="Serilog"
+                    Version="4.0.0" /&gt;
+
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+    And in the project:
+</p>
+
+<pre><code>&lt;ItemGroup&gt;
+
+    &lt;PackageReference Include="Newtonsoft.Json" /&gt;
+
+    &lt;PackageReference Include="Serilog" /&gt;
+
+&lt;/ItemGroup&gt;</code></pre>
+
+<hr>
+
+<h2>🌳 Central Package Management in a Multi-Project Solution</h2>
+
+<p>
+    Central Package Management becomes especially useful when several
+    projects share the same dependencies.
+</p>
+
+<pre><code>MySolution
+│
+├── Directory.Packages.props
+│
+├── Web
+│   └── Web.csproj
+│
+├── API
+│   └── API.csproj
+│
+├── Services
+│   └── Services.csproj
+│
+└── Data
+    └── Data.csproj</code></pre>
+
+<p>
+    The central file might contain:
+</p>
+
+<pre><code>&lt;Project&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;ManagePackageVersionsCentrally&gt;true&lt;/ManagePackageVersionsCentrally&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+
+    &lt;PackageVersion Include="Microsoft.Extensions.Logging"
+                    Version="9.0.0" /&gt;
+
+    &lt;PackageVersion Include="Newtonsoft.Json"
+                    Version="13.0.3" /&gt;
+
+    &lt;PackageVersion Include="Serilog"
+                    Version="4.0.0" /&gt;
+
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</code></pre>
+
+<p>
+    Each project can then reference only the packages it actually needs.
+</p>
+
+<hr>
+
+<h2>🎯 Central Versions vs Project Dependencies</h2>
+
+<p>
+    One important advantage of Central Package Management is that package
+    ownership becomes clearer.
+</p>
+
+<p>
+    The project file answers:
+</p>
+
+<pre><code>Which packages does this project use?</code></pre>
+
+<p>
+    The central file answers:
+</p>
+
+<pre><code>Which versions of those packages should the solution use?</code></pre>
+
+<p>
+    This makes dependency management easier to review and maintain.
+</p>
+
+<hr>
+
+<h2>⚠️ What About Packages That Need Different Versions?</h2>
+
+<p>
+    Central Package Management does not necessarily mean that every project
+    must use exactly the same package version in every situation.
+</p>
+
+<p>
+    There may be cases where a project requires special handling.
+</p>
+
+<p>
+    Before overriding a centrally managed version, however, consider whether
+    the difference is actually necessary.
+</p>
+
+<p>
+    Keeping versions consistent whenever possible reduces dependency
+    complexity.
+</p>
+
+<hr>
+
+<h2>🔄 Updating a Package Centrally</h2>
+
+<p>
+    One of the biggest benefits of Central Package Management is updating a
+    package version from one location.
+</p>
+
+<p>
+    For example, suppose you currently have:
+</p>
+
+<pre><code>&lt;PackageVersion Include="Newtonsoft.Json"
+                Version="13.0.3" /&gt;</code></pre>
+
+<p>
+    You can update the central version:
+</p>
+
+<pre><code>&lt;PackageVersion Include="Newtonsoft.Json"
+                Version="13.0.4" /&gt;</code></pre>
+
+<p>
+    Projects using that centrally managed package can then use the updated
+    version.
+</p>
+
+<p>
+    This can be much easier than manually changing the same package version
+    in many project files.
+</p>
+
+<hr>
+
+<h2>🚨 Central Package Management and Dependency Conflicts</h2>
+
+<p>
+    Central Package Management can help reduce version inconsistencies, but
+    it does not automatically eliminate every NuGet dependency conflict.
+</p>
+
+<p>
+    Your project can still have direct and transitive dependencies that
+    require different package versions.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>Project
+│
+├── PackageA
+│   └── CommonPackage 1.x
+│
+└── PackageB
+    └── CommonPackage 2.x</code></pre>
+
+<p>
+    In situations like this, you still need to understand the dependency
+    graph and determine which version is appropriate.
+</p>
+
+<p>
+    If you're troubleshooting a conflict, see:
+</p>
+
+<p>
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+</p>
+
+<hr>
+
+<h2>🔎 How to Inspect Transitive Dependencies</h2>
+
+<p>
+    When troubleshooting package versions, it can be useful to inspect
+    transitive dependencies.
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    This can help reveal packages that your project receives indirectly.
+</p>
+
+<p>
+    For more information about the difference between direct and transitive
+    dependencies, see:
+</p>
+
+<p>
+    <a href="/direct-vs-transitive-nuget-dependencies/">
+        📦 Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+</p>
+
+<hr>
+
+<h2>📋 Example: Complete Directory.Packages.props</h2>
+
+<p>
+    Here is a simple complete example:
+</p>
+
+<pre><code>&lt;Project&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;ManagePackageVersionsCentrally&gt;true&lt;/ManagePackageVersionsCentrally&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+
+    &lt;PackageVersion Include="Newtonsoft.Json"
+                    Version="13.0.3" /&gt;
+
+    &lt;PackageVersion Include="Serilog"
+                    Version="4.0.0" /&gt;
+
+    &lt;PackageVersion Include="Microsoft.Extensions.Logging"
+                    Version="9.0.0" /&gt;
+
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</code></pre>
+
+<hr>
+
+<h2>📄 Example Project File</h2>
+
+<p>
+    A project using those centrally managed packages can look like this:
+</p>
+
+<pre><code>&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net9.0&lt;/TargetFramework&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+
+    &lt;PackageReference Include="Newtonsoft.Json" /&gt;
+
+    &lt;PackageReference Include="Serilog" /&gt;
+
+    &lt;PackageReference Include="Microsoft.Extensions.Logging" /&gt;
+
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</code></pre>
+
+<hr>
+
+<h2>✅ Benefits of Central Package Management</h2>
+
+<ul>
+    <li>Centralizes NuGet package versions.</li>
+    <li>Reduces repeated version declarations.</li>
+    <li>Makes package updates easier in multi-project solutions.</li>
+    <li>Helps maintain consistent package versions.</li>
+    <li>Makes dependency management easier to review.</li>
+    <li>Works particularly well for larger .NET solutions.</li>
+</ul>
+
+<hr>
+
+<h2>⚠️ Things to Consider</h2>
+
+<ul>
+    <li>
+        Existing projects may require adjustments before adopting central
+        package management.
+    </li>
+    <li>
+        Some projects may have package-specific requirements.
+    </li>
+    <li>
+        Dependency conflicts can still occur.
+    </li>
+    <li>
+        Large solutions should be migrated carefully and tested after
+        changing package versions.
+    </li>
+</ul>
+
+<hr>
+
+<h2>❓ Frequently Asked Questions</h2>
+
+<h3>What is Central Package Management in .NET?</h3>
+
+<p>
+    Central Package Management is a NuGet feature that allows package
+    versions to be managed centrally, typically through a
+    <code>Directory.Packages.props</code> file.
+</p>
+
+<h3>Where should Directory.Packages.props be located?</h3>
+
+<p>
+    It is normally placed at a directory level that allows the relevant
+    projects underneath it to inherit the central package configuration.
+</p>
+
+<h3>Do I need to specify Version in PackageReference?</h3>
+
+<p>
+    When Central Package Management is enabled and a package version is
+    centrally defined, the project can reference the package without
+    specifying its version.
+</p>
+
+<h3>Does Central Package Management fix all NuGet conflicts?</h3>
+
+<p>
+    No. It helps centralize versions and reduce inconsistencies, but
+    dependency conflicts can still occur when packages have incompatible
+    dependency requirements.
+</p>
+
+<hr>
+
+<h2>📚 Related NuGet Articles</h2>
+
+<p>
+    📦
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+</p>
+
+<p>
+    🔧
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+</p>
+
+<p>
+    🔍
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+</p>
+
+<p>
+    📦
+    <a href="/direct-vs-transitive-nuget-dependencies/">
+        Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+</p>
+
+<p>
+    🔄
+    <a href="/update-nuget-packages-safely/">
+        How to Update NuGet Packages Safely Without Breaking Your Project
+    </a>
+</p>
+
+<p>
+    📦
+    <a href="/package-reference-vs-packages-config/">
+        PackageReference vs packages.config: Which Should You Use?
+    </a>
+</p>
+
+<hr>
+
+<h2>🎯 Conclusion</h2>
+
+<p>
+    Central Package Management provides a cleaner way to manage NuGet package
+    versions across multi-project .NET solutions.
+</p>
+
+<p>
+    Instead of repeating package versions throughout individual
+    <code>.csproj</code> files, you can define them centrally in
+    <code>Directory.Packages.props</code>.
+</p>
+
+<p>
+    This makes updating packages easier and can help keep dependencies
+    consistent across your solution.
+</p>
+
+<div style="margin-top:30px;padding:20px;border:1px solid #ddd;border-radius:10px;background:#f7f7f7;">
+
+    <strong>📦 Managing NuGet packages across multiple projects?</strong>
+
+    <p style="margin-bottom:0;">
+        Start centralizing your package versions with
+        <code>Directory.Packages.props</code> and keep your solution's
+        dependencies easier to maintain.
+    </p>
+
+</div>

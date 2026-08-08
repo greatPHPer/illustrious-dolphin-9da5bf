@@ -1,0 +1,753 @@
+---
+title: "Fix IIS HTTP Error 500.19 After Publishing an ASP.NET Core App"
+layout: layouts/base.njk
+permalink: "/fix-iis-http-error-500-19-aspnet-core/"
+legacyId: 323
+contentType: "page"
+date: "2026-08-06T03:04:47"
+description: "Publishing an ASP.NET Core application to IIS is usually straightforward, but many developers encounter HTTP Error 500.19 when opening the deployed website."
+---
+
+<style>
+/* Suppress iframe scrollbars inside WordPress Editor preview */
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* Current page in breadcrumb */
+.breadcrumb > a:last-child,
+.breadcrumb > a:last-child:visited {
+    color: #0056b3;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child:hover {
+    color: #004494;
+    text-decoration: underline;
+}
+
+/* Trigger */
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Dropdown */
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 320px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+.crumb-current{
+    background:#e8f3ff;
+    color:#0d6efd !important;
+    font-weight:600;
+}
+
+.crumb-current:hover{
+    background:#d8ebff !important;
+}
+</style>
+
+<div class="breadcrumb">
+
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <span class="crumb-trigger" data-menu="visualstudio">
+        <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <a href="/fix-iis-http-error-500-19-aspnet-core/">
+        🚀 Fix IIS HTTP Error 500.19 After Publishing an ASP.NET Core App
+    </a>
+
+</div>
+
+<!-- Home Menu -->
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <a href="/tutorials/">📚 Tutorials</a>
+    <a href="/about-algolassi/">🌟 About Algolassi</a>
+    <a href="/197-2/">💼 Portfolio</a>
+    <a href="/contact-algolassi/">📧 Contact</a>
+
+</div>
+
+<!-- Tutorials Menu -->
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
+    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
+    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
+    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
+    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
+    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
+    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
+
+</div>
+
+<!-- Visual Studio Menu -->
+<div class="crumb-teleport-menu" id="menu-visualstudio">
+
+    <a href="/fix-iis-http-error-500-19-aspnet-core/" class="crumb-current">
+        🚀 Fix IIS HTTP Error 500.19 After Publishing an ASP.NET Core App
+    </a>
+
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+
+</div>
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(trigger => {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById("menu-" + menuName);
+
+        if (!menu) return;
+
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect = trigger.getBoundingClientRect();
+
+            menu.style.left = rect.left + "px";
+            menu.style.top = (rect.bottom + 5) + "px";
+
+        }
+
+        function showMenu() {
+
+            updatePosition();
+
+            document
+                .querySelectorAll(".crumb-teleport-menu")
+                .forEach(m => m.style.display = "none");
+
+            menu.style.display = "block";
+
+        }
+
+        function hideMenu() {
+
+            setTimeout(() => {
+
+                if (!trigger.matches(":hover") &&
+                    !menu.matches(":hover")) {
+
+                    menu.style.display = "none";
+
+                }
+
+            },100);
+
+        }
+
+        trigger.addEventListener("mouseenter",showMenu);
+        trigger.addEventListener("mouseleave",hideMenu);
+
+        menu.addEventListener("mouseenter",showMenu);
+        menu.addEventListener("mouseleave",hideMenu);
+
+        window.addEventListener("resize",updatePosition);
+        window.addEventListener("scroll",updatePosition,true);
+
+    });
+
+})();
+</script>
+
+
+
+<h2 class="wp-block-heading">Introduction</h2>
+
+
+
+<p>Publishing an ASP.NET Core application to IIS is usually straightforward, but many developers encounter <strong>HTTP Error 500.19</strong> when opening the deployed website.</p>
+
+
+
+<p>The error indicates that IIS cannot read or process the application's configuration, most commonly the <code>web.config</code> file.</p>
+
+
+
+<p>This guide explains the common causes of HTTP Error 500.19 and provides practical solutions to get your application running.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">What is HTTP Error 500.19?</h1>
+
+
+
+<p>HTTP Error 500.19 means IIS cannot load the application's configuration.</p>
+
+
+
+<p>Typical message:</p>
+
+
+
+<pre class="wp-block-code"><code>HTTP Error 500.19
+
+The requested page cannot be accessed because the related configuration data for the page is invalid.</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Common Causes</h1>
+
+
+
+<ul class="wp-block-list">
+<li>Missing ASP.NET Core Hosting Bundle</li>
+
+
+
+<li>Invalid <code>web.config</code></li>
+
+
+
+<li>Duplicate configuration sections</li>
+
+
+
+<li>Incorrect file permissions</li>
+
+
+
+<li>Missing IIS modules</li>
+
+
+
+<li>Incorrect publish folder</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Solution 1: Install the ASP.NET Core Hosting Bundle</h1>
+
+
+
+<p>This is the most common solution.</p>
+
+
+
+<p>If IIS doesn't have the ASP.NET Core Hosting Bundle installed, it can't run ASP.NET Core applications.</p>
+
+
+
+<p>Steps:</p>
+
+
+
+<ol class="wp-block-list">
+<li>Download the Hosting Bundle that matches your .NET version.</li>
+
+
+
+<li>Install it.</li>
+
+
+
+<li>Restart IIS.</li>
+</ol>
+
+
+
+<pre class="wp-block-code"><code>iisreset</code></pre>
+
+
+
+<p>After installation, publish the application again and test the site.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Solution 2: Verify web.config</h1>
+
+
+
+<p>A typical ASP.NET Core <code>web.config</code> should resemble:</p>
+
+
+
+<pre class="wp-block-code"><code>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;configuration&gt;
+
+  &lt;system.webServer&gt;
+
+    &lt;handlers&gt;
+      &lt;add name="aspNetCore"
+           path="*"
+           verb="*"
+           modules="AspNetCoreModuleV2"
+           resourceType="Unspecified"/&gt;
+    &lt;/handlers&gt;
+
+    &lt;aspNetCore processPath="dotnet"
+                arguments="YourApp.dll"
+                stdoutLogEnabled="false"
+                hostingModel="InProcess" /&gt;
+
+  &lt;/system.webServer&gt;
+
+&lt;/configuration&gt;</code></pre>
+
+
+
+<p>Check:</p>
+
+
+
+<ul class="wp-block-list">
+<li>XML is well-formed.</li>
+
+
+
+<li>DLL name matches your application.</li>
+
+
+
+<li>No duplicate sections.</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Solution 3: Check the Hosting Model</h1>
+
+
+
+<p>Two hosting models are supported:</p>
+
+
+
+<pre class="wp-block-code"><code>InProcess</code></pre>
+
+
+
+<p>and</p>
+
+
+
+<pre class="wp-block-code"><code>OutOfProcess</code></pre>
+
+
+
+<p>Use the model appropriate for your application and hosting environment.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Solution 4: Verify Folder Permissions</h1>
+
+
+
+<p>The IIS Application Pool identity needs permission to access the published folder.</p>
+
+
+
+<p>Recommended permissions:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Read</li>
+
+
+
+<li>Execute</li>
+</ul>
+
+
+
+<p>If your application writes logs or uploads files, also grant write permission to those specific folders.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Solution 5: Enable stdout Logging</h1>
+
+
+
+<p>To diagnose startup failures:</p>
+
+
+
+<pre class="wp-block-code"><code>stdoutLogEnabled="true"
+stdoutLogFile=".\logs\stdout"</code></pre>
+
+
+
+<p>Create a <code>logs</code> folder in the published directory and ensure IIS can write to it.</p>
+
+
+
+<p>Remember to disable stdout logging after troubleshooting to avoid large log files.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Solution 6: Verify the Target Framework</h1>
+
+
+
+<p>Ensure:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Project targets the correct .NET version.</li>
+
+
+
+<li>The same runtime is installed on the server.</li>
+</ul>
+
+
+
+<p>Example:</p>
+
+
+
+<pre class="wp-block-code"><code>&lt;TargetFramework&gt;net9.0&lt;/TargetFramework&gt;</code></pre>
+
+
+
+<p>If the server only has .NET 8 installed, the application won't start.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Solution 7: Republish the Application</h1>
+
+
+
+<p>Sometimes publish output becomes inconsistent.</p>
+
+
+
+<p>Recommended process:</p>
+
+
+
+<ol class="wp-block-list">
+<li>Clean Solution</li>
+
+
+
+<li>Rebuild Solution</li>
+
+
+
+<li>Delete old publish folder</li>
+
+
+
+<li>Publish again</li>
+
+
+
+<li>Copy the new files to IIS</li>
+</ol>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Solution 8: Check Event Viewer</h1>
+
+
+
+<p>If the browser only shows HTTP 500.19:</p>
+
+
+
+<p>Open:</p>
+
+
+
+<pre class="wp-block-code"><code>Windows Logs
+    ↓
+Application</code></pre>
+
+
+
+<p>Look for ASP.NET Core or IIS errors that provide additional details.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Common Error Codes</h1>
+
+
+
+<h3 class="wp-block-heading">0x8007000d</h3>
+
+
+
+<p>Configuration file is invalid.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">0x80070005</h3>
+
+
+
+<p>Access denied.</p>
+
+
+
+<p>Usually caused by insufficient permissions.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">0x80070021</h3>
+
+
+
+<p>Configuration section is locked.</p>
+
+
+
+<p>Occurs when IIS settings conflict with <code>web.config</code>.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">0x80070032</h3>
+
+
+
+<p>Unsupported configuration.</p>
+
+
+
+<p>Often related to missing IIS features or modules.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Best Practices</h1>
+
+
+
+<ul class="wp-block-list">
+<li>Install the correct Hosting Bundle.</li>
+
+
+
+<li>Match the server runtime with the project's target framework.</li>
+
+
+
+<li>Publish using the Release configuration.</li>
+
+
+
+<li>Test locally before deploying.</li>
+
+
+
+<li>Keep IIS and .NET updated.</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Real-World Troubleshooting Checklist</h1>
+
+
+
+<p>Before spending hours debugging, verify:</p>
+
+
+
+<ul class="wp-block-list">
+<li>ASP.NET Core Hosting Bundle installed.</li>
+
+
+
+<li>Correct .NET runtime installed.</li>
+
+
+
+<li>Valid <code>web.config</code>.</li>
+
+
+
+<li>IIS Application Pool is running.</li>
+
+
+
+<li>Folder permissions are correct.</li>
+
+
+
+<li>Application starts locally.</li>
+
+
+
+<li>Event Viewer checked for detailed errors.</li>
+
+
+
+<li>Old publish files removed before copying the new build.</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Conclusion</h1>
+
+
+
+<p>HTTP Error 500.19 is one of the most common deployment issues for ASP.NET Core applications. In most cases, the problem is caused by a missing Hosting Bundle, an invalid <code>web.config</code>, incorrect permissions, or a mismatch between the application's target framework and the installed runtime. Following a structured troubleshooting process will usually resolve the issue quickly.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Frequently Asked Questions</h1>
+
+
+
+<h3 class="wp-block-heading">What causes IIS HTTP Error 500.19?</h3>
+
+
+
+<p>It is typically caused by an invalid <code>web.config</code>, a missing ASP.NET Core Hosting Bundle, insufficient permissions, or missing IIS modules.</p>
+
+
+
+<h3 class="wp-block-heading">Does reinstalling the Hosting Bundle fix HTTP Error 500.19?</h3>
+
+
+
+<p>Yes. If the error is caused by a missing or outdated ASP.NET Core Module, installing the correct Hosting Bundle is often the solution.</p>
+
+
+
+<h3 class="wp-block-heading">Should I enable stdout logging?</h3>
+
+
+
+<p>Yes, but only while troubleshooting. Disable it afterward to prevent unnecessary log growth.</p>

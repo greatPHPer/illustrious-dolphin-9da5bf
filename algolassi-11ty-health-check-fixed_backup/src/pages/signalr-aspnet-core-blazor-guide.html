@@ -1,0 +1,759 @@
+---
+title: "SignalR in ASP.NET Core and Blazor: Build Real-Time Applications"
+layout: layouts/base.njk
+permalink: "/signalr-aspnet-core-blazor-guide/"
+legacyId: 327
+contentType: "page"
+date: "2026-08-06T03:09:54"
+description: "Modern web applications often need to update information instantly without requiring users to refresh the page. Examples include chat systems, live..."
+---
+
+<style>
+/* Suppress iframe scrollbars inside WordPress Editor preview */
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* Current page in breadcrumb */
+.breadcrumb > a:last-child,
+.breadcrumb > a:last-child:visited {
+    color: #0056b3;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child:hover {
+    color: #004494;
+    text-decoration: underline;
+}
+
+/* Trigger */
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Dropdown */
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 320px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+/* Current article inside dropdown */
+.crumb-current{
+    background:#e8f3ff;
+    color:#0d6efd !important;
+    font-weight:600;
+}
+
+.crumb-current:hover{
+    background:#d8ebff !important;
+}
+</style>
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- ASP.NET Core -->
+    <span class="crumb-trigger" data-menu="aspnetcore">
+        <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <a href="/signalr-aspnet-core-blazor-guide/">
+        📡 SignalR in ASP.NET Core and Blazor: Build Real-Time Applications
+    </a>
+
+</div>
+
+<!-- Home Menu -->
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <a href="/tutorials/">📚 Tutorials</a>
+
+    <a href="/about-algolassi/">🌟 About Algolassi</a>
+
+    <a href="/197-2/">💼 Portfolio</a>
+
+    <a href="/contact-algolassi/">📧 Contact</a>
+
+</div>
+
+<!-- Tutorials Menu -->
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
+
+    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
+
+    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
+
+    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
+
+    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
+
+    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
+
+    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
+
+</div>
+
+<!-- ASP.NET Core Menu -->
+<div class="crumb-teleport-menu" id="menu-aspnetcore">
+
+    <a href="/aspnet-core-dependency-injection-explained/">
+        💉 ASP.NET Core Dependency Injection Explained with Examples
+    </a>
+
+    <a href="/signalr-aspnet-core-blazor-guide/" class="crumb-current">
+        📡 SignalR in ASP.NET Core and Blazor: Build Real-Time Applications
+    </a>
+
+</div>
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(trigger => {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById("menu-" + menuName);
+
+        if (!menu) return;
+
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect = trigger.getBoundingClientRect();
+
+            menu.style.left = rect.left + "px";
+            menu.style.top = (rect.bottom + 5) + "px";
+
+        }
+
+        function showMenu() {
+
+            updatePosition();
+
+            document
+                .querySelectorAll(".crumb-teleport-menu")
+                .forEach(m => m.style.display = "none");
+
+            menu.style.display = "block";
+
+        }
+
+        function hideMenu() {
+
+            setTimeout(() => {
+
+                if (!trigger.matches(":hover") &&
+                    !menu.matches(":hover")) {
+
+                    menu.style.display = "none";
+
+                }
+
+            },100);
+
+        }
+
+        trigger.addEventListener("mouseenter",showMenu);
+        trigger.addEventListener("mouseleave",hideMenu);
+
+        menu.addEventListener("mouseenter",showMenu);
+        menu.addEventListener("mouseleave",hideMenu);
+
+        window.addEventListener("resize",updatePosition);
+        window.addEventListener("scroll",updatePosition,true);
+
+    });
+
+})();
+</script>
+
+
+
+<h2 class="wp-block-heading">Introduction</h2>
+
+
+
+<p>Modern web applications often need to update information instantly without requiring users to refresh the page. Examples include chat systems, live dashboards, stock prices, order tracking, notifications, and collaborative editing.</p>
+
+
+
+<p>ASP.NET Core SignalR makes this possible by providing real-time communication between the server and connected clients.</p>
+
+
+
+<p>In this guide, you'll learn how SignalR works, how to create hubs, connect Blazor clients, and implement real-time features.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">What is SignalR?</h1>
+
+
+
+<p>SignalR is a real-time communication library for ASP.NET Core.</p>
+
+
+
+<p>It enables the server to send updates to connected clients immediately.</p>
+
+
+
+<p>Instead of repeatedly asking the server for new information (polling), clients receive updates as soon as they happen.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">How SignalR Works</h1>
+
+
+
+<pre class="wp-block-code"><code>Blazor Client
+        │
+        ▼
+ SignalR Hub
+        │
+        ▼
+ASP.NET Core Server
+        │
+        ▼
+Database / Services</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">When Should You Use SignalR?</h1>
+
+
+
+<p>SignalR is ideal for:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Live chat applications</li>
+
+
+
+<li>Real-time dashboards</li>
+
+
+
+<li>Notifications</li>
+
+
+
+<li>Progress bars</li>
+
+
+
+<li>Order tracking</li>
+
+
+
+<li>Live reports</li>
+
+
+
+<li>Collaborative editing</li>
+
+
+
+<li>IoT monitoring</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Installing SignalR</h1>
+
+
+
+<p>Install the required package:</p>
+
+
+
+<pre class="wp-block-code"><code>dotnet add package Microsoft.AspNetCore.SignalR</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Creating a SignalR Hub</h1>
+
+
+
+<p>Example:</p>
+
+
+
+<pre class="wp-block-code"><code>using Microsoft.AspNetCore.SignalR;
+
+public class ChatHub : Hub
+{
+    public async Task SendMessage(string user, string message)
+    {
+        await Clients.All.SendAsync("ReceiveMessage", user, message);
+    }
+}</code></pre>
+
+
+
+<p>The hub acts as the communication endpoint between the server and clients.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Registering SignalR</h1>
+
+
+
+<p>In <code>Program.cs</code>:</p>
+
+
+
+<pre class="wp-block-code"><code>builder.Services.AddSignalR();
+
+app.MapHub&lt;ChatHub&gt;("/chatHub");</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Connecting from a Blazor Client</h1>
+
+
+
+<p>Install:</p>
+
+
+
+<pre class="wp-block-code"><code>dotnet add package Microsoft.AspNetCore.SignalR.Client</code></pre>
+
+
+
+<p>Create a connection:</p>
+
+
+
+<pre class="wp-block-code"><code>hubConnection = new HubConnectionBuilder()
+    .WithUrl(Navigation.ToAbsoluteUri("/chatHub"))
+    .WithAutomaticReconnect()
+    .Build();</code></pre>
+
+
+
+<p>Start it:</p>
+
+
+
+<pre class="wp-block-code"><code>await hubConnection.StartAsync();</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Receiving Messages</h1>
+
+
+
+<pre class="wp-block-code"><code>hubConnection.On&lt;string, string&gt;(
+    "ReceiveMessage",
+    (user, message) =&gt;
+    {
+        messages.Add($"{user}: {message}");
+        InvokeAsync(StateHasChanged);
+    });</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Sending Messages</h1>
+
+
+
+<pre class="wp-block-code"><code>await hubConnection.InvokeAsync(
+    "SendMessage",
+    user,
+    message);</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Connection Lifecycle</h1>
+
+
+
+<p>Handle connection events:</p>
+
+
+
+<pre class="wp-block-code"><code>hubConnection.Reconnecting += error =&gt;
+{
+    // Update UI
+    return Task.CompletedTask;
+};
+
+hubConnection.Reconnected += id =&gt;
+{
+    return Task.CompletedTask;
+};
+
+hubConnection.Closed += error =&gt;
+{
+    return Task.CompletedTask;
+};</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Authentication with SignalR</h1>
+
+
+
+<p>SignalR supports authenticated users.</p>
+
+
+
+<p>Example:</p>
+
+
+
+<pre class="wp-block-code"><code>&#91;Authorize]
+public class ChatHub : Hub
+{
+}</code></pre>
+
+
+
+<p>This allows you to send messages only to authenticated users.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Broadcasting to Specific Users</h1>
+
+
+
+<p>Send to everyone:</p>
+
+
+
+<pre class="wp-block-code"><code>await Clients.All.SendAsync(...);</code></pre>
+
+
+
+<p>Send to one user:</p>
+
+
+
+<pre class="wp-block-code"><code>await Clients.User(userId)
+.SendAsync(...);</code></pre>
+
+
+
+<p>Send to a group:</p>
+
+
+
+<pre class="wp-block-code"><code>await Clients.Group("Sales")
+.SendAsync(...);</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Common Errors</h1>
+
+
+
+<h2 class="wp-block-heading">Hub Connection Failed</h2>
+
+
+
+<p>Usually caused by:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Wrong hub URL</li>
+
+
+
+<li>CORS configuration</li>
+
+
+
+<li>HTTPS mismatch</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">WebSocket Connection Closed</h2>
+
+
+
+<p>Possible reasons:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Proxy issues</li>
+
+
+
+<li>Firewall</li>
+
+
+
+<li>Idle timeout</li>
+</ul>
+
+
+
+<p>SignalR automatically falls back to other transports if WebSockets are unavailable.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">Hub Method Not Found</h2>
+
+
+
+<p>Check:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Method names</li>
+
+
+
+<li>Parameter types</li>
+
+
+
+<li>Client and server versions</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Best Practices</h1>
+
+
+
+<ul class="wp-block-list">
+<li>Use <code>WithAutomaticReconnect()</code></li>
+
+
+
+<li>Dispose hub connections properly</li>
+
+
+
+<li>Keep hub methods lightweight</li>
+
+
+
+<li>Validate user input</li>
+
+
+
+<li>Secure hubs with authentication and authorization</li>
+
+
+
+<li>Use groups instead of broadcasting to all users when appropriate</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Real-World Use Cases</h1>
+
+
+
+<p>SignalR is commonly used for:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Customer support chat</li>
+
+
+
+<li>Live production dashboards</li>
+
+
+
+<li>Monitoring manufacturing systems</li>
+
+
+
+<li>Instant notifications</li>
+
+
+
+<li>Live stock updates</li>
+
+
+
+<li>Online collaboration tools</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Conclusion</h1>
+
+
+
+<p>SignalR enables developers to build responsive, real-time applications with minimal effort. Combined with Blazor, it provides an excellent framework for creating dashboards, chat systems, notifications, and other interactive features that update instantly.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Frequently Asked Questions</h1>
+
+
+
+<h3 class="wp-block-heading">What is SignalR used for?</h3>
+
+
+
+<p>SignalR enables real-time communication between ASP.NET Core servers and connected clients.</p>
+
+
+
+<h3 class="wp-block-heading">Does SignalR use WebSockets?</h3>
+
+
+
+<p>Yes. SignalR prefers WebSockets and automatically falls back to other transports if necessary.</p>
+
+
+
+<h3 class="wp-block-heading">Can Blazor use SignalR?</h3>
+
+
+
+<p>Yes. Both Blazor Server and Blazor WebAssembly can communicate with SignalR hubs to receive and send real-time updates.</p>

@@ -1,0 +1,975 @@
+---
+title: "What Is Dependency Injection in ASP.NET Core? A Beginner's Guide"
+layout: layouts/base.njk
+permalink: "/what-is-dependency-injection-asp-net-core/"
+legacyId: 460
+contentType: "page"
+date: "2026-08-08T02:29:36"
+description: "Dependency Injection (DI) is one of the most important concepts in ASP.NET Core. It allows your application to provide the objects and services that a..."
+---
+
+<style>
+/* ==========================================
+   ARTICLE CONTENT
+   ========================================== */
+
+.article-content {
+    line-height: 1.75;
+    font-size: 17px;
+}
+
+.article-content h2 {
+    margin-top: 35px;
+}
+
+.article-content h3 {
+    margin-top: 28px;
+}
+
+.article-content code {
+    font-size: 0.95em;
+}
+
+.article-content pre {
+    padding: 16px;
+    overflow-x: auto;
+    border-radius: 6px;
+    background: #f6f8fa;
+}
+
+.article-content pre code {
+    background: transparent;
+}
+
+.article-note {
+    padding: 16px 18px;
+    margin: 22px 0;
+    border-left: 4px solid #0d6efd;
+    background: #f4f8ff;
+    border-radius: 4px;
+}
+
+.article-tip {
+    padding: 16px 18px;
+    margin: 22px 0;
+    border-left: 4px solid #198754;
+    background: #f3fbf6;
+    border-radius: 4px;
+}
+
+
+/* ==========================================
+   BREADCRUMB
+   ========================================== */
+
+html,
+body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.crumb-trigger > a,
+.crumb-trigger > a:visited {
+    color: inherit;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child,
+.breadcrumb > a:last-child:visited {
+    color: #0d6efd !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child:hover {
+    color: #004494 !important;
+    text-decoration: underline;
+}
+
+
+/* ==========================================
+   DROPDOWN MENUS
+   ========================================== */
+
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 340px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+
+/* ==========================================
+   CURRENT / ACTIVE DROPDOWN ITEM
+   ========================================== */
+
+.crumb-current {
+    background: #e8f3ff !important;
+    color: #0d6efd !important;
+    font-weight: 600 !important;
+}
+
+.crumb-current:hover {
+    background: #d8ebff !important;
+    color: #0d6efd !important;
+}
+</style>
+
+
+<!-- ==========================================
+     BREADCRUMB
+     ========================================== -->
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- ASP.NET Core Tutorials -->
+    <span class="crumb-trigger" data-menu="aspnetcore">
+        <a href="/asp-net-core-tutorials/">
+            🌐 ASP.NET Core Tutorials ▼
+        </a>
+    </span>
+
+    &gt;
+
+    <!-- Current Article -->
+    <a href="/what-is-dependency-injection-asp-net-core/">
+        💉 What Is Dependency Injection in ASP.NET Core? A Beginner's Guide
+    </a>
+
+</div>
+
+
+<!-- ==========================================
+     HOME DROPDOWN
+     Tutorials is highlighted
+     ========================================== -->
+
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <a href="/tutorials/" class="crumb-current">
+        📚 Tutorials
+    </a>
+
+    <a href="/about-algolassi/">
+        🌟 About Algolassi
+    </a>
+
+    <a href="/197-2/">
+        💼 Portfolio
+    </a>
+
+    <a href="/contact-algolassi/">
+        📧 Contact
+    </a>
+
+</div>
+
+
+<!-- ==========================================
+     TUTORIALS DROPDOWN
+     ASP.NET Core Tutorials is highlighted
+     ========================================== -->
+
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/">
+        💻 C# Tutorials
+    </a>
+
+    <a href="/net-tutorials/">
+        ⚙️ .NET Tutorials
+    </a>
+
+    <a href="/asp-net-core-tutorials/" class="crumb-current">
+        🌐 ASP.NET Core Tutorials
+    </a>
+
+    <a href="/blazor-tutorials/">
+        ⚡ Blazor Tutorials
+    </a>
+
+    <a href="/sql-server-tutorials/">
+        🗄️ SQL Server Tutorials
+    </a>
+
+    <a href="/visual-studio-tutorials/">
+        🖥️ Visual Studio Tutorials
+    </a>
+
+    <a href="/net-maui-tutorials/">
+        📱 .NET MAUI Tutorials
+    </a>
+
+</div>
+
+
+<!-- ==========================================
+     ASP.NET CORE DROPDOWN
+     Article #1 is highlighted
+     ========================================== -->
+
+<div class="crumb-teleport-menu" id="menu-aspnetcore">
+
+    <!-- Pillar -->
+    <a href="/aspnet-core-dependency-injection-explained/">
+        🏛️ ASP.NET Core Dependency Injection Explained with Examples
+    </a>
+
+    <!-- Article #1 -->
+    <a href="/what-is-dependency-injection-asp-net-core/"
+       class="crumb-current">
+        💉 What Is Dependency Injection in ASP.NET Core? A Beginner's Guide
+    </a>
+
+    <!-- Article #2 -->
+    <a href="/register-services-asp-net-core-dependency-injection/">
+        ⚙️ How to Register Services in ASP.NET Core Dependency Injection
+    </a>
+
+    <!-- Article #3 -->
+    <a href="/singleton-scoped-transient-asp-net-core/">
+        🔄 Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
+    </a>
+
+    <!-- Article #4 -->
+    <a href="/constructor-injection-asp-net-core/">
+        🧩 How to Use Constructor Injection in ASP.NET Core
+    </a>
+
+    <!-- Article #5 -->
+    <a href="/inject-services-controllers-razor-pages-blazor/">
+        💉 How to Inject Services into Controllers, Razor Pages, and Blazor
+    </a>
+
+    <!-- Article #6 -->
+    <a href="/common-dependency-injection-errors-asp-net-core/">
+        🚨 Common Dependency Injection Errors in ASP.NET Core and How to Fix Them
+    </a>
+
+    <!-- Article #7 -->
+    <a href="/advanced-dependency-injection-asp-net-core/">
+        🚀 Advanced Dependency Injection in ASP.NET Core: Factory, Keyed Services, and Service Lifetimes
+    </a>
+
+</div>
+
+
+<!-- ==========================================
+     ARTICLE CONTENT
+     ========================================== -->
+
+<div class="article-content">
+
+
+
+<p>
+    Dependency Injection (DI) is one of the most important concepts in
+    ASP.NET Core. It allows your application to provide the objects and
+    services that a class needs instead of forcing the class to create those
+    objects itself.
+</p>
+
+<p>
+    If you are new to ASP.NET Core, Dependency Injection may sound complicated
+    at first. In reality, the basic idea is quite simple:
+</p>
+
+<div class="article-note">
+    <strong>
+        Instead of a class creating its own dependencies, ASP.NET Core
+        provides those dependencies to the class.
+    </strong>
+</div>
+
+<p>
+    ASP.NET Core has built-in support for Dependency Injection, so you can
+    register services and inject them into controllers, Razor Pages, Blazor
+    components, middleware, and other application components.
+</p>
+
+
+<h2>📌 What Is Dependency Injection?</h2>
+
+<p>
+    A dependency is an object that another class needs to perform its work.
+</p>
+
+<p>
+    For example, imagine a controller that needs a service to retrieve
+    customer information.
+</p>
+
+<pre><code>public class CustomerController
+{
+    private CustomerService _customerService;
+
+    public CustomerController()
+    {
+        _customerService = new CustomerService();
+    }
+}</code></pre>
+
+<p>
+    This approach works, but the controller is responsible for creating its
+    own <code>CustomerService</code>.
+</p>
+
+<p>
+    That creates a strong dependency between the controller and the concrete
+    service implementation.
+</p>
+
+<p>
+    With Dependency Injection, the service can instead be supplied to the
+    controller.
+</p>
+
+<pre><code>public class CustomerController
+{
+    private readonly CustomerService _customerService;
+
+    public CustomerController(CustomerService customerService)
+    {
+        _customerService = customerService;
+    }
+}</code></pre>
+
+<p>
+    The controller no longer needs to create the service itself.
+</p>
+
+
+<h2>🎯 Why Is Dependency Injection Useful?</h2>
+
+<p>
+    Dependency Injection provides several important benefits when building
+    ASP.NET Core applications.
+</p>
+
+<ul>
+    <li>Reduces tight coupling between classes.</li>
+    <li>Makes code easier to test.</li>
+    <li>Makes services easier to replace.</li>
+    <li>Centralizes service configuration.</li>
+    <li>Allows ASP.NET Core to manage service lifetimes.</li>
+    <li>Improves the overall maintainability of an application.</li>
+</ul>
+
+
+<h2>🏗️ Dependency Injection in ASP.NET Core</h2>
+
+<p>
+    ASP.NET Core includes a built-in Dependency Injection container.
+</p>
+
+<p>
+    Services are registered with the application's service collection and
+    can then be requested by application components.
+</p>
+
+<p>
+    A simple example in <code>Program.cs</code> looks like this:
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;CustomerService&gt;();</code></pre>
+
+<p>
+    Once the service is registered, ASP.NET Core can provide it when a class
+    requests it.
+</p>
+
+
+<h2>⚙️ A Simple Complete Example</h2>
+
+<p>
+    Let's create a small service that returns a message.
+</p>
+
+<h3>Step 1: Create the Service</h3>
+
+<pre><code>public class MessageService
+{
+    public string GetMessage()
+    {
+        return "Hello from the MessageService!";
+    }
+}</code></pre>
+
+
+<h3>Step 2: Register the Service</h3>
+
+<p>
+    Open <code>Program.cs</code> and register the service:
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;MessageService&gt;();</code></pre>
+
+
+<h3>Step 3: Inject the Service</h3>
+
+<p>
+    The service can now be injected into a controller.
+</p>
+
+<pre><code>public class HomeController : Controller
+{
+    private readonly MessageService _messageService;
+
+    public HomeController(MessageService messageService)
+    {
+        _messageService = messageService;
+    }
+
+    public IActionResult Index()
+    {
+        var message = _messageService.GetMessage();
+
+        return Content(message);
+    }
+}</code></pre>
+
+<p>
+    ASP.NET Core creates the <code>MessageService</code> and supplies it to
+    the controller's constructor.
+</p>
+
+
+<h2>🧩 Constructor Injection</h2>
+
+<p>
+    Constructor Injection is one of the most common forms of Dependency
+    Injection in ASP.NET Core.
+</p>
+
+<p>
+    The dependency is declared as a constructor parameter.
+</p>
+
+<pre><code>public class ProductController : Controller
+{
+    private readonly IProductService _productService;
+
+    public ProductController(IProductService productService)
+    {
+        _productService = productService;
+    }
+}</code></pre>
+
+<p>
+    ASP.NET Core examines the constructor and resolves the requested
+    dependency from the Dependency Injection container.
+</p>
+
+<p>
+    We will explore Constructor Injection in more detail in a dedicated
+    supporting article in this series.
+</p>
+
+
+<h2>🔌 Using Interfaces with Dependency Injection</h2>
+
+<p>
+    Dependency Injection becomes especially useful when you program against
+    interfaces rather than concrete implementations.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>public interface IMessageService
+{
+    string GetMessage();
+}</code></pre>
+
+<p>
+    An implementation can then be created:
+</p>
+
+<pre><code>public class MessageService : IMessageService
+{
+    public string GetMessage()
+    {
+        return "Hello from Dependency Injection!";
+    }
+}</code></pre>
+
+<p>
+    Register the implementation:
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;IMessageService, MessageService&gt;();</code></pre>
+
+<p>
+    The controller can depend on the interface:
+</p>
+
+<pre><code>public class HomeController : Controller
+{
+    private readonly IMessageService _messageService;
+
+    public HomeController(IMessageService messageService)
+    {
+        _messageService = messageService;
+    }
+}</code></pre>
+
+<p>
+    This makes it easier to replace the implementation later and makes
+    unit testing easier because a test can provide a different implementation
+    of the interface.
+</p>
+
+
+<h2>⏱️ Service Lifetimes in ASP.NET Core</h2>
+
+<p>
+    ASP.NET Core provides three commonly used service lifetimes:
+</p>
+
+<ul>
+    <li>
+        <strong>Transient</strong> — a new instance is created each time
+        the service is requested.
+    </li>
+
+    <li>
+        <strong>Scoped</strong> — one instance is generally created for
+        each scope.
+    </li>
+
+    <li>
+        <strong>Singleton</strong> — one instance is used for the lifetime
+        of the application.
+    </li>
+</ul>
+
+<p>
+    For example:
+</p>
+
+<pre><code>builder.Services.AddTransient&lt;IEmailService, EmailService&gt;();
+
+builder.Services.AddScoped&lt;IOrderService, OrderService&gt;();
+
+builder.Services.AddSingleton&lt;IApplicationService, ApplicationService&gt;();</code></pre>
+
+<div class="article-tip">
+
+    <strong>💡 Tip:</strong>
+
+    Choosing the correct service lifetime is important. A service that holds
+    state or depends on another scoped service should not automatically be
+    registered as a singleton.
+
+</div>
+
+<p>
+    For a detailed comparison, see:
+</p>
+
+<p>
+    <a href="/singleton-scoped-transient-asp-net-core/">
+        🔄 Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
+    </a>
+</p>
+
+
+<h2>🧪 Dependency Injection and Unit Testing</h2>
+
+<p>
+    One of the major advantages of Dependency Injection is that it makes
+    classes easier to test.
+</p>
+
+<p>
+    Suppose a controller depends on:
+</p>
+
+<pre><code>IProductService</code></pre>
+
+<p>
+    A unit test can provide a test implementation instead of connecting to a
+    real database or external service.
+</p>
+
+<p>
+    This separation makes tests easier to write and maintain.
+</p>
+
+
+<h2>🚨 What Happens If a Service Is Not Registered?</h2>
+
+<p>
+    If ASP.NET Core tries to resolve a service that hasn't been registered,
+    the application can throw a dependency resolution exception.
+</p>
+
+<p>
+    For example, if a controller requests:
+</p>
+
+<pre><code>public HomeController(IMessageService messageService)
+{
+    _messageService = messageService;
+}</code></pre>
+
+<p>
+    but <code>IMessageService</code> hasn't been registered, ASP.NET Core
+    cannot resolve the dependency.
+</p>
+
+<p>
+    You would normally register it in <code>Program.cs</code>:
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;IMessageService, MessageService&gt;();</code></pre>
+
+
+<h2>📚 Dependency Injection in Blazor</h2>
+
+<p>
+    Dependency Injection is not limited to MVC controllers. ASP.NET Core's
+    Dependency Injection system is also heavily used by Blazor applications.
+</p>
+
+<p>
+    A Blazor component can inject a service using the
+    <code>@inject</code> directive.
+</p>
+
+<pre><code>@inject IMessageService MessageService
+
+&lt;h3&gt;@MessageService.GetMessage()&lt;/h3&gt;</code></pre>
+
+<p>
+    This allows Blazor components to consume services without manually
+    creating those service objects.
+</p>
+
+
+<h2>🧠 Dependency Injection vs Creating Objects Manually</h2>
+
+<table style="width:100%;border-collapse:collapse;margin:20px 0;">
+
+    <thead>
+        <tr>
+
+            <th style="border:1px solid #ddd;padding:10px;text-align:left;">
+                Manual Creation
+            </th>
+
+            <th style="border:1px solid #ddd;padding:10px;text-align:left;">
+                Dependency Injection
+            </th>
+
+        </tr>
+    </thead>
+
+    <tbody>
+
+        <tr>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                Class creates the dependency
+            </td>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                Dependency is supplied to the class
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                Often tightly coupled
+            </td>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                Encourages loose coupling
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                Harder to replace implementations
+            </td>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                Implementations can be changed through registration
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                Testing can be more difficult
+            </td>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                Easier to substitute dependencies during testing
+            </td>
+
+        </tr>
+
+    </tbody>
+
+</table>
+
+
+<h2>📖 Related Dependency Injection Articles</h2>
+
+<p>
+    🏛️
+    <a href="/aspnet-core-dependency-injection-explained/">
+        ASP.NET Core Dependency Injection Explained with Examples
+        (Beginner to Advanced)
+    </a>
+</p>
+
+<p>
+    ⚙️
+    <a href="/register-services-asp-net-core-dependency-injection/">
+        How to Register Services in ASP.NET Core Dependency Injection
+    </a>
+</p>
+
+<p>
+    🔄
+    <a href="/singleton-scoped-transient-asp-net-core/">
+        Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
+    </a>
+</p>
+
+<p>
+    🧩
+    <a href="/constructor-injection-asp-net-core/">
+        How to Use Constructor Injection in ASP.NET Core
+    </a>
+</p>
+
+<p>
+    💉
+    <a href="/inject-services-controllers-razor-pages-blazor/">
+        How to Inject Services into Controllers, Razor Pages, and Blazor
+    </a>
+</p>
+
+<p>
+    🚨
+    <a href="/common-dependency-injection-errors-asp-net-core/">
+        Common Dependency Injection Errors in ASP.NET Core and How to Fix Them
+    </a>
+</p>
+
+<p>
+    🚀
+    <a href="/advanced-dependency-injection-asp-net-core/">
+        Advanced Dependency Injection in ASP.NET Core: Factory, Keyed Services,
+        and Service Lifetimes
+    </a>
+</p>
+
+
+<h2>🎯 Conclusion</h2>
+
+<p>
+    Dependency Injection is a fundamental part of ASP.NET Core development.
+    Instead of creating dependencies directly inside your classes, you can
+    register services with the built-in Dependency Injection container and
+    allow ASP.NET Core to provide them when needed.
+</p>
+
+<p>
+    Once you understand service registration, constructor injection, and
+    service lifetimes, you have the foundation needed to build more
+    maintainable and testable ASP.NET Core applications.
+</p>
+
+
+<div class="article-tip">
+
+    <strong>🚀 What's next?</strong>
+
+    <p>
+        Learn how to register your own services in ASP.NET Core:
+    </p>
+
+    <p style="margin-bottom:0;">
+
+        <a href="/register-services-asp-net-core-dependency-injection/">
+            ⚙️ How to Register Services in ASP.NET Core Dependency Injection
+        </a>
+
+    </p>
+
+</div>
+
+</div>
+
+
+<!-- ==========================================
+     BREADCRUMB JAVASCRIPT
+     ========================================== -->
+
+<script>
+(function () {
+
+    const triggers =
+        document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(function (trigger) {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById(
+            "menu-" + menuName
+        );
+
+        if (!menu) {
+            return;
+        }
+
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect =
+                trigger.getBoundingClientRect();
+
+            menu.style.left =
+                rect.left + "px";
+
+            menu.style.top =
+                (rect.bottom + 5) + "px";
+        }
+
+        function showMenu() {
+
+            document
+                .querySelectorAll(".crumb-teleport-menu")
+                .forEach(function (m) {
+
+                    m.style.display = "none";
+
+                });
+
+            updatePosition();
+
+            menu.style.display = "block";
+        }
+
+        function hideMenu() {
+
+            setTimeout(function () {
+
+                if (
+                    !trigger.matches(":hover") &&
+                    !menu.matches(":hover")
+                ) {
+
+                    menu.style.display = "none";
+
+                }
+
+            }, 100);
+        }
+
+        trigger.addEventListener(
+            "mouseenter",
+            showMenu
+        );
+
+        trigger.addEventListener(
+            "mouseleave",
+            hideMenu
+        );
+
+        menu.addEventListener(
+            "mouseenter",
+            showMenu
+        );
+
+        menu.addEventListener(
+            "mouseleave",
+            hideMenu
+        );
+
+        window.addEventListener(
+            "resize",
+            updatePosition
+        );
+
+        window.addEventListener(
+            "scroll",
+            updatePosition,
+            true
+        );
+
+    });
+
+})();
+</script>

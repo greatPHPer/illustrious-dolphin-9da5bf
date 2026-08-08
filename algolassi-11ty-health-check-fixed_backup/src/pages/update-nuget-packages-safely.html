@@ -1,0 +1,937 @@
+---
+title: "🔄 How to Update NuGet Packages Safely Without Breaking Your Project"
+layout: layouts/base.njk
+permalink: "/update-nuget-packages-safely/"
+legacyId: 437
+contentType: "page"
+date: "2026-08-08T01:53:44"
+description: "Keeping NuGet packages up to date is an important part of maintaining a .NET application. Package updates can provide bug fixes, security improvements,..."
+---
+
+<style>
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.crumb-trigger a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Dropdown */
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 340px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+/* Active item */
+.crumb-active {
+    color: #0d6efd !important;
+    font-weight: 600 !important;
+    background: #eef5ff !important;
+}
+
+/* Current article */
+.crumb-last {
+    color: #0d6efd !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.crumb-last:hover {
+    color: #0b5ed7 !important;
+    text-decoration: underline;
+}
+</style>
+
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- C# Tutorials -->
+    <span class="crumb-trigger" data-menu="csharp">
+        <a href="/csharp-tutorials/">💻 C# Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Article #5 -->
+    <a href="/update-nuget-packages-safely/"
+       class="crumb-last">
+        🔄 How to Update NuGet Packages Safely Without Breaking Your Project
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Home Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <!-- Active parent -->
+    <a href="/tutorials/" class="crumb-active">
+        📚 Tutorials
+    </a>
+
+    <a href="/about-algolassi/">
+        🌟 About Algolassi
+    </a>
+
+    <a href="/197-2/">
+        💼 Portfolio
+    </a>
+
+    <a href="/contact-algolassi/">
+        📧 Contact
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Tutorials Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <!-- Active parent -->
+    <a href="/csharp-tutorials/" class="crumb-active">
+        💻 C# Tutorials
+    </a>
+
+    <a href="/net-tutorials/">
+        ⚙️ .NET Tutorials
+    </a>
+
+    <a href="/asp-net-core-tutorials/">
+        🌐 ASP.NET Core Tutorials
+    </a>
+
+    <a href="/blazor-tutorials/">
+        ⚡ Blazor Tutorials
+    </a>
+
+    <a href="/sql-server-tutorials/">
+        🗄️ SQL Server Tutorials
+    </a>
+
+    <a href="/visual-studio-tutorials/">
+        🖥️ Visual Studio Tutorials
+    </a>
+
+    <a href="/net-maui-tutorials/">
+        📱 .NET MAUI Tutorials
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- C# Tutorials Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-csharp">
+
+    <!-- Article #1 -->
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+
+    <!-- Article #2 -->
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+
+    <!-- Article #3 -->
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+
+    <!-- Article #4 -->
+    <a href="/direct-vs-transitive-nuget-dependencies/">
+        📦 Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+
+    <!-- Article #5 - Current -->
+    <a href="/update-nuget-packages-safely/"
+       class="crumb-active">
+        🔄 How to Update NuGet Packages Safely Without Breaking Your Project
+    </a>
+
+</div>
+
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(function (trigger) {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById('menu-' + menuName);
+
+        if (!menu) return;
+
+        /*
+         * Move dropdown outside the WordPress
+         * content container so it isn't clipped.
+         */
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect = trigger.getBoundingClientRect();
+
+            menu.style.left = rect.left + 'px';
+            menu.style.top = (rect.bottom + 5) + 'px';
+
+        }
+
+        function showMenu() {
+
+            document
+                .querySelectorAll('.crumb-teleport-menu')
+                .forEach(function (m) {
+                    m.style.display = 'none';
+                });
+
+            updatePosition();
+
+            menu.style.display = 'block';
+
+        }
+
+        function hideMenu() {
+
+            setTimeout(function () {
+
+                if (!trigger.matches(':hover') &&
+                    !menu.matches(':hover')) {
+
+                    menu.style.display = 'none';
+
+                }
+
+            }, 100);
+
+        }
+
+        trigger.addEventListener('mouseenter', showMenu);
+        trigger.addEventListener('mouseleave', hideMenu);
+
+        menu.addEventListener('mouseenter', showMenu);
+        menu.addEventListener('mouseleave', hideMenu);
+
+        window.addEventListener('resize', updatePosition);
+
+        window.addEventListener('scroll', updatePosition, true);
+
+    });
+
+})();
+</script>
+
+<p>
+    Keeping NuGet packages up to date is an important part of maintaining a
+    .NET application. Package updates can provide bug fixes, security
+    improvements, performance improvements, and new features.
+</p>
+
+<p>
+    However, updating packages without checking compatibility can sometimes
+    introduce build errors, dependency conflicts, or breaking changes.
+</p>
+
+<p>
+    In this guide, you'll learn how to update NuGet packages safely in
+    Visual Studio and with the .NET CLI, how to check for compatibility,
+    and what to do if an update causes problems.
+</p>
+
+<hr>
+
+<h2>📦 Why Should You Keep NuGet Packages Updated?</h2>
+
+<p>
+    NuGet packages are often used to provide functionality that would
+    otherwise need to be implemented manually.
+</p>
+
+<p>
+    Package updates can include:
+</p>
+
+<ul>
+    <li>🐛 Bug fixes</li>
+    <li>🔐 Security fixes</li>
+    <li>⚡ Performance improvements</li>
+    <li>✨ New features</li>
+    <li>🔧 Compatibility improvements</li>
+</ul>
+
+<p>
+    However, newer versions aren't always drop-in replacements. A major
+    version update can introduce breaking API changes or new dependency
+    requirements.
+</p>
+
+<p>
+    That's why it is better to treat a package update as a small project
+    change rather than simply clicking <strong>Update</strong>.
+</p>
+
+<hr>
+
+<h2>🔍 Check Your Current NuGet Package Versions</h2>
+
+<p>
+    Before updating anything, check which packages your project currently
+    uses.
+</p>
+
+<p>
+    In a .NET project, open the <code>.csproj</code> file.
+</p>
+
+<pre><code>&lt;ItemGroup&gt;
+    &lt;PackageReference Include="Newtonsoft.Json" Version="13.0.1" /&gt;
+    &lt;PackageReference Include="Serilog" Version="3.1.1" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+    These are direct package references used by the project.
+</p>
+
+<p>
+    You can also inspect the installed packages through Visual Studio's
+    NuGet Package Manager.
+</p>
+
+<hr>
+
+<h2>📋 Check Which Packages Have Updates</h2>
+
+<p>
+    In Visual Studio:
+</p>
+
+<ol>
+    <li>Right-click your project in <strong>Solution Explorer</strong>.</li>
+    <li>Select <strong>Manage NuGet Packages</strong>.</li>
+    <li>Open the <strong>Updates</strong> tab.</li>
+    <li>Review the available package updates.</li>
+</ol>
+
+<p>
+    Don't immediately update every package just because an update is
+    available.
+</p>
+
+<p>
+    First check the version change and determine whether it is a patch,
+    minor, or major update.
+</p>
+
+<hr>
+
+<h2>🔢 Understand Semantic Versioning</h2>
+
+<p>
+    Many NuGet packages follow semantic versioning, commonly written as:
+</p>
+
+<pre><code>MAJOR.MINOR.PATCH</code></pre>
+
+<p>
+    For example:
+</p>
+
+<pre><code>5.2.3</code></pre>
+
+<ul>
+    <li><strong>5</strong> = major version</li>
+    <li><strong>2</strong> = minor version</li>
+    <li><strong>3</strong> = patch version</li>
+</ul>
+
+<p>
+    A patch update such as:
+</p>
+
+<pre><code>5.2.3 → 5.2.4</code></pre>
+
+<p>
+    is generally smaller than:
+</p>
+
+<pre><code>5.2.3 → 6.0.0</code></pre>
+
+<p>
+    A major version change deserves additional attention because it may
+    contain breaking changes.
+</p>
+
+<hr>
+
+<h2>⬆️ Update a NuGet Package in Visual Studio</h2>
+
+<p>
+    Visual Studio provides a simple graphical interface for updating
+    NuGet packages.
+</p>
+
+<ol>
+    <li>Open your solution in Visual Studio.</li>
+    <li>Right-click the project.</li>
+    <li>Select <strong>Manage NuGet Packages</strong>.</li>
+    <li>Select the <strong>Updates</strong> tab.</li>
+    <li>Select the package you want to update.</li>
+    <li>Choose the target version.</li>
+    <li>Click <strong>Update</strong>.</li>
+</ol>
+
+<p>
+    After the update completes, restore the packages and rebuild the project.
+</p>
+
+<hr>
+
+<h2>💻 Update a NuGet Package Using the .NET CLI</h2>
+
+<p>
+    You can also manage packages from the command line.
+</p>
+
+<p>
+    First, inspect the packages used by the project:
+</p>
+
+<pre><code>dotnet list package</code></pre>
+
+<p>
+    To inspect transitive dependencies as well:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    These commands are especially useful when you're trying to understand
+    which package is responsible for a dependency conflict.
+</p>
+
+<hr>
+
+<h2>📦 Update a Package With dotnet add package</h2>
+
+<p>
+    You can add or update a package by specifying its version:
+</p>
+
+<pre><code>dotnet add package Newtonsoft.Json --version 13.0.3</code></pre>
+
+<p>
+    Replace the package name and version with the package you actually want
+    to update.
+</p>
+
+<p>
+    The command updates the package reference in the project file and
+    restores the required dependencies.
+</p>
+
+<hr>
+
+<h2>🔄 Update Packages One at a Time</h2>
+
+<p>
+    When a project has many NuGet packages, updating everything at once can
+    make troubleshooting difficult.
+</p>
+
+<p>
+    A safer approach is to update important packages individually.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>Before:
+
+PackageA 4.2.0
+PackageB 6.1.0
+PackageC 2.5.1
+
+Update PackageA first.
+
+Test the application.
+
+Then update PackageB.
+
+Test again.</code></pre>
+
+<p>
+    If something breaks, you'll have a much better idea which update caused
+    the problem.
+</p>
+
+<hr>
+
+<h2>⚠️ Check for Breaking Changes Before Updating</h2>
+
+<p>
+    Before performing a major package update, check the package's release
+    notes and documentation.
+</p>
+
+<p>
+    Pay particular attention to:
+</p>
+
+<ul>
+    <li>Removed APIs</li>
+    <li>Renamed APIs</li>
+    <li>Changed method signatures</li>
+    <li>Changed default behavior</li>
+    <li>New framework requirements</li>
+    <li>New dependency requirements</li>
+</ul>
+
+<p>
+    For example, changing:
+</p>
+
+<pre><code>Package 4.x → Package 5.x</code></pre>
+
+<p>
+    may require source-code changes if the package introduced breaking
+    changes between those versions.
+</p>
+
+<hr>
+
+<h2>🌳 Don't Forget Transitive Dependencies</h2>
+
+<p>
+    A package update can also change the versions of other packages that
+    your project receives indirectly.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>YourProject
+│
+├── PackageA 5.0
+│      │
+│      └── CommonLibrary 2.0
+│
+└── PackageB 4.0
+       │
+       └── CommonLibrary 1.0</code></pre>
+
+<p>
+    Updating Package A may change its dependency requirements and therefore
+    change the dependency resolution for <code>CommonLibrary</code>.
+</p>
+
+<p>
+    If you encounter a conflict after an update, inspect the complete
+    dependency tree:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    For more information about direct and transitive dependencies, see:
+</p>
+
+<p>
+    <a href="/direct-vs-transitive-nuget-dependencies/">
+        📦 Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+</p>
+
+<hr>
+
+<h2>🧪 Restore and Build After Updating</h2>
+
+<p>
+    After updating a package, don't assume that the project is still
+    completely compatible.
+</p>
+
+<p>
+    Restore the packages:
+</p>
+
+<pre><code>dotnet restore</code></pre>
+
+<p>
+    Then build the project:
+</p>
+
+<pre><code>dotnet build</code></pre>
+
+<p>
+    If the build succeeds, run your application's tests and verify the
+    important functionality.
+</p>
+
+<hr>
+
+<h2>🧪 Test the Application After a Package Update</h2>
+
+<p>
+    A successful build doesn't necessarily mean that everything works
+    correctly.
+</p>
+
+<p>
+    Test areas that depend on the package you updated.
+</p>
+
+<p>
+    For example, if you updated a database package, test:
+</p>
+
+<ul>
+    <li>Database connections</li>
+    <li>Queries</li>
+    <li>Transactions</li>
+    <li>Data loading</li>
+</ul>
+
+<p>
+    If you updated a web framework package, test:
+</p>
+
+<ul>
+    <li>Application startup</li>
+    <li>Authentication</li>
+    <li>API endpoints</li>
+    <li>Forms</li>
+    <li>Important user workflows</li>
+</ul>
+
+<hr>
+
+<h2>🚨 What If the Package Update Causes Errors?</h2>
+
+<p>
+    Don't panic. First determine whether the problem is directly related
+    to the package update.
+</p>
+
+<p>
+    Check:
+</p>
+
+<ol>
+    <li>The build error message.</li>
+    <li>The package version that was changed.</li>
+    <li>Any dependency warnings.</li>
+    <li>The project's target framework.</li>
+    <li>Whether another package requires a different version.</li>
+</ol>
+
+<p>
+    If you see a NuGet dependency conflict, inspect the dependency tree:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    You can also compare the package versions before and after the update.
+</p>
+
+<hr>
+
+<h2>🔧 Example of a Package Version Conflict</h2>
+
+<p>
+    Suppose your project originally has:
+</p>
+
+<pre><code>PackageA 4.0
+PackageB 2.0
+
+PackageA → CommonLibrary 1.x
+PackageB → CommonLibrary 1.x</code></pre>
+
+<p>
+    Everything works correctly.
+</p>
+
+<p>
+    You update Package A:
+</p>
+
+<pre><code>PackageA 5.0
+
+PackageA → CommonLibrary 2.x
+PackageB → CommonLibrary 1.x</code></pre>
+
+<p>
+    Now NuGet may have to resolve incompatible dependency requirements.
+</p>
+
+<p>
+    This is why a package update can sometimes produce an error that appears
+    unrelated to the package you actually updated.
+</p>
+
+<p>
+    If you encounter this type of problem, see:
+</p>
+
+<p>
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+</p>
+
+<hr>
+
+<h2>🔙 How to Roll Back a NuGet Package</h2>
+
+<p>
+    If a package update causes problems and you determine that the previous
+    version worked correctly, you can restore the previous package version.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>dotnet add package Newtonsoft.Json --version 13.0.1</code></pre>
+
+<p>
+    Then restore and rebuild:
+</p>
+
+<pre><code>dotnet restore
+dotnet build</code></pre>
+
+<p>
+    If your project uses source control such as Git, you can also review
+    the changes made to the project file and restore the previous
+    <code>PackageReference</code>.
+</p>
+
+<hr>
+
+<h2>🛡️ Best Practices for Safe NuGet Updates</h2>
+
+<p>
+    The following practices can make package maintenance much safer:
+</p>
+
+<ol>
+    <li>
+        <strong>Keep your project under source control.</strong>
+    </li>
+    <li>
+        <strong>Update packages deliberately rather than blindly.</strong>
+    </li>
+    <li>
+        <strong>Read release notes for major updates.</strong>
+    </li>
+    <li>
+        <strong>Update packages individually when troubleshooting.</strong>
+    </li>
+    <li>
+        <strong>Inspect transitive dependencies when conflicts appear.</strong>
+    </li>
+    <li>
+        <strong>Restore and rebuild after updates.</strong>
+    </li>
+    <li>
+        <strong>Run automated tests after significant updates.</strong>
+    </li>
+    <li>
+        <strong>Keep track of package versions that were changed.</strong>
+    </li>
+</ol>
+
+<hr>
+
+<h2>❓ Frequently Asked Questions</h2>
+
+<h3>Should I update all NuGet packages at once?</h3>
+
+<p>
+    It can be convenient, but updating packages individually is easier to
+    troubleshoot if something breaks. For important production projects,
+    review the available updates before applying them.
+</p>
+
+<h3>How do I check for NuGet package updates?</h3>
+
+<p>
+    In Visual Studio, open your project's
+    <strong>Manage NuGet Packages</strong> window and select the
+    <strong>Updates</strong> tab.
+</p>
+
+<h3>How can I see transitive packages?</h3>
+
+<p>
+    Run:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<h3>Can updating one package cause another package to conflict?</h3>
+
+<p>
+    Yes. Updating one package can change its dependency requirements.
+    This can result in a version conflict with another package in your
+    dependency graph.
+</p>
+
+<h3>What should I do if a package update breaks my project?</h3>
+
+<p>
+    Check the build errors and dependency tree, review the package's
+    release notes, and consider returning to the previous known-good version
+    while investigating the problem.
+</p>
+
+<hr>
+
+<h2>📚 Related NuGet Articles</h2>
+
+<p>
+    📦
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+</p>
+
+<p>
+    🔧
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+</p>
+
+<p>
+    🔍
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+</p>
+
+<p>
+    📦
+    <a href="/direct-vs-transitive-nuget-dependencies/">
+        Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+</p>
+
+<hr>
+
+<h2>🎯 Conclusion</h2>
+
+<p>
+    Updating NuGet packages is an important part of maintaining a healthy
+    .NET project, but package updates should be handled carefully.
+</p>
+
+<p>
+    Before updating a package, check its current version, review the
+    available version, and consider whether the update contains breaking
+    changes.
+</p>
+
+<p>
+    After updating, restore the project, build it, and test the functionality
+    affected by the package.
+</p>
+
+<p>
+    If an update introduces a dependency conflict, don't just look at the
+    package you updated. Inspect the complete dependency tree and identify
+    which packages are requesting incompatible versions.
+</p>
+
+<div style="margin-top:30px;padding:20px;border:1px solid #ddd;border-radius:10px;background:#f7f7f7;">
+
+    <strong>📦 Having a NuGet package conflict?</strong>
+
+    <p style="margin-bottom:0;">
+        Start with the main guide:
+        <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+            How to Fix NuGet Package Version Conflicts in Visual Studio →
+        </a>
+    </p>
+
+</div>

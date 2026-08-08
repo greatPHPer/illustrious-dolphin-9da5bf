@@ -1,0 +1,958 @@
+---
+title: "Direct vs Transitive NuGet Dependencies: What's the Difference?"
+layout: layouts/base.njk
+permalink: "/direct-vs-transitive-nuget-dependencies/"
+legacyId: 433
+contentType: "page"
+date: "2026-08-08T01:50:10"
+description: "When working with .NET projects, you may notice that your project uses NuGet packages that you never explicitly installed. This can be confusing when..."
+---
+
+<style>
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.crumb-trigger a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Dropdown menu */
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 340px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+/* Highlight active parent/current item */
+.crumb-active {
+    color: #0d6efd !important;
+    font-weight: 600 !important;
+    background: #eef5ff !important;
+}
+
+/* Current article */
+.crumb-last {
+    color: #0d6efd !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.crumb-last:hover {
+    color: #0b5ed7 !important;
+    text-decoration: underline;
+}
+</style>
+
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- C# Tutorials -->
+    <span class="crumb-trigger" data-menu="csharp">
+        <a href="/csharp-tutorials/">💻 C# Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Article #4 -->
+    <a href="/direct-vs-transitive-nuget-dependencies/"
+       class="crumb-last">
+        📦 Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Home Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <!-- Active parent: Tutorials -->
+    <a href="/tutorials/" class="crumb-active">
+        📚 Tutorials
+    </a>
+
+    <a href="/about-algolassi/">
+        🌟 About Algolassi
+    </a>
+
+    <a href="/197-2/">
+        💼 Portfolio
+    </a>
+
+    <a href="/contact-algolassi/">
+        📧 Contact
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Tutorials Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <!-- Active parent: C# Tutorials -->
+    <a href="/csharp-tutorials/" class="crumb-active">
+        💻 C# Tutorials
+    </a>
+
+    <a href="/net-tutorials/">
+        ⚙️ .NET Tutorials
+    </a>
+
+    <a href="/asp-net-core-tutorials/">
+        🌐 ASP.NET Core Tutorials
+    </a>
+
+    <a href="/blazor-tutorials/">
+        ⚡ Blazor Tutorials
+    </a>
+
+    <a href="/sql-server-tutorials/">
+        🗄️ SQL Server Tutorials
+    </a>
+
+    <a href="/visual-studio-tutorials/">
+        🖥️ Visual Studio Tutorials
+    </a>
+
+    <a href="/net-maui-tutorials/">
+        📱 .NET MAUI Tutorials
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- C# Tutorials Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-csharp">
+
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+
+    <!-- Current Article #4 -->
+    <a href="/direct-vs-transitive-nuget-dependencies/"
+       class="crumb-active">
+        📦 Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+
+</div>
+
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(function (trigger) {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById('menu-' + menuName);
+
+        if (!menu) return;
+
+        /*
+         * Move dropdown outside the WordPress
+         * content container so it is not clipped.
+         */
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect = trigger.getBoundingClientRect();
+
+            menu.style.left = rect.left + 'px';
+            menu.style.top = (rect.bottom + 5) + 'px';
+
+        }
+
+        function showMenu() {
+
+            document
+                .querySelectorAll('.crumb-teleport-menu')
+                .forEach(function (m) {
+                    m.style.display = 'none';
+                });
+
+            updatePosition();
+
+            menu.style.display = 'block';
+
+        }
+
+        function hideMenu() {
+
+            setTimeout(function () {
+
+                if (!trigger.matches(':hover') &&
+                    !menu.matches(':hover')) {
+
+                    menu.style.display = 'none';
+
+                }
+
+            }, 100);
+
+        }
+
+        trigger.addEventListener('mouseenter', showMenu);
+        trigger.addEventListener('mouseleave', hideMenu);
+
+        menu.addEventListener('mouseenter', showMenu);
+        menu.addEventListener('mouseleave', hideMenu);
+
+        window.addEventListener('resize', updatePosition);
+
+        window.addEventListener('scroll', updatePosition, true);
+
+    });
+
+})();
+</script>
+<p>
+    When working with .NET projects, you may notice that your project uses
+    NuGet packages that you never explicitly installed.
+    This can be confusing when you're troubleshooting package version
+    conflicts, warnings, or errors in Visual Studio.
+</p>
+
+<p>
+    The reason is that NuGet packages can be either
+    <strong>direct dependencies</strong> or
+    <strong>transitive dependencies</strong>.
+</p>
+
+<p>
+    Understanding the difference between them makes it much easier to
+    understand your project's dependency tree and troubleshoot NuGet
+    package conflicts.
+</p>
+
+<hr>
+
+<h2>📦 What Is a Direct NuGet Dependency?</h2>
+
+<p>
+    A <strong>direct dependency</strong> is a NuGet package that your project
+    explicitly references.
+</p>
+
+<p>
+    For example, suppose your <code>.csproj</code> file contains:
+</p>
+
+<pre><code>&lt;ItemGroup&gt;
+    &lt;PackageReference Include="Newtonsoft.Json" Version="13.0.3" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+    Your application directly references
+    <code>Newtonsoft.Json</code>.
+</p>
+
+<p>
+    Therefore, <strong>Newtonsoft.Json is a direct dependency</strong> of your
+    project.
+</p>
+
+<hr>
+
+<h2>🔗 What Is a Transitive NuGet Dependency?</h2>
+
+<p>
+    A <strong>transitive dependency</strong> is a package that your project
+    receives indirectly because another package depends on it.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>Your Application
+       │
+       └── Package A
+              │
+              └── Package B</code></pre>
+
+<p>
+    If your project directly references <code>Package A</code>, but
+    <code>Package A</code> requires <code>Package B</code>, then:
+</p>
+
+<ul>
+    <li><strong>Package A</strong> is a direct dependency.</li>
+    <li><strong>Package B</strong> is a transitive dependency.</li>
+</ul>
+
+<p>
+    You didn't explicitly add Package B to your project, but NuGet restores
+    it because Package A requires it.
+</p>
+
+<hr>
+
+<h2>🧩 A Simple Real-World Example</h2>
+
+<p>
+    Imagine your project contains:
+</p>
+
+<pre><code>&lt;ItemGroup&gt;
+    &lt;PackageReference Include="PackageA" Version="5.0.0" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+    Package A itself depends on Package B:
+</p>
+
+<pre><code>PackageA 5.0.0
+    ↓
+PackageB 3.0.0</code></pre>
+
+<p>
+    Your project's dependency tree therefore looks like:
+</p>
+
+<pre><code>YourProject
+    │
+    └── PackageA 5.0.0
+            │
+            └── PackageB 3.0.0</code></pre>
+
+<p>
+    Your project directly references Package A, while Package B is brought
+    into the project transitively.
+</p>
+
+<hr>
+
+<h2>📋 Direct vs Transitive Dependencies</h2>
+
+<table style="width:100%;border-collapse:collapse;margin:20px 0;">
+    <thead>
+        <tr>
+            <th style="border:1px solid #ddd;padding:10px;text-align:left;">
+                Direct Dependency
+            </th>
+            <th style="border:1px solid #ddd;padding:10px;text-align:left;">
+                Transitive Dependency
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Explicitly referenced by your project
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Introduced by another package
+            </td>
+        </tr>
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Usually appears in the project file
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                May not appear as a direct PackageReference
+            </td>
+        </tr>
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                You choose its package version directly
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Version is initially determined through dependency resolution
+            </td>
+        </tr>
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Easy to identify in the .csproj file
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                May require dependency-tree inspection
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<hr>
+
+<h2>📄 Where Do Direct Dependencies Appear?</h2>
+
+<p>
+    Direct package references normally appear inside your project's
+    <code>.csproj</code> file.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+
+    &lt;PropertyGroup&gt;
+        &lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
+    &lt;/PropertyGroup&gt;
+
+    &lt;ItemGroup&gt;
+        &lt;PackageReference Include="PackageA" Version="5.0.0" /&gt;
+        &lt;PackageReference Include="PackageC" Version="2.1.0" /&gt;
+    &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</code></pre>
+
+<p>
+    In this example, both Package A and Package C are direct dependencies.
+</p>
+
+<hr>
+
+<h2>🔍 Where Do Transitive Dependencies Come From?</h2>
+
+<p>
+    Transitive dependencies come from the packages your project already
+    references.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>YourProject
+    │
+    ├── PackageA
+    │      ├── PackageB
+    │      └── PackageC
+    │
+    └── PackageD
+           └── PackageE</code></pre>
+
+<p>
+    Here:
+</p>
+
+<ul>
+    <li>Package A is a direct dependency.</li>
+    <li>Package D is a direct dependency.</li>
+    <li>Package B is a transitive dependency.</li>
+    <li>Package C is a transitive dependency.</li>
+    <li>Package E is a transitive dependency.</li>
+</ul>
+
+<hr>
+
+<h2>💻 How to See Direct Dependencies</h2>
+
+<p>
+    One easy way to see your project's packages is to use the .NET CLI.
+</p>
+
+<p>
+    Open a terminal in your project directory and run:
+</p>
+
+<pre><code>dotnet list package</code></pre>
+
+<p>
+    This shows the packages directly referenced by the project.
+</p>
+
+<p>
+    You can also inspect the project's <code>.csproj</code> file to see its
+    <code>PackageReference</code> entries.
+</p>
+
+<hr>
+
+<h2>🔎 How to See Transitive Dependencies</h2>
+
+<p>
+    To inspect transitive dependencies, run:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    This is particularly useful when a package mentioned in a NuGet warning
+    or error doesn't appear directly in your project's
+    <code>.csproj</code> file.
+</p>
+
+<p>
+    You may see output similar to:
+</p>
+
+<pre><code>Top-level Package
+&gt; PackageA 5.0.0
+&gt; PackageC 2.1.0
+
+Transitive Package
+&gt; PackageB 3.0.0
+&gt; PackageD 4.2.0
+&gt; PackageE 1.5.0</code></pre>
+
+<p>
+    The transitive section helps reveal packages that are being included
+    indirectly.
+</p>
+
+<hr>
+
+<h2>🌳 Understanding the Dependency Tree</h2>
+
+<p>
+    Think of NuGet dependencies as a tree.
+</p>
+
+<pre><code>Your Application
+│
+├── Package A
+│   │
+│   ├── Package B
+│   │   └── Package X
+│   │
+│   └── Package C
+│
+└── Package D
+    │
+    └── Package X</code></pre>
+
+<p>
+    In this example:
+</p>
+
+<ul>
+    <li>Package A is a direct dependency.</li>
+    <li>Package D is a direct dependency.</li>
+    <li>Package B is transitive.</li>
+    <li>Package C is transitive.</li>
+    <li>Package X is transitive.</li>
+</ul>
+
+<p>
+    Notice that Package X is required by both Package B and Package D.
+    This type of situation can eventually result in a package version
+    conflict if the packages require incompatible versions.
+</p>
+
+<hr>
+
+<h2>⚠️ Why Transitive Dependencies Can Cause Problems</h2>
+
+<p>
+    Transitive dependencies are convenient because you don't have to manually
+    install every package required by another package.
+</p>
+
+<p>
+    However, they can also make dependency conflicts harder to understand.
+</p>
+
+<p>
+    Consider:
+</p>
+
+<pre><code>YourProject
+│
+├── PackageA
+│      └── CommonLibrary 1.x
+│
+└── PackageB
+       └── CommonLibrary 2.x</code></pre>
+
+<p>
+    Your project only directly references Package A and Package B.
+    However, both packages require different versions of
+    <code>CommonLibrary</code>.
+</p>
+
+<p>
+    The actual conflict involves a package that you never explicitly added.
+</p>
+
+<p>
+    This is one reason NuGet errors can sometimes appear confusing.
+</p>
+
+<hr>
+
+<h2>🔧 Why Understanding This Helps With NU1107</h2>
+
+<p>
+    NU1107 is a common example where understanding the dependency tree is
+    useful.
+</p>
+
+<p>
+    You may have:
+</p>
+
+<pre><code>YourProject
+│
+├── PackageA
+│      └── DependencyX 1.0
+│
+└── PackageB
+       └── DependencyX 2.0</code></pre>
+
+<p>
+    Your project doesn't necessarily reference DependencyX directly.
+    It is being introduced transitively.
+</p>
+
+<p>
+    Understanding the dependency chain helps you determine whether you should
+    update Package A, update Package B, or explicitly reference a compatible
+    version of Dependency X.
+</p>
+
+<p>
+    For a complete NU1107 troubleshooting guide, see:
+</p>
+
+<p>
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+</p>
+
+<hr>
+
+<h2>🔄 Can a Transitive Dependency Become Direct?</h2>
+
+<p>
+    Yes.
+</p>
+
+<p>
+    Suppose Package B is currently brought into your project through Package A:
+</p>
+
+<pre><code>YourProject
+    ↓
+PackageA
+    ↓
+PackageB</code></pre>
+
+<p>
+    You can explicitly add Package B to your project:
+</p>
+
+<pre><code>&lt;PackageReference Include="PackageB" Version="3.0.0" /&gt;</code></pre>
+
+<p>
+    Package B is now a direct dependency of your project.
+</p>
+
+<p>
+    This can be useful when you intentionally need to control the version of
+    a dependency.
+</p>
+
+<p>
+    However, explicitly referencing a transitive dependency should be done
+    carefully. The selected version should be compatible with the packages
+    that depend on it.
+</p>
+
+<hr>
+
+<h2>🧠 Why NuGet Doesn't Require You to Install Everything Manually</h2>
+
+<p>
+    One of the biggest advantages of NuGet is that you don't need to manually
+    install every dependency required by your packages.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>YourProject
+    ↓
+WebFrameworkPackage
+    ↓
+LoggingPackage
+    ↓
+ConfigurationPackage</code></pre>
+
+<p>
+    You only need to add the package you actually want to use.
+    NuGet resolves the packages required by that package automatically.
+</p>
+
+<p>
+    These indirect packages become part of your project's dependency graph.
+</p>
+
+<hr>
+
+<h2>🛠️ What Should You Do When a Transitive Dependency Conflicts?</h2>
+
+<p>
+    Don't immediately force a version or remove the dependency.
+</p>
+
+<p>
+    First identify the complete dependency chain.
+</p>
+
+<ol>
+    <li>Read the NuGet warning or error.</li>
+    <li>Identify the conflicting dependency.</li>
+    <li>Run <code>dotnet list package --include-transitive</code>.</li>
+    <li>Find which packages depend on it.</li>
+    <li>Compare the required versions.</li>
+    <li>Check whether the parent packages have newer versions.</li>
+    <li>Choose a compatible resolution.</li>
+    <li>Restore and rebuild the project.</li>
+</ol>
+
+<p>
+    If you're not sure which package introduced the conflict, our previous
+    article explains how to trace the dependency:
+</p>
+
+<p>
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+</p>
+
+<hr>
+
+<h2>📌 Direct and Transitive Dependencies in One Example</h2>
+
+<p>
+    Let's put everything together.
+</p>
+
+<pre><code>YourProject
+│
+├── PackageA 5.0.0       ← Direct
+│   │
+│   ├── PackageB 3.0.0   ← Transitive
+│   │   └── PackageX 1.0 ← Transitive
+│   │
+│   └── PackageC 2.0.0   ← Transitive
+│
+└── PackageD 4.0.0       ← Direct
+    │
+    └── PackageX 2.0     ← Transitive</code></pre>
+
+<p>
+    Here, your project directly references:
+</p>
+
+<ul>
+    <li>Package A</li>
+    <li>Package D</li>
+</ul>
+
+<p>
+    The remaining packages are transitive dependencies.
+</p>
+
+<p>
+    Package X is particularly important because two different dependency
+    paths require different versions:
+</p>
+
+<pre><code>PackageA
+    ↓
+PackageB
+    ↓
+PackageX 1.0
+
+PackageD
+    ↓
+PackageX 2.0</code></pre>
+
+<p>
+    This is exactly the kind of dependency tree that can lead to version
+    conflicts.
+</p>
+
+<hr>
+
+<h2>❓ Frequently Asked Questions</h2>
+
+<h3>What is a direct NuGet dependency?</h3>
+
+<p>
+    A direct NuGet dependency is a package explicitly referenced by your
+    project, usually through a <code>PackageReference</code> in the
+    <code>.csproj</code> file.
+</p>
+
+<h3>What is a transitive NuGet dependency?</h3>
+
+<p>
+    A transitive dependency is a package that your project receives because
+    another package depends on it.
+</p>
+
+<h3>How can I see transitive NuGet dependencies?</h3>
+
+<p>
+    Run:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<h3>Can I directly reference a transitive dependency?</h3>
+
+<p>
+    Yes. You can add it as a <code>PackageReference</code>, but make sure the
+    selected version is compatible with the packages that depend on it.
+</p>
+
+<h3>Why do I have packages that I never installed?</h3>
+
+<p>
+    They are often transitive dependencies. Another package in your project
+    requires them, so NuGet restores them automatically.
+</p>
+
+<hr>
+
+<h2>📚 Related NuGet Articles</h2>
+
+<p>
+    📦
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+</p>
+
+<p>
+    🔧
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+</p>
+
+<p>
+    🔍
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+</p>
+
+<hr>
+
+<h2>🎯 Conclusion</h2>
+
+<p>
+    The difference between direct and transitive NuGet dependencies is simple:
+    <strong>direct dependencies are explicitly referenced by your project,
+    while transitive dependencies are brought in by other packages.</strong>
+</p>
+
+<p>
+    When troubleshooting NuGet problems, don't look only at the packages in
+    your <code>.csproj</code> file. A conflicting package may be several
+    levels deeper in the dependency tree.
+</p>
+
+<p>
+    The command:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    is a useful starting point for understanding those hidden dependencies.
+</p>
+
+<div style="margin-top:30px;padding:20px;border:1px solid #ddd;border-radius:10px;background:#f7f7f7;">
+
+    <strong>📦 Still having a NuGet dependency conflict?</strong>
+
+    <p style="margin-bottom:0;">
+        Start with the complete guide:
+        <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+            How to Fix NuGet Package Version Conflicts in Visual Studio →
+        </a>
+    </p>
+
+</div>

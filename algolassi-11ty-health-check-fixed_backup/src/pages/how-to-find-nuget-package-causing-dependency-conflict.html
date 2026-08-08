@@ -1,0 +1,930 @@
+---
+title: "🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict"
+layout: layouts/base.njk
+permalink: "/how-to-find-nuget-package-causing-dependency-conflict/"
+legacyId: 423
+contentType: "page"
+date: "2026-08-08T01:32:54"
+description: "NuGet package conflicts can be frustrating, especially when Visual Studio reports an error involving packages that you never directly installed. You may..."
+---
+
+<style>
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* Breadcrumb trigger */
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.crumb-trigger a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Dropdown menu */
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 340px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+/* Current article */
+.crumb-last {
+    color: #0d6efd !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.crumb-last:hover {
+    color: #0b5ed7 !important;
+    text-decoration: underline;
+}
+</style>
+
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- C# Tutorials -->
+    <span class="crumb-trigger" data-menu="csharp">
+        <a href="/csharp-tutorials/">💻 C# Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Article #3 -->
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/"
+       class="crumb-last">
+        🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+
+</div>
+
+
+<!-- Home Dropdown -->
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <a href="/tutorials/">📚 Tutorials</a>
+
+    <a href="/about-algolassi/">🌟 About Algolassi</a>
+
+    <a href="/197-2/">💼 Portfolio</a>
+
+    <a href="/contact-algolassi/">📧 Contact</a>
+
+</div>
+
+
+<!-- Tutorials Dropdown -->
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
+
+    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
+
+    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
+
+    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
+
+    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
+
+    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
+
+    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
+
+</div>
+
+
+<!-- C# Tutorials Dropdown -->
+<div class="crumb-teleport-menu" id="menu-csharp">
+
+    <!-- Article #1 -->
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+
+    <!-- Article #2 -->
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+
+    <!-- Article #3 - Current -->
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/"
+       style="color:#0d6efd !important;font-weight:600;text-decoration:none;">
+        🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+
+</div>
+
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(function (trigger) {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById('menu-' + menuName);
+
+        if (!menu) return;
+
+        /*
+         * Move the dropdown outside the WordPress
+         * content container so it isn't clipped.
+         */
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect = trigger.getBoundingClientRect();
+
+            menu.style.left = rect.left + 'px';
+            menu.style.top = (rect.bottom + 5) + 'px';
+
+        }
+
+        function showMenu() {
+
+            document
+                .querySelectorAll('.crumb-teleport-menu')
+                .forEach(function (m) {
+                    m.style.display = 'none';
+                });
+
+            updatePosition();
+
+            menu.style.display = 'block';
+
+        }
+
+        function hideMenu() {
+
+            setTimeout(function () {
+
+                if (!trigger.matches(':hover') &&
+                    !menu.matches(':hover')) {
+
+                    menu.style.display = 'none';
+
+                }
+
+            }, 100);
+
+        }
+
+        trigger.addEventListener('mouseenter', showMenu);
+        trigger.addEventListener('mouseleave', hideMenu);
+
+        menu.addEventListener('mouseenter', showMenu);
+        menu.addEventListener('mouseleave', hideMenu);
+
+        window.addEventListener('resize', updatePosition);
+
+        window.addEventListener('scroll', updatePosition, true);
+
+    });
+
+})();
+</script>
+
+<p>
+    NuGet package conflicts can be frustrating, especially when Visual Studio
+    reports an error involving packages that you never directly installed.
+    You may see messages such as <strong>NU1107</strong>, <strong>NU1605</strong>,
+    or other dependency-related warnings and errors without immediately
+    knowing which package is responsible.
+</p>
+
+<p>
+    The good news is that you don't have to guess. Visual Studio and the
+    .NET CLI provide several ways to inspect your project's dependency tree
+    and identify exactly which NuGet package is introducing the conflict.
+</p>
+
+<p>
+    In this guide, we'll walk through the easiest ways to find the package
+    causing a NuGet dependency conflict and then determine the best way to
+    fix it.
+</p>
+
+<hr>
+
+<h2>🔍 What Is a NuGet Dependency Conflict?</h2>
+
+<p>
+    A NuGet dependency conflict occurs when two or more packages require
+    incompatible versions of the same dependency.
+</p>
+
+<p>
+    For example, imagine your application references two packages:
+</p>
+
+<pre><code>Your Application
+    │
+    ├── Package A
+    │      └── Newtonsoft.Json 12.x
+    │
+    └── Package B
+           └── Newtonsoft.Json 13.x</code></pre>
+
+<p>
+    Both packages depend on <code>Newtonsoft.Json</code>, but they require
+    different versions.
+</p>
+
+<p>
+    NuGet then has to determine which version can be used. Depending on the
+    dependency requirements, this can result in a warning or an error.
+</p>
+
+<hr>
+
+<h2>🚨 Why Is It Sometimes Difficult to Find the Problem?</h2>
+
+<p>
+    The package causing the conflict is not always a package that you
+    explicitly installed.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>YourProject
+    │
+    ├── PackageA
+    │      └── DependencyX
+    │             └── DependencyY
+    │
+    └── PackageB
+           └── DependencyY</code></pre>
+
+<p>
+    Your project only references <code>PackageA</code> and
+    <code>PackageB</code>, but both packages eventually depend on
+    <code>DependencyY</code>.
+</p>
+
+<p>
+    This is called a <strong>transitive dependency</strong>.
+</p>
+
+<p>
+    Therefore, looking only at the packages listed directly in your
+    <code>.csproj</code> file may not be enough.
+</p>
+
+<hr>
+
+<h2>🥇 Method 1: Read the Complete NuGet Error</h2>
+
+<p>
+    The first thing you should do is read the complete warning or error
+    message in Visual Studio.
+</p>
+
+<p>
+    Open:
+</p>
+
+<pre><code>View
+→ Error List</code></pre>
+
+<p>
+    Look for messages containing codes such as:
+</p>
+
+<ul>
+    <li><strong>NU1107</strong> – version conflict</li>
+    <li><strong>NU1605</strong> – package downgrade</li>
+    <li><strong>NU1603</strong> – dependency version resolution issue</li>
+</ul>
+
+<p>
+    The error message often contains the dependency chain that led to the
+    conflict.
+</p>
+
+<p>
+    For example, you might see something similar to:
+</p>
+
+<pre><code>NU1107: Version conflict detected for PackageX.
+Install/reference PackageX 5.0.0 directly to project
+to resolve this issue.</code></pre>
+
+<p>
+    The important information is the package name and the versions mentioned
+    in the message.
+</p>
+
+<hr>
+
+<h2>📦 Method 2: Check Installed NuGet Packages in Visual Studio</h2>
+
+<p>
+    Visual Studio provides a convenient interface for viewing the packages
+    installed in your project.
+</p>
+
+<ol>
+    <li>Right-click your project in Solution Explorer.</li>
+    <li>Select <strong>Manage NuGet Packages</strong>.</li>
+    <li>Select the <strong>Installed</strong> tab.</li>
+</ol>
+
+<p>
+    You can now see the packages that your project directly references.
+</p>
+
+<p>
+    However, remember that this list may not show every transitive dependency
+    responsible for a conflict.
+</p>
+
+<p>
+    For that, the .NET CLI is often more useful.
+</p>
+
+<hr>
+
+<h2>💻 Method 3: Use dotnet list package</h2>
+
+<p>
+    One of the easiest ways to inspect your project's package dependencies is
+    the .NET CLI.
+</p>
+
+<p>
+    Open a terminal in your project directory and run:
+</p>
+
+<pre><code>dotnet list package</code></pre>
+
+<p>
+    This displays the packages referenced by your project.
+</p>
+
+<p>
+    You may see output similar to:
+</p>
+
+<pre><code>Top-level Package
+&gt; Microsoft.EntityFrameworkCore 8.0.0
+&gt; PackageA                     3.2.0
+&gt; PackageB                     4.1.0</code></pre>
+
+<p>
+    This is useful for checking the versions of your direct package
+    references.
+</p>
+
+<hr>
+
+<h2>🔎 Method 4: Include Transitive Dependencies</h2>
+
+<p>
+    If you cannot find the conflicting package in the direct package list,
+    inspect the transitive dependencies.
+</p>
+
+<p>
+    Run:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    This is one of the most useful commands when investigating NuGet
+    dependency conflicts.
+</p>
+
+<p>
+    It shows packages that your project receives indirectly through other
+    packages.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>Top-level Package
+&gt; PackageA 3.0.0
+
+Transitive Package
+&gt; DependencyX 5.0.0
+&gt; DependencyY 2.1.0
+&gt; DependencyZ 4.0.0</code></pre>
+
+<p>
+    If the package mentioned in your conflict is not listed directly in your
+    project, it may appear here.
+</p>
+
+<hr>
+
+<h2>🧭 Method 5: Trace the Dependency Chain</h2>
+
+<p>
+    Once you identify the conflicting dependency, work backwards through the
+    dependency tree.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>Your Application
+    ↓
+Package A
+    ↓
+Package B
+    ↓
+Package C
+    ↓
+Dependency X</code></pre>
+
+<p>
+    If <code>Dependency X</code> is causing the conflict, you need to find
+    which package introduced it.
+</p>
+
+<p>
+    This is particularly important when the conflicting dependency is not
+    explicitly listed in your project file.
+</p>
+
+<hr>
+
+<h2>🛠️ Method 6: Inspect the .csproj File</h2>
+
+<p>
+    Open your project's <code>.csproj</code> file.
+</p>
+
+<p>
+    Look for <code>PackageReference</code> entries:
+</p>
+
+<pre><code>&lt;ItemGroup&gt;
+    &lt;PackageReference Include="PackageA" Version="3.0.0" /&gt;
+    &lt;PackageReference Include="PackageB" Version="4.0.0" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+    These are the packages your project explicitly references.
+</p>
+
+<p>
+    If the conflicting dependency isn't present here, it is likely being
+    introduced transitively by one of these packages.
+</p>
+
+<hr>
+
+<h2>🧩 Direct vs Transitive NuGet Dependencies</h2>
+
+<h3>📌 Direct Dependency</h3>
+
+<p>
+    A direct dependency is explicitly referenced by your project:
+</p>
+
+<pre><code>&lt;PackageReference Include="PackageA" Version="3.0.0" /&gt;</code></pre>
+
+<p>
+    Your application directly requested <code>PackageA</code>.
+</p>
+
+<h3>📌 Transitive Dependency</h3>
+
+<p>
+    A transitive dependency is installed because another package requires it:
+</p>
+
+<pre><code>YourProject
+    ↓
+PackageA
+    ↓
+DependencyB</code></pre>
+
+<p>
+    Your project didn't explicitly request <code>DependencyB</code>.
+    PackageA did.
+</p>
+
+<p>
+    This distinction is extremely important when troubleshooting package
+    conflicts.
+</p>
+
+<hr>
+
+<h2>🔍 How to Find Which Package Introduced the Conflict</h2>
+
+<p>
+    Suppose the error mentions:
+</p>
+
+<pre><code>DependencyX</code></pre>
+
+<p>
+    but <code>DependencyX</code> isn't in your <code>.csproj</code> file.
+</p>
+
+<p>
+    First run:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    Find <code>DependencyX</code> in the output.
+</p>
+
+<p>
+    Then examine the packages above it and determine which top-level package
+    introduced that dependency.
+</p>
+
+<p>
+    Conceptually, you are looking for a chain such as:
+</p>
+
+<pre><code>YourProject
+    ↓
+PackageA
+    ↓
+PackageB
+    ↓
+DependencyX</code></pre>
+
+<p>
+    Once you know that <code>PackageB</code> introduced
+    <code>DependencyX</code>, you can investigate PackageB's version and
+    dependency requirements.
+</p>
+
+<hr>
+
+<h2>⚠️ What If Two Packages Require Different Versions?</h2>
+
+<p>
+    Consider this example:
+</p>
+
+<pre><code>YourProject
+    │
+    ├── PackageA
+    │      └── DependencyX 1.x
+    │
+    └── PackageB
+           └── DependencyX 2.x</code></pre>
+
+<p>
+    Now you have a dependency conflict because PackageA and PackageB require
+    different versions of the same dependency.
+</p>
+
+<p>
+    At this point, don't immediately install the newest version.
+</p>
+
+<p>
+    First determine whether newer versions of PackageA or PackageB are
+    available that use compatible dependency versions.
+</p>
+
+<hr>
+
+<h2>🔄 Method 7: Check for Package Updates</h2>
+
+<p>
+    In Visual Studio:
+</p>
+
+<ol>
+    <li>Right-click your project.</li>
+    <li>Select <strong>Manage NuGet Packages</strong>.</li>
+    <li>Open the <strong>Updates</strong> tab.</li>
+    <li>Check the packages involved in the dependency chain.</li>
+</ol>
+
+<p>
+    A newer version of the package causing the conflict may already have
+    updated its dependency requirements.
+</p>
+
+<p>
+    Updating the parent package is often safer than manually forcing a
+    dependency version.
+</p>
+
+<hr>
+
+<h2>🛠️ Method 8: Explicitly Reference the Dependency</h2>
+
+<p>
+    Sometimes the NuGet error itself recommends explicitly referencing a
+    dependency.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>&lt;PackageReference Include="DependencyX" Version="2.0.0" /&gt;</code></pre>
+
+<p>
+    This can make the desired dependency version explicit for your project.
+</p>
+
+<p>
+    However, only do this when the selected version is compatible with the
+    packages that depend on it.
+</p>
+
+<hr>
+
+<h2>🧹 Method 9: Restore Packages After Making Changes</h2>
+
+<p>
+    After changing package versions, restore the project's packages:
+</p>
+
+<pre><code>dotnet restore</code></pre>
+
+<p>
+    Then rebuild the project:
+</p>
+
+<pre><code>dotnet build</code></pre>
+
+<p>
+    In Visual Studio, you can also use:
+</p>
+
+<pre><code>Build
+→ Clean Solution
+
+Build
+→ Rebuild Solution</code></pre>
+
+<p>
+    This ensures that the project is rebuilt using the updated dependency
+    information.
+</p>
+
+<hr>
+
+<h2>🧪 Example: Finding the Problem Step by Step</h2>
+
+<p>
+    Imagine Visual Studio reports a dependency conflict involving
+    <code>DependencyX</code>.
+</p>
+
+<p>
+    Your project file contains:
+</p>
+
+<pre><code>&lt;ItemGroup&gt;
+    &lt;PackageReference Include="PackageA" Version="3.0.0" /&gt;
+    &lt;PackageReference Include="PackageB" Version="4.0.0" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+    You don't see <code>DependencyX</code> anywhere.
+</p>
+
+<p>
+    Run:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    You discover:
+</p>
+
+<pre><code>PackageA
+    ↓
+DependencyX 1.0.0
+
+PackageB
+    ↓
+DependencyX 2.0.0</code></pre>
+
+<p>
+    Now you know the conflict isn't directly caused by your project.
+    It is caused by the dependency requirements of PackageA and PackageB.
+</p>
+
+<p>
+    You can then check whether a newer version of either package resolves the
+    conflict.
+</p>
+
+<hr>
+
+<h2>❌ Don't Just Delete the Conflicting Package</h2>
+
+<p>
+    A common mistake is to remove a package simply because it appears in the
+    dependency conflict.
+</p>
+
+<p>
+    If another package depends on it, removing it may create additional
+    compilation or runtime problems.
+</p>
+
+<p>
+    Instead, first determine:
+</p>
+
+<ul>
+    <li>Which package introduced the dependency.</li>
+    <li>Which version it requires.</li>
+    <li>Which other package requires a different version.</li>
+    <li>Whether compatible package updates are available.</li>
+</ul>
+
+<hr>
+
+<h2>❌ Don't Always Force the Newest Version</h2>
+
+<p>
+    Installing the newest dependency version can sometimes remove a warning,
+    but it can also introduce compatibility problems.
+</p>
+
+<p>
+    A package may have been designed and tested against a particular major
+    version of its dependency.
+</p>
+
+<p>
+    Therefore, choose a version based on compatibility rather than simply
+    choosing the highest available version.
+</p>
+
+<hr>
+
+<h2>📋 Quick Checklist</h2>
+
+<p>
+    When you encounter a NuGet dependency conflict, follow this checklist:
+</p>
+
+<ol>
+    <li>Read the complete NuGet error message.</li>
+    <li>Identify the conflicting dependency.</li>
+    <li>Check your direct package references.</li>
+    <li>Run <code>dotnet list package</code>.</li>
+    <li>Run <code>dotnet list package --include-transitive</code>.</li>
+    <li>Find which package introduced the dependency.</li>
+    <li>Compare the required dependency versions.</li>
+    <li>Check for updates to the packages involved.</li>
+    <li>Explicitly reference a dependency only when appropriate.</li>
+    <li>Run <code>dotnet restore</code>.</li>
+    <li>Clean and rebuild the project.</li>
+    <li>Test the application.</li>
+</ol>
+
+<hr>
+
+<h2>🔗 Related NuGet Articles</h2>
+
+<p>
+    Once you've identified the package causing the conflict, the next step
+    depends on the specific NuGet error you're seeing.
+</p>
+
+<p>
+    📦
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+</p>
+
+<p>
+    🔧
+    <a href="/fix-nu1605-nuget-package-downgrade/">
+        How to Fix NU1605: Package Downgrade Detected in Visual Studio
+    </a>
+</p>
+
+<p>
+    🔧
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+</p>
+
+<hr>
+
+<h2>🎯 Conclusion</h2>
+
+<p>
+    Finding the NuGet package responsible for a dependency conflict becomes
+    much easier once you understand the difference between direct and
+    transitive dependencies.
+</p>
+
+<p>
+    Start with the complete Visual Studio error message, then use:
+</p>
+
+<pre><code>dotnet list package</code></pre>
+
+<p>
+    and especially:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    to inspect the dependency tree.
+</p>
+
+<p>
+    Once you identify which package introduced the conflicting dependency,
+    you can make an informed decision about updating the package, changing
+    the dependency version, or explicitly referencing a compatible version.
+</p>
+
+<div style="margin-top:30px;padding:20px;border:1px solid #ddd;border-radius:10px;background:#f7f7f7;">
+
+    <strong>📦 Having a NuGet Version Conflict?</strong>
+
+    <p style="margin-bottom:0;">
+        Start with our complete guide:
+        <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+            How to Fix NuGet Package Version Conflicts in Visual Studio →
+        </a>
+    </p>
+
+</div>

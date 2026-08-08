@@ -1,0 +1,650 @@
+---
+title: "📦 NuGet Package Downgrade Detected: How to Fix NU1605 in Visual Studio"
+layout: layouts/base.njk
+permalink: "/fix-nu1605-nuget-package-downgrade/"
+legacyId: 408
+contentType: "page"
+date: "2026-08-08T01:08:26"
+description: "Getting the NU1605: Detected package downgrade warning or error in Visual Studio? This usually happens when different NuGet packages require different..."
+---
+
+<style>
+/* Suppress iframe scrollbars inside WordPress Editor preview */
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* Trigger */
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Dropdown */
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 320px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+/* Current article */
+.crumb-current {
+    background: #e8f3ff;
+    color: #0d6efd !important;
+    font-weight: 600;
+}
+
+.breadcrumb > a:last-child {
+    color: #0056b3;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child:hover {
+    text-decoration: underline;
+}
+
+.crumb-current:hover {
+    background: #d8ebff !important;
+}
+
+.crumb-last {
+    color: #0d6efd !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.crumb-last:hover {
+    color: #0b5ed7 !important;
+    text-decoration: underline;
+}
+</style>
+
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- C# -->
+    <span class="crumb-trigger" data-menu="csharp">
+        <a href="/csharp-tutorials/">💻 C# Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Current Article -->
+    <a href="/fix-nu1605-nuget-package-downgrade/"
+       class="crumb-last">
+        🔧 NuGet Package Downgrade Detected: How to Fix NU1605 in Visual Studio
+    </a>
+
+</div>
+
+
+<!-- Home Menu -->
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <a href="/tutorials/">📚 Tutorials</a>
+
+    <a href="/about-algolassi/">🌟 About Algolassi</a>
+
+    <a href="/197-2/">💼 Portfolio</a>
+
+    <a href="/contact-algolassi/">📧 Contact</a>
+
+</div>
+
+
+<!-- Tutorials Menu -->
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
+
+    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
+
+    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
+
+    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
+
+    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
+
+    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
+
+    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
+
+</div>
+
+
+<!-- C# Menu -->
+<div class="crumb-teleport-menu" id="menu-csharp">
+
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/"
+       style="color:#0d6efd !important;font-weight:600;text-decoration:none;">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+
+    <a href="/fix-nu1605-nuget-package-downgrade/"
+       style="color:#0d6efd !important;font-weight:600;text-decoration:none;">
+        🔧 NuGet Package Downgrade Detected: How to Fix NU1605
+    </a>
+
+    <a href="/async-await-csharp-best-practices/">
+        ⚡ Async and Await in C#: Common Mistakes and Best Practices
+    </a>
+
+</div>
+
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(trigger => {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById("menu-" + menuName);
+
+        if (!menu) return;
+
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect = trigger.getBoundingClientRect();
+
+            menu.style.left = rect.left + "px";
+            menu.style.top = (rect.bottom + 5) + "px";
+
+        }
+
+        function showMenu() {
+
+            updatePosition();
+
+            document
+                .querySelectorAll(".crumb-teleport-menu")
+                .forEach(m => m.style.display = "none");
+
+            menu.style.display = "block";
+
+        }
+
+        function hideMenu() {
+
+            setTimeout(() => {
+
+                if (!trigger.matches(":hover") &&
+                    !menu.matches(":hover")) {
+
+                    menu.style.display = "none";
+
+                }
+
+            }, 100);
+
+        }
+
+        trigger.addEventListener("mouseenter", showMenu);
+        trigger.addEventListener("mouseleave", hideMenu);
+
+        menu.addEventListener("mouseenter", showMenu);
+        menu.addEventListener("mouseleave", hideMenu);
+
+        window.addEventListener("resize", updatePosition);
+        window.addEventListener("scroll", updatePosition, true);
+
+    });
+
+})();
+</script>
+
+<!-- Title -->
+
+
+<p>
+  Getting the <strong>NU1605: Detected package downgrade</strong> warning or error
+  in Visual Studio? This usually happens when different NuGet packages require
+  different versions of the same dependency.
+</p>
+
+<p>
+  In this guide, you'll learn what NU1605 means, why it occurs, how to identify
+  the conflicting packages, and several reliable ways to fix it in a
+  <strong>.NET or Visual Studio project</strong>.
+</p>
+
+<hr>
+
+<h2>📌 What Is NU1605?</h2>
+
+<p>
+  <strong>NU1605</strong> is a NuGet package downgrade warning that occurs when
+  NuGet resolves a dependency to a lower version than the version requested by
+  another package.
+</p>
+
+<p>For example, imagine your project has these dependencies:</p>
+
+<pre><code>PackageA → requires Newtonsoft.Json 13.0.3
+PackageB → requires Newtonsoft.Json 12.0.3</code></pre>
+
+<p>
+  If your project directly references an older version, NuGet may detect that
+  the dependency has effectively been downgraded.
+</p>
+
+<p>You may see an error similar to:</p>
+
+<pre><code>error NU1605: Detected package downgrade:
+Newtonsoft.Json from 13.0.3 to 12.0.3.
+Reference the package directly from the project to select a different version.</code></pre>
+
+<p>
+  The exact package names and versions will vary depending on your project.
+</p>
+
+<hr>
+
+<h2>🔍 Why Does NU1605 Happen?</h2>
+
+<p>
+  NU1605 is usually caused by a <strong>dependency version conflict</strong>.
+  One package requires a newer version of a dependency while another part of
+  the project brings in an older version.
+</p>
+
+<p>A typical dependency tree might look like this:</p>
+
+<pre><code>YourProject
+│
+├── PackageA
+│   └── DependencyX 5.0.0
+│
+└── PackageB
+    └── DependencyX 4.0.0</code></pre>
+
+<p>
+  NuGet has to determine which version of <code>DependencyX</code> should be
+  used.
+</p>
+
+<p>
+  If the resolved version is lower than the version requested by another
+  dependency, NU1605 can occur.
+</p>
+
+<hr>
+
+<h2>🧪 Example of NU1605</h2>
+
+<p>
+  Suppose your project contains:
+</p>
+
+<pre><code>&lt;PackageReference Include="PackageA" Version="2.0.0" /&gt;
+&lt;PackageReference Include="PackageB" Version="1.5.0" /&gt;
+&lt;PackageReference Include="DependencyX" Version="4.0.0" /&gt;</code></pre>
+
+<p>
+  Now imagine that <code>PackageA</code> requires
+  <code>DependencyX 5.0.0</code>.
+</p>
+
+<p>
+  Your project explicitly references <code>DependencyX 4.0.0</code>, creating a
+  version mismatch.
+</p>
+
+<p>
+  NuGet may report:
+</p>
+
+<pre><code>NU1605: Detected package downgrade</code></pre>
+
+<hr>
+
+<h2>🔎 How to Find the Package Causing NU1605</h2>
+
+<p>
+  The first thing you should do is read the complete NU1605 message in the
+  <strong>Visual Studio Error List</strong>.
+</p>
+
+<p>
+  The message normally contains a dependency chain showing which package
+  requires the newer version and which package introduced the older version.
+</p>
+
+<p>For example:</p>
+
+<pre><code>PackageA 2.0.0
+  → DependencyX (≥ 5.0.0)
+
+PackageB 1.5.0
+  → DependencyX (≥ 4.0.0)
+
+Project
+  → DependencyX 4.0.0</code></pre>
+
+<p>
+  In this example, <code>DependencyX 4.0.0</code> is the package you should
+  investigate.
+</p>
+
+<hr>
+
+<h2>🛠️ Fix 1: Update the Direct Package Reference</h2>
+
+<p>
+  One of the most common solutions is to explicitly reference a compatible
+  version of the dependency in your project.
+</p>
+
+<p>
+  For example, if the project currently contains:
+</p>
+
+<pre><code>&lt;PackageReference Include="DependencyX" Version="4.0.0" /&gt;</code></pre>
+
+<p>
+  and another package requires version 5.0.0 or later, update the reference:
+</p>
+
+<pre><code>&lt;PackageReference Include="DependencyX" Version="5.0.0" /&gt;</code></pre>
+
+<p>
+  After changing the package version, restore the NuGet packages and rebuild
+  the project.
+</p>
+
+<p>
+  In many cases, this resolves NU1605 immediately.
+</p>
+
+<hr>
+
+<h2>🛠️ Fix 2: Update the Package Causing the Conflict</h2>
+
+<p>
+  Sometimes the better solution is to update the package that depends on the
+  older version.
+</p>
+
+<p>In Visual Studio:</p>
+
+<ol>
+  <li>Right-click your project.</li>
+  <li>Select <strong>Manage NuGet Packages</strong>.</li>
+  <li>Open the <strong>Updates</strong> tab.</li>
+  <li>Check for newer versions of the packages involved in the conflict.</li>
+  <li>Update compatible packages.</li>
+  <li>Restore and rebuild the project.</li>
+</ol>
+
+<p>
+  This can eliminate the conflicting dependency instead of forcing a version
+  manually.
+</p>
+
+<hr>
+
+<h2>🛠️ Fix 3: Check Transitive Dependencies</h2>
+
+<p>
+  The package you need to update may not be directly installed in your project.
+  It may be a <strong>transitive dependency</strong>.
+</p>
+
+<p>
+  A transitive dependency is a package that your project receives through
+  another NuGet package.
+</p>
+
+<p>For example:</p>
+
+<pre><code>YourProject
+   ↓
+PackageA
+   ↓
+DependencyX</code></pre>
+
+<p>
+  Your project references <code>PackageA</code>, but
+  <code>DependencyX</code> is brought into the project automatically.
+</p>
+
+<p>
+  In this situation, inspect the dependency tree before changing package
+  versions manually.
+</p>
+
+<hr>
+
+<h2>🛠️ Fix 4: Use the Visual Studio NuGet Package Manager</h2>
+
+<p>
+  You can inspect package versions directly from Visual Studio.
+</p>
+
+<p>Open:</p>
+
+<pre><code>Right-click Project
+→ Manage NuGet Packages
+→ Installed</code></pre>
+
+<p>
+  Look for packages involved in the NU1605 message and compare their versions.
+</p>
+
+<p>
+  If one package is significantly older than the others, check whether an
+  update is available.
+</p>
+
+<hr>
+
+<h2>🛠️ Fix 5: Check the .csproj File</h2>
+
+<p>
+  For SDK-style .NET projects, package references are normally stored in the
+  <code>.csproj</code> file.
+</p>
+
+<p>For example:</p>
+
+<pre><code>&lt;ItemGroup&gt;
+  &lt;PackageReference Include="PackageA" Version="2.0.0" /&gt;
+  &lt;PackageReference Include="DependencyX" Version="4.0.0" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+  Check whether the dependency causing NU1605 is explicitly referenced with
+  an older version.
+</p>
+
+<p>
+  If appropriate, update it to a compatible version.
+</p>
+
+<hr>
+
+<h2>🧹 Fix 6: Clean and Restore NuGet Packages</h2>
+
+<p>
+  After changing package versions, it can sometimes help to clean the project
+  and restore the dependencies.
+</p>
+
+<p>In Visual Studio, try:</p>
+
+<pre><code>Build
+→ Clean Solution
+
+Build
+→ Rebuild Solution</code></pre>
+
+<p>
+  You can also restore NuGet packages from the solution or project context
+  menu.
+</p>
+
+<p>
+  For SDK-style projects, you can also use the .NET CLI:
+</p>
+
+<pre><code>dotnet restore</code></pre>
+
+<p>
+  If the problem persists, close Visual Studio and remove the project's
+  <code>bin</code> and <code>obj</code> folders before restoring again.
+</p>
+
+<hr>
+
+<h2>⚠️ Should You Ignore NU1605?</h2>
+
+<p>
+  Generally, <strong>don't ignore NU1605 blindly</strong>.
+</p>
+
+<p>
+  A package downgrade can sometimes result in an incompatible dependency being
+  used at runtime.
+</p>
+
+<p>
+  If you know that the selected version is compatible and your project
+  intentionally pins that version, you may have a reason to suppress the
+  warning. However, fixing the dependency conflict is usually preferable.
+</p>
+
+<hr>
+
+<h2>💡 Best Practice for NuGet Version Conflicts</h2>
+
+<p>
+  When resolving NU1605, don't simply change random package versions until the
+  error disappears.
+</p>
+
+<p>A better approach is:</p>
+
+<ol>
+  <li>Read the complete NU1605 message.</li>
+  <li>Identify the dependency causing the conflict.</li>
+  <li>Check which package requires the newer version.</li>
+  <li>Check which package introduces the older version.</li>
+  <li>Update compatible packages where possible.</li>
+  <li>Use a direct package reference when appropriate.</li>
+  <li>Restore and rebuild the project.</li>
+  <li>Test the application after the change.</li>
+</ol>
+
+<hr>
+
+<h2>🔗 NU1605 vs Other NuGet Version Conflicts</h2>
+
+<p>
+  NU1605 is only one type of NuGet dependency conflict. You may also encounter
+  errors such as <strong>NU1107</strong>, which indicates a version conflict
+  that NuGet cannot resolve automatically.
+</p>
+
+<p>
+  If you're dealing with a broader package-version problem, see our complete
+  guide:
+</p>
+
+<p>
+  👉 <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+    How to Fix NuGet Package Version Conflicts in Visual Studio
+  </a>
+</p>
+
+<hr>
+
+<h2>🎯 Conclusion</h2>
+
+<p>
+  <strong>NU1605</strong> usually means that NuGet has detected a package
+  dependency being resolved to a lower version than another dependency expects.
+</p>
+
+<p>
+  The most reliable solution is to identify the dependency chain, update
+  incompatible packages, or explicitly reference an appropriate version of
+  the conflicting dependency.
+</p>
+
+<p>
+  Don't just suppress NU1605 without understanding the dependency conflict.
+  A clean dependency graph makes your .NET project easier to maintain and less
+  likely to encounter package-related problems later.
+</p>
+
+<div style="margin-top:30px;padding:20px;border:1px solid #ddd;border-radius:10px;background:#f7f7f7;">
+  <strong>📚 More NuGet &amp; Visual Studio Tutorials</strong>
+  <p style="margin-bottom:0;">
+    Having another NuGet dependency problem?
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+      Read the complete NuGet Package Version Conflicts guide →
+    </a>
+  </p>
+</div>
