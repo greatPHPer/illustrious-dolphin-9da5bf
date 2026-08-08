@@ -1,0 +1,225 @@
+---
+title: "10 Hidden C#/.NET Tricks to Write Cleaner and Faster Code"
+layout: layouts/base.njk
+permalink: "/2025/10/08/10-hidden-c-net-tricks-to-write-cleaner-and-faster-code/"
+legacyId: 93
+contentType: "post"
+date: "2025-10-08T11:29:37"
+description: "If you’ve been coding in .NET for a while, you’ve probably settled into a rhythm — but .NET keeps evolving faster than most realize. From subtle syntax sugar..."
+categories:
+  - ".Net"
+---
+
+<p>If you’ve been coding in .NET for a while, you’ve probably settled into a rhythm — but .NET keeps evolving faster than most realize. From subtle syntax sugar to powerful runtime improvements, there are many underrated features that can make your code leaner, smarter, and more expressive.</p>
+
+
+
+<p>Here are 10 <strong>practical C#/.NET tricks</strong> that every modern developer should know in 2025.</p>
+
+
+
+<p><strong>1. Use <code>nameof()</code> Everywhere</strong></p>
+
+
+
+<p>Instead of hardcoding string names in exceptions or logs:</p>
+
+
+
+<pre class="wp-block-code"><code>throw new ArgumentNullException(nameof(userName));
+</code></pre>
+
+
+
+<p>This protects you from typos and keeps refactoring safe — no more fragile string literals.</p>
+
+
+
+<p><strong>2. Leverage Pattern Matching Beyond <code>switch</code></strong></p>
+
+
+
+<p>Modern C# pattern matching is insanely powerful:</p>
+
+
+
+<pre class="wp-block-code"><code>if (obj is Person { Age: &gt; 18, Country: "IN" })
+{
+    Console.WriteLine("Adult from India");
+}
+</code></pre>
+
+
+
+<p>You can destructure, match by type, and even apply relational patterns — all inline.</p>
+
+
+
+<p><strong>3. Combine LINQ with <code>Span&lt;T></code> for Speed</strong></p>
+
+
+
+<p>LINQ is elegant but not always the fastest. For performance-critical paths:</p>
+
+
+
+<pre class="wp-block-code"><code>ReadOnlySpan&lt;int&gt; numbers = stackalloc int&#91;] { 1, 2, 3, 4, 5 };
+int total = 0;
+foreach (var n in numbers)
+    total += n;
+</code></pre>
+
+
+
+<p><code>Span&lt;T&gt;</code> avoids heap allocations and gives you near C-like performance.</p>
+
+
+
+<p><strong>4. Simplify Null Checks with the Null-Coalescing Assignment</strong></p>
+
+
+
+<p>Instead of:</p>
+
+
+
+<pre class="wp-block-code"><code>if (settings == null)
+    settings = new Settings();
+</code></pre>
+
+
+
+<p>Write:</p>
+
+
+
+<pre class="wp-block-code"><code>settings ??= new Settings();
+</code></pre>
+
+
+
+<p>Cleaner, shorter, and fully thread-safe.</p>
+
+
+
+<p><strong>5. Use Target-Typed <code>new()</code> for Less Noise</strong></p>
+
+
+
+<p>When the type is obvious, you can skip repetition:</p>
+
+
+
+<pre class="wp-block-code"><code>List&lt;string&gt; names = new();
+</code></pre>
+
+
+
+<p>Introduced in C# 9, it’s a small win that keeps your code more readable.</p>
+
+
+
+<p><strong>6. Make Your <code>switch</code> Expressions Shine</strong></p>
+
+
+
+<p>The modern <code>switch</code> is a hidden gem:</p>
+
+
+
+<pre class="wp-block-code"><code>string status = code switch
+{
+    200 =&gt; "OK",
+    404 =&gt; "Not Found",
+    500 =&gt; "Error",
+    _   =&gt; "Unknown"
+};
+</code></pre>
+
+
+
+<p>No more bulky switch blocks — just clean functional mappings.</p>
+
+
+
+<p><strong>7. Use <code>record</code> Types for DTOs and Immutable Data</strong></p>
+
+
+
+<p>If you’re writing models that just hold data, <code>record</code> types save tons of boilerplate:</p>
+
+
+
+<pre class="wp-block-code"><code>public record Product(string Name, decimal Price);
+</code></pre>
+
+
+
+<p>They come with built-in <code>ToString()</code>, equality, and immutability — perfect for APIs.</p>
+
+
+
+<p><strong>8. Make Use of <code>using var</code> for Disposable Objects</strong></p>
+
+
+
+<p>Instead of verbose <code>using (...) {}</code> blocks:</p>
+
+
+
+<pre class="wp-block-code"><code>using var stream = File.OpenRead("data.txt");
+</code></pre>
+
+
+
+<p>It disposes automatically at scope end — perfect for short-lived disposables.</p>
+
+
+
+<p><strong>9. Cache Smartly with <code>MemoryCache</code></strong></p>
+
+
+
+<p>If you’re fetching data repeatedly, use .NET’s built-in cache:</p>
+
+
+
+<pre class="wp-block-code"><code>var cache = new MemoryCache(new MemoryCacheOptions());
+cache.Set("data", result, TimeSpan.FromMinutes(5));
+</code></pre>
+
+
+
+<p>Avoids unnecessary I/O and improves app responsiveness with just a few lines.</p>
+
+
+
+<p><strong>10. Embrace <code>async</code> Streams for Real-Time Processing</strong></p>
+
+
+
+<p>Process live data asynchronously:</p>
+
+
+
+<pre class="wp-block-code"><code>await foreach (var msg in GetMessagesAsync())
+{
+    Console.WriteLine(msg);
+}
+</code></pre>
+
+
+
+<p>Combining <code>IAsyncEnumerable&lt;T&gt;</code> with <code>await foreach</code> gives you clean, non-blocking pipelines.</p>
+
+
+
+<p><strong>⚡ Wrap-Up</strong></p>
+
+
+
+<p>C# continues to evolve beyond what many developers learned a few years ago. Whether it’s simplifying your code with <code>record</code> types or improving performance with <code>Span&lt;T&gt;</code>, these features are designed to help you write <strong>cleaner, safer, and faster</strong> .NET code.</p>
+
+
+
+<p>Stay tuned on <strong>AlgoLassi</strong> for more daily .NET insights — and if you’ve got a favorite hidden trick, drop it in the comments or share it with the tag <strong>#dotnettips</strong>.</p>

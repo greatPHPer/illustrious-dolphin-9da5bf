@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>📦 How to Clean and Restore NuGet Packages in Visual Studio | Algolassi</title>
+  <meta name="description" content="NuGet packages are an essential part of modern .NET development, but package caches, outdated dependencies, and incomplete restores can sometimes cause...">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/clean-restore-nuget-packages-visual-studio/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="page-content">
+    
+<style>
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.crumb-trigger a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 340px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+.crumb-active {
+    color: #0d6efd !important;
+    font-weight: 600 !important;
+    background: #eef5ff !important;
+}
+
+.crumb-last {
+    color: #0d6efd !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.crumb-last:hover {
+    color: #0b5ed7 !important;
+    text-decoration: underline;
+}
+</style>
+
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- C# Tutorials -->
+    <span class="crumb-trigger" data-menu="csharp">
+        <a href="/csharp-tutorials/">💻 C# Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Article #8 -->
+    <a href="/clean-restore-nuget-packages-visual-studio/"
+       class="crumb-last">
+        🧹 How to Clean and Restore NuGet Packages in Visual Studio
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Home Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <a href="/tutorials/" class="crumb-active">
+        📚 Tutorials
+    </a>
+
+    <a href="/about-algolassi/">
+        🌟 About Algolassi
+    </a>
+
+    <a href="/197-2/">
+        💼 Portfolio
+    </a>
+
+    <a href="/contact-algolassi/">
+        📧 Contact
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Tutorials Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/" class="crumb-active">
+        💻 C# Tutorials
+    </a>
+
+    <a href="/net-tutorials/">
+        ⚙️ .NET Tutorials
+    </a>
+
+    <a href="/asp-net-core-tutorials/">
+        🌐 ASP.NET Core Tutorials
+    </a>
+
+    <a href="/blazor-tutorials/">
+        ⚡ Blazor Tutorials
+    </a>
+
+    <a href="/sql-server-tutorials/">
+        🗄️ SQL Server Tutorials
+    </a>
+
+    <a href="/visual-studio-tutorials/">
+        🖥️ Visual Studio Tutorials
+    </a>
+
+    <a href="/net-maui-tutorials/">
+        📱 .NET MAUI Tutorials
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- C# Tutorials Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-csharp">
+
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+
+    <a href="/direct-vs-transitive-nuget-dependencies/">
+        📦 Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+
+    <a href="/update-nuget-packages-safely/">
+        🔄 How to Update NuGet Packages Safely Without Breaking Your Project
+    </a>
+
+    <a href="/package-reference-vs-packages-config/">
+        📦 PackageReference vs packages.config: Which Should You Use?
+    </a>
+
+    <a href="/central-package-management-dotnet/">
+        📦 How to Use Central Package Management in .NET
+    </a>
+
+    <!-- Article #8 - Current -->
+    <a href="/clean-restore-nuget-packages-visual-studio/"
+       class="crumb-active">
+        🧹 How to Clean and Restore NuGet Packages in Visual Studio
+    </a>
+
+</div>
+
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(function (trigger) {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById('menu-' + menuName);
+
+        if (!menu) return;
+
+        /*
+         * Move dropdown outside the WordPress
+         * content container so it is not clipped.
+         */
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect = trigger.getBoundingClientRect();
+
+            menu.style.left = rect.left + 'px';
+            menu.style.top = (rect.bottom + 5) + 'px';
+
+        }
+
+        function showMenu() {
+
+            document
+                .querySelectorAll('.crumb-teleport-menu')
+                .forEach(function (m) {
+                    m.style.display = 'none';
+                });
+
+            updatePosition();
+
+            menu.style.display = 'block';
+
+        }
+
+        function hideMenu() {
+
+            setTimeout(function () {
+
+                if (!trigger.matches(':hover') &&
+                    !menu.matches(':hover')) {
+
+                    menu.style.display = 'none';
+
+                }
+
+            }, 100);
+
+        }
+
+        trigger.addEventListener('mouseenter', showMenu);
+        trigger.addEventListener('mouseleave', hideMenu);
+
+        menu.addEventListener('mouseenter', showMenu);
+        menu.addEventListener('mouseleave', hideMenu);
+
+        window.addEventListener('resize', updatePosition);
+
+        window.addEventListener('scroll', updatePosition, true);
+
+    });
+
+})();
+</script>
+
+<p>
+    NuGet packages are an essential part of modern .NET development, but
+    package caches, outdated dependencies, and incomplete restores can
+    sometimes cause unexpected build errors.
+</p>
+
+<p>
+    If Visual Studio is showing strange NuGet errors, missing references,
+    package version warnings, or a project that refuses to build after
+    changing package versions, cleaning and restoring the NuGet packages
+    can often help.
+</p>
+
+<p>
+    In this guide, you'll learn how to clean and restore NuGet packages in
+    Visual Studio, clear the NuGet cache, restore packages from the command
+    line, and troubleshoot common package-related problems.
+</p>
+
+<hr>
+
+<h2>🧹 What Does Cleaning NuGet Packages Mean?</h2>
+
+<p>
+    Cleaning NuGet packages means removing or refreshing package-related
+    files that may be cached locally or stored as part of your project's
+    build output.
+</p>
+
+<p>
+    This can be useful when package files become outdated, incomplete, or
+    inconsistent with your project's current package references.
+</p>
+
+<p>
+    Cleaning your project and restoring packages gives NuGet an opportunity
+    to resolve and download the required dependencies again.
+</p>
+
+<hr>
+
+<h2>🔄 What Does NuGet Restore Do?</h2>
+
+<p>
+    NuGet restore examines your project's package dependencies and makes sure
+    the required packages are available for the project.
+</p>
+
+<p>
+    For a typical .NET project, package references are defined in the
+    <code>.csproj</code> file.
+</p>
+
+<pre><code>&lt;ItemGroup&gt;
+    &lt;PackageReference Include="Newtonsoft.Json" Version="13.0.3" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+    During restore, NuGet resolves the required package and its dependencies.
+</p>
+
+<hr>
+
+<h2>🛠️ Method 1: Clean the Solution in Visual Studio</h2>
+
+<p>
+    The first thing to try when troubleshooting a package-related build
+    problem is to clean the solution.
+</p>
+
+<p>
+    In Visual Studio, open the:
+</p>
+
+<pre><code>Build → Clean Solution</code></pre>
+
+<p>
+    This removes generated build output such as compiled binaries and
+    intermediate files.
+</p>
+
+<p>
+    After cleaning the solution, build it again:
+</p>
+
+<pre><code>Build → Rebuild Solution</code></pre>
+
+<p>
+    This forces Visual Studio to rebuild the project instead of relying on
+    previously generated build output.
+</p>
+
+<hr>
+
+<h2>📦 Method 2: Restore NuGet Packages from Visual Studio</h2>
+
+<p>
+    Visual Studio provides a built-in option to restore NuGet packages.
+</p>
+
+<p>
+    In Solution Explorer, right-click your solution and select:
+</p>
+
+<pre><code>Restore NuGet Packages</code></pre>
+
+<p>
+    Visual Studio will restore the packages required by the projects in the
+    solution.
+</p>
+
+<p>
+    After the restore completes, try rebuilding the solution.
+</p>
+
+<hr>
+
+<h2>⚙️ Method 3: Restore Packages from the Command Line</h2>
+
+<p>
+    You can also restore NuGet packages using the .NET CLI.
+</p>
+
+<pre><code>dotnet restore</code></pre>
+
+<p>
+    Run this command from the directory containing your solution or project.
+</p>
+
+<p>
+    You can also specify the project or solution explicitly:
+</p>
+
+<pre><code>dotnet restore MySolution.sln</code></pre>
+
+<p>
+    Or:
+</p>
+
+<pre><code>dotnet restore MyProject.csproj</code></pre>
+
+<hr>
+
+<h2>🧽 Method 4: Clear the NuGet Cache</h2>
+
+<p>
+    If restoring packages does not solve the problem, you can clear the
+    local NuGet caches.
+</p>
+
+<p>
+    Open a Developer Command Prompt, PowerShell window, or terminal and run:
+</p>
+
+<pre><code>dotnet nuget locals all --clear</code></pre>
+
+<p>
+    This clears the local NuGet caches used by the .NET tooling.
+</p>
+
+<p>
+    You can then restore the packages again:
+</p>
+
+<pre><code>dotnet restore</code></pre>
+
+<p>
+    This causes NuGet to retrieve the required packages again instead of
+    relying on the previously cached copies.
+</p>
+
+<hr>
+
+<h2>🔍 Check Your NuGet Cache Locations</h2>
+
+<p>
+    If you want to see where NuGet stores its local data, use:
+</p>
+
+<pre><code>dotnet nuget locals all --list</code></pre>
+
+<p>
+    This displays the locations of the available NuGet caches.
+</p>
+
+<hr>
+
+<h2>🗑️ Method 5: Delete bin and obj Folders</h2>
+
+<p>
+    Sometimes the problem isn't the NuGet cache itself. Old build artifacts
+    inside your project can also cause confusing build behavior.
+</p>
+
+<p>
+    Close Visual Studio and delete the following folders from the affected
+    project:
+</p>
+
+<pre><code>bin
+obj</code></pre>
+
+<p>
+    For example:
+</p>
+
+<pre><code>MyProject/
+│
+├── bin/
+├── obj/
+├── MyProject.csproj
+└── Program.cs</code></pre>
+
+<p>
+    After deleting those folders, reopen the solution and run:
+</p>
+
+<pre><code>dotnet restore</code></pre>
+
+<p>
+    Then rebuild the project.
+</p>
+
+<hr>
+
+<h2>🔧 Method 6: Restore Using Visual Studio's Package Manager Console</h2>
+
+<p>
+    Visual Studio also provides the NuGet Package Manager Console.
+</p>
+
+<p>
+    Open:
+</p>
+
+<pre><code>Tools → NuGet Package Manager → Package Manager Console</code></pre>
+
+<p>
+    You can then use NuGet commands when appropriate for your project.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>Update-Package -reinstall</code></pre>
+
+<p>
+    This command can reinstall package references in projects that use the
+    corresponding NuGet package management workflow.
+</p>
+
+<p>
+    However, don't use package reinstallation as the first solution for every
+    NuGet problem. Start with a normal restore and investigate the actual
+    dependency error first.
+</p>
+
+<hr>
+
+<h2>⚠️ When Should You Clear the NuGet Cache?</h2>
+
+<p>
+    Clearing the cache should generally be considered a troubleshooting step,
+    not something you need to do every time you build a project.
+</p>
+
+<p>
+    It can be useful when:
+</p>
+
+<ul>
+    <li>A package appears to be corrupted.</li>
+    <li>A restore repeatedly behaves unexpectedly.</li>
+    <li>Changing package versions does not appear to take effect.</li>
+    <li>Visual Studio continues showing stale package-related errors.</li>
+    <li>You suspect a problem with locally cached package files.</li>
+</ul>
+
+<hr>
+
+<h2>🚨 Cleaning NuGet Packages Does Not Fix Every Conflict</h2>
+
+<p>
+    It's important to understand that cleaning and restoring packages does
+    not automatically fix dependency conflicts.
+</p>
+
+<p>
+    For example, suppose your project has:
+</p>
+
+<pre><code>PackageA
+    └── CommonPackage 1.0
+
+PackageB
+    └── CommonPackage 2.0</code></pre>
+
+<p>
+    Clearing the NuGet cache does not change the dependency requirements of
+    PackageA or PackageB.
+</p>
+
+<p>
+    If NuGet reports a genuine version conflict, you need to investigate the
+    dependency graph and determine which package is introducing the
+    conflicting dependency.
+</p>
+
+<p>
+    For that situation, see:
+</p>
+
+<p>
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+</p>
+
+<hr>
+
+<h2>🔎 Find Which Package Is Causing the Problem</h2>
+
+<p>
+    When a restore produces a dependency warning or error, inspecting
+    transitive dependencies can help identify the package responsible.
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    This can show packages that your project depends on indirectly.
+</p>
+
+<p>
+    You can then investigate which direct dependency introduced the package
+    with the conflicting version.
+</p>
+
+<p>
+    For a more detailed guide, see:
+</p>
+
+<p>
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+</p>
+
+<hr>
+
+<h2>🧪 A Complete Clean and Restore Process</h2>
+
+<p>
+    If you're experiencing persistent NuGet problems, you can follow this
+    sequence.
+</p>
+
+<h3>Step 1 — Close Visual Studio</h3>
+
+<p>
+    Close Visual Studio before manually removing project build folders.
+</p>
+
+<h3>Step 2 — Delete bin and obj</h3>
+
+<pre><code>bin
+obj</code></pre>
+
+<h3>Step 3 — Clear the NuGet cache</h3>
+
+<pre><code>dotnet nuget locals all --clear</code></pre>
+
+<h3>Step 4 — Restore packages</h3>
+
+<pre><code>dotnet restore</code></pre>
+
+<h3>Step 5 — Reopen Visual Studio</h3>
+
+<p>
+    Open the solution again and allow Visual Studio to finish loading the
+    restored dependencies.
+</p>
+
+<h3>Step 6 — Rebuild the solution</h3>
+
+<pre><code>Build → Rebuild Solution</code></pre>
+
+<p>
+    If the problem still exists, look at the actual NuGet error instead of
+    repeatedly clearing the cache.
+</p>
+
+<hr>
+
+<h2>📋 Common NuGet Problems and Solutions</h2>
+
+<table style="width:100%;border-collapse:collapse;">
+    <thead>
+        <tr>
+            <th style="border:1px solid #ddd;padding:8px;text-align:left;">
+                Problem
+            </th>
+            <th style="border:1px solid #ddd;padding:8px;text-align:left;">
+                First Thing to Try
+            </th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        <tr>
+            <td style="border:1px solid #ddd;padding:8px;">
+                Package appears missing
+            </td>
+            <td style="border:1px solid #ddd;padding:8px;">
+                Run <code>dotnet restore</code>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="border:1px solid #ddd;padding:8px;">
+                Build output appears stale
+            </td>
+            <td style="border:1px solid #ddd;padding:8px;">
+                Clean the solution and rebuild
+            </td>
+        </tr>
+
+        <tr>
+            <td style="border:1px solid #ddd;padding:8px;">
+                Package cache may be corrupted
+            </td>
+            <td style="border:1px solid #ddd;padding:8px;">
+                Clear the NuGet cache
+            </td>
+        </tr>
+
+        <tr>
+            <td style="border:1px solid #ddd;padding:8px;">
+                Persistent dependency conflict
+            </td>
+            <td style="border:1px solid #ddd;padding:8px;">
+                Inspect direct and transitive dependencies
+            </td>
+        </tr>
+
+        <tr>
+            <td style="border:1px solid #ddd;padding:8px;">
+                Different projects use different package versions
+            </td>
+            <td style="border:1px solid #ddd;padding:8px;">
+                Consider Central Package Management
+            </td>
+        </tr>
+
+    </tbody>
+</table>
+
+<hr>
+
+<h2>📚 Related NuGet Articles</h2>
+
+<p>
+    📦
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+</p>
+
+<p>
+    🔧
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+</p>
+
+<p>
+    🔍
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+</p>
+
+<p>
+    📦
+    <a href="/direct-vs-transitive-nuget-dependencies/">
+        Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+</p>
+
+<p>
+    🔄
+    <a href="/update-nuget-packages-safely/">
+        How to Update NuGet Packages Safely Without Breaking Your Project
+    </a>
+</p>
+
+<p>
+    📦
+    <a href="/package-reference-vs-packages-config/">
+        PackageReference vs packages.config: Which Should You Use?
+    </a>
+</p>
+
+<p>
+    📦
+    <a href="/central-package-management-dotnet/">
+        How to Use Central Package Management in .NET
+    </a>
+</p>
+
+<hr>
+
+<h2>🎯 Conclusion</h2>
+
+<p>
+    Cleaning and restoring NuGet packages is a useful troubleshooting
+    technique when Visual Studio or the .NET CLI behaves unexpectedly.
+</p>
+
+<p>
+    Start with a normal restore and rebuild. If the problem persists, remove
+    the project's <code>bin</code> and <code>obj</code> folders and consider
+    clearing the local NuGet cache.
+</p>
+
+<p>
+    However, remember that cleaning the cache does not resolve genuine
+    dependency conflicts. If NuGet reports a package version conflict,
+    investigate the direct and transitive dependencies involved.
+</p>
+
+<div style="margin-top:30px;padding:20px;border:1px solid #ddd;border-radius:10px;background:#f7f7f7;">
+
+    <strong>🧹 NuGet still giving you trouble?</strong>
+
+    <p style="margin-bottom:0;">
+        Clean the project, restore the packages, and then investigate the
+        actual dependency error if the problem continues.
+    </p>
+
+</div>
+
+  </div>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,164 @@
+---
+title: "🧠 C# Reflection Trick: Invoking Generic Methods That Return Generic Actions"
+layout: layouts/base.njk
+permalink: "/2025/10/09/%f0%9f%a7%a0-c-reflection-trick-invoking-generic-methods-that-return-generic-actions/"
+legacyId: 99
+contentType: "post"
+date: "2025-10-09T11:53:55"
+description: "When you work with dynamic types or runtime code generation , reflection quickly becomes both powerful and confusing. I faced a real puzzle recently — how to..."
+categories:
+  - ".Net"
+  - "C#"
+  - "delegates"
+  - "generics"
+  - "reflection"
+tags:
+  - "c#"
+  - "delegates"
+  - "generics"
+  - "reflection"
+---
+
+<p>When you work with <strong>dynamic types</strong> or <strong>runtime code generation</strong>, reflection quickly becomes both powerful and confusing. I faced a real puzzle recently — how to <strong>invoke a generic method</strong> that itself returns a <strong>generic Action delegate</strong>, and then call that delegate at runtime.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">⚙️ The Setup</h2>
+
+
+
+<p>Suppose you have a helper like this:</p>
+
+
+
+<pre class="wp-block-code"><code>public static class FastInvoke
+{
+    public static Action&lt;T, object&gt; BuildUntypedSetter&lt;T&gt;(MemberInfo member)
+    {
+        var instance = Expression.Parameter(typeof(T), "obj");
+        var value = Expression.Parameter(typeof(object), "val");
+
+        var access = Expression.MakeMemberAccess(instance, member);
+        var convert = Expression.Convert(value, ((PropertyInfo)member).PropertyType);
+        var body = Expression.Assign(access, convert);
+
+        return Expression.Lambda&lt;Action&lt;T, object&gt;&gt;(body, instance, value).Compile();
+    }
+}
+</code></pre>
+
+
+
+<p>This dynamically builds a setter for any property on any type — a neat reflection shortcut that compiles to IL at runtime.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">🧩 The Problem</h2>
+
+
+
+<p>Now imagine we’re building a <strong>dynamic type</strong> with <code>TypeBuilder</code>, and we want to call the setter without knowing the type at compile time:</p>
+
+
+
+<pre class="wp-block-code"><code>var type = MyTypeBuilder.CompileResultType(dtTempAttendance, true);
+var obj = Activator.CreateInstance(type);
+var prop = type.GetProperty("EmployeeName");
+</code></pre>
+
+
+
+<p>We find the method via reflection:</p>
+
+
+
+<pre class="wp-block-code"><code>var method = typeof(FastInvoke)
+    .GetMethod("BuildUntypedSetter")
+    .MakeGenericMethod(type);
+
+var setter = method.Invoke(null, new&#91;] { prop }) as Action&lt;object, object&gt;;
+</code></pre>
+
+
+
+<p>But — surprise!<br><code>setter</code> is always <strong>null</strong>.</p>
+
+
+
+<p>Why? Because <code>Action&lt;SomeType, object&gt;</code> ≠ <code>Action&lt;object, object&gt;</code>.<br>Generic delegate types are not automatically compatible.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">🔍 The Discovery</h2>
+
+
+
+<p>The fix wasn’t to force-cast (which fails), but to <strong>treat the result as a Delegate</strong> and invoke it dynamically.</p>
+
+
+
+<pre class="wp-block-code"><code>var del = method.Invoke(null, new&#91;] { prop }) as Delegate;
+del.DynamicInvoke(obj, "Test Value");
+</code></pre>
+
+
+
+<p>That worked — though it sacrifices some of the “fast” in <em>FastInvoke</em>.</p>
+
+
+
+<p>If performance matters, the proper way is to generate a uniform wrapper (e.g., a cached dictionary of compiled lambdas per type) instead of generic invocation per call.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">🧰 Practical Takeaway</h2>
+
+
+
+<ol class="wp-block-list">
+<li><strong>Generic Actions</strong> are not covariant — <code>Action&lt;T, object></code> and <code>Action&lt;object, object></code> are distinct.</li>
+
+
+
+<li>If you only know the type at runtime, use <strong><code>Delegate</code></strong> or <strong><code>DynamicInvoke()</code></strong>.</li>
+
+
+
+<li>To retain performance, build a delegate cache keyed by type once, not per call.</li>
+</ol>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">💡 Bonus Tip: When Reflection Meets JSON</h2>
+
+
+
+<p>In my actual scenario, I sidestepped the reflection headache entirely by serializing the data into JSON and parsing it client-side. Sometimes, the practical solution is simpler than the theoretical one!</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<p><strong>Author:</strong> Algolassi<br><strong>Posted on:</strong> October 9, 2025<br><strong>Category:</strong> C#, Reflection, Dynamic Programming<br><strong>Tags:</strong> <code>c#</code>, <code>reflection</code>, <code>generics</code>, <code>delegates</code></p>

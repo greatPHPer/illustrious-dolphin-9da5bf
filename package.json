@@ -1,0 +1,14 @@
+{
+  "name": "algolassi-11ty",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "eleventy --serve",
+    "build": "eleventy && node scripts/verify-build.js",
+    "clean": "rimraf _site"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.2",
+    "rimraf": "^6.0.1"
+  }
+}

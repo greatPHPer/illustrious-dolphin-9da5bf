@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blazor JavaScript Interop: A Practical Guide | Algolassi</title>
+  <meta name="description" content="Blazor lets developers build modern web applications using C#. However, some browser features and third-party libraries are only available through JavaScript.">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/blazor-javascript-interop-a-practical-guide/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="page-content">
+    
+<style>
+/* Suppress iframe scrollbars inside WordPress Editor preview */
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* Current page */
+.breadcrumb > a:last-child,
+.breadcrumb > a:last-child:visited {
+    color: #0056b3;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child:hover {
+    color: #004494;
+    text-decoration: underline;
+}
+
+/* Trigger */
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Dropdown */
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 320px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+.crumb-current {
+    background: #e8f3ff;
+    color: #0d6efd !important;
+    font-weight: 600;
+}
+
+.crumb-current:hover {
+    background: #d8ebff !important;
+}
+</style>
+
+<div class="breadcrumb">
+
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <span class="crumb-trigger" data-menu="blazor">
+        <a href="/blazor-tutorials/">⚡ Blazor Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <a href="/blazor-javascript-interop-a-practical-guide/">
+        🔄 Blazor JavaScript Interop: A Practical Guide
+    </a>
+
+</div>
+
+<!-- Home Menu -->
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <a href="/tutorials/">📚 Tutorials</a>
+
+    <a href="/about-algolassi/">🌟 About Algolassi</a>
+
+    <a href="/197-2/">💼 Portfolio</a>
+
+    <a href="/contact-algolassi/">📧 Contact</a>
+
+</div>
+
+<!-- Tutorials Menu -->
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
+
+    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
+
+    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
+
+    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
+
+    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
+
+    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
+
+    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
+
+</div>
+
+<!-- Blazor Menu -->
+<div class="crumb-teleport-menu" id="menu-blazor">
+
+    <a href="/blazor-server-vs-webassembly/">
+        ⚖️ Blazor Server vs Blazor WebAssembly: Complete Comparison
+    </a>
+
+    <a href="/blazor-javascript-interop-a-practical-guide/" class="crumb-current">
+        🔄 Blazor JavaScript Interop: A Practical Guide
+    </a>
+
+</div>
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(trigger => {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById("menu-" + menuName);
+
+        if (!menu) return;
+
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+            const rect = trigger.getBoundingClientRect();
+            menu.style.left = rect.left + "px";
+            menu.style.top = (rect.bottom + 5) + "px";
+        }
+
+        function showMenu() {
+            updatePosition();
+
+            document.querySelectorAll(".crumb-teleport-menu")
+                .forEach(m => m.style.display = "none");
+
+            menu.style.display = "block";
+        }
+
+        function hideMenu() {
+            setTimeout(() => {
+                if (!trigger.matches(":hover") &&
+                    !menu.matches(":hover")) {
+                    menu.style.display = "none";
+                }
+            }, 100);
+        }
+
+        trigger.addEventListener("mouseenter", showMenu);
+        trigger.addEventListener("mouseleave", hideMenu);
+
+        menu.addEventListener("mouseenter", showMenu);
+        menu.addEventListener("mouseleave", hideMenu);
+
+        window.addEventListener("resize", updatePosition);
+        window.addEventListener("scroll", updatePosition, true);
+
+    });
+
+})();
+</script>
+
+
+
+<h2 class="wp-block-heading">Introduction</h2>
+
+
+
+<p>Blazor lets developers build modern web applications using C#. However, some browser features and third-party libraries are only available through JavaScript.</p>
+
+
+
+<p>JavaScript Interop (JS Interop) bridges this gap by allowing Blazor and JavaScript to communicate with each other.</p>
+
+
+
+<p>Whether you need to display a Chart.js graph, access browser storage, manipulate the DOM, download files, or call browser APIs, JS Interop is the recommended solution.</p>
+
+
+
+<p>This guide explains how JavaScript Interop works in Blazor with practical examples and common troubleshooting tips.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">What is JavaScript Interop?</h1>
+
+
+
+<p>Blazor applications run primarily in C#, while browsers execute JavaScript.</p>
+
+
+
+<p>JS Interop enables communication in both directions:</p>
+
+
+
+<pre class="wp-block-code"><code>Blazor (C#)
+      │
+      ▼
+ JavaScript
+
+JavaScript
+      │
+      ▼
+ Blazor (.NET)</code></pre>
+
+
+
+<p>You can:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Call JavaScript from C#</li>
+
+
+
+<li>Call C# methods from JavaScript</li>
+
+
+
+<li>Pass data between both environments</li>
+
+
+
+<li>Use browser APIs</li>
+
+
+
+<li>Integrate JavaScript libraries</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Calling JavaScript from Blazor</h1>
+
+
+
+<p>Inject <code>IJSRuntime</code>:</p>
+
+
+
+<pre class="wp-block-code"><code>@inject IJSRuntime JS</code></pre>
+
+
+
+<p>Call a JavaScript function:</p>
+
+
+
+<pre class="wp-block-code"><code>await JS.InvokeVoidAsync("showMessage");</code></pre>
+
+
+
+<p>JavaScript:</p>
+
+
+
+<pre class="wp-block-code"><code>window.showMessage = function () {
+    alert("Hello from JavaScript!");
+};</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Returning Values from JavaScript</h1>
+
+
+
+<p>JavaScript:</p>
+
+
+
+<pre class="wp-block-code"><code>window.getBrowserWidth = function () {
+    return window.innerWidth;
+}</code></pre>
+
+
+
+<p>Blazor:</p>
+
+
+
+<pre class="wp-block-code"><code>int width = await JS.InvokeAsync&lt;int&gt;("getBrowserWidth");</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Passing Parameters</h1>
+
+
+
+<p>JavaScript:</p>
+
+
+
+<pre class="wp-block-code"><code>window.showName = function(name){
+    alert(name);
+}</code></pre>
+
+
+
+<p>Blazor:</p>
+
+
+
+<pre class="wp-block-code"><code>await JS.InvokeVoidAsync("showName","Algolassi");</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Calling JavaScript After Rendering</h1>
+
+
+
+<p>One of the most common mistakes is calling JavaScript before the page has finished rendering.</p>
+
+
+
+<p>Correct approach:</p>
+
+
+
+<pre class="wp-block-code"><code>protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        await JS.InvokeVoidAsync("initializeChart");
+    }
+}</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Using JavaScript Modules</h1>
+
+
+
+<p>Instead of placing every function inside <code>window</code>, Blazor supports JavaScript modules.</p>
+
+
+
+<pre class="wp-block-code"><code>module = await JS.InvokeAsync&lt;IJSObjectReference&gt;(
+    "import",
+    "./js/site.js");</code></pre>
+
+
+
+<p>Call a function:</p>
+
+
+
+<pre class="wp-block-code"><code>await module.InvokeVoidAsync("showToast");</code></pre>
+
+
+
+<p>Advantages:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Better organization</li>
+
+
+
+<li>No global namespace pollution</li>
+
+
+
+<li>Easier maintenance</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Calling Blazor from JavaScript</h1>
+
+
+
+<p>Decorate the C# method:</p>
+
+
+
+<pre class="wp-block-code"><code>&#91;JSInvokable]
+public static string GetVersion()
+{
+    return "Version 1.0";
+}</code></pre>
+
+
+
+<p>JavaScript:</p>
+
+
+
+<pre class="wp-block-code"><code>DotNet.invokeMethodAsync(
+    "YourProject",
+    "GetVersion")
+.then(result =&gt; console.log(result));</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Calling Instance Methods</h1>
+
+
+
+<pre class="wp-block-code"><code>DotNetObjectReference.Create(this)</code></pre>
+
+
+
+<p>JavaScript can invoke methods on that specific object.</p>
+
+
+
+<p>This is useful for:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Progress updates</li>
+
+
+
+<li>Timers</li>
+
+
+
+<li>File uploads</li>
+
+
+
+<li>SignalR callbacks</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Working with Browser Local Storage</h1>
+
+
+
+<p>Save:</p>
+
+
+
+<pre class="wp-block-code"><code>localStorage.setItem("username","John");</code></pre>
+
+
+
+<p>Read:</p>
+
+
+
+<pre class="wp-block-code"><code>return localStorage.getItem("username");</code></pre>
+
+
+
+<p>Blazor:</p>
+
+
+
+<pre class="wp-block-code"><code>string user =
+await JS.InvokeAsync&lt;string&gt;("getUser");</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Integrating Third-Party JavaScript Libraries</h1>
+
+
+
+<p>JS Interop allows Blazor to work with libraries such as:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Chart.js</li>
+
+
+
+<li>ECharts</li>
+
+
+
+<li>Plotly</li>
+
+
+
+<li>Monaco Editor</li>
+
+
+
+<li>Leaflet Maps</li>
+
+
+
+<li>Highlight.js</li>
+</ul>
+
+
+
+<p>Example:</p>
+
+
+
+<pre class="wp-block-code"><code>Blazor
+
+↓
+
+JavaScript Wrapper
+
+↓
+
+Chart.js
+
+↓
+
+Browser</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Common JavaScript Interop Errors</h1>
+
+
+
+<h2 class="wp-block-heading">1. Function Not Found</h2>
+
+
+
+<pre class="wp-block-code"><code>Could not find 'showMessage'</code></pre>
+
+
+
+<p>Solution:</p>
+
+
+
+<p>Ensure the JavaScript file is loaded before calling the function.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">2. JSDisconnectedException</h2>
+
+
+
+<p>Occurs when:</p>
+
+
+
+<ul class="wp-block-list">
+<li>User refreshes the page</li>
+
+
+
+<li>Browser disconnects</li>
+
+
+
+<li>Blazor Server connection is lost</li>
+</ul>
+
+
+
+<p>Handle gracefully:</p>
+
+
+
+<pre class="wp-block-code"><code>try
+{
+    await JS.InvokeVoidAsync("showMessage");
+}
+catch(JSDisconnectedException)
+{
+}</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">3. JavaScript Before Render</h2>
+
+
+
+<p>Wrong:</p>
+
+
+
+<pre class="wp-block-code"><code>OnInitializedAsync()</code></pre>
+
+
+
+<p>Correct:</p>
+
+
+
+<pre class="wp-block-code"><code>OnAfterRenderAsync()</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">4. Module Import Error</h2>
+
+
+
+<pre class="wp-block-code"><code>Failed to fetch dynamically imported module</code></pre>
+
+
+
+<p>Usually caused by:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Wrong file path</li>
+
+
+
+<li>Missing JS file</li>
+
+
+
+<li>Incorrect publish configuration</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">5. Cannot Create a JSObjectReference from the Value Null</h2>
+
+
+
+<p>This happens when a JavaScript function returns <code>null</code> but Blazor expects a JavaScript object reference.</p>
+
+
+
+<p>Example:</p>
+
+
+
+<pre class="wp-block-code"><code>IJSObjectReference module =
+await JS.InvokeAsync&lt;IJSObjectReference&gt;("import", "./js/site.js");</code></pre>
+
+
+
+<p>Check that the module path is correct and the file is included in your published application.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Best Practices</h1>
+
+
+
+<ul class="wp-block-list">
+<li>Use JavaScript only when necessary.</li>
+
+
+
+<li>Prefer JavaScript modules instead of global functions.</li>
+
+
+
+<li>Dispose <code>IJSObjectReference</code> objects when finished.</li>
+
+
+
+<li>Avoid manipulating the DOM that Blazor controls directly.</li>
+
+
+
+<li>Wrap JS calls in <code>try-catch</code> when working with Blazor Server.</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Real-World Use Cases</h1>
+
+
+
+<p>JavaScript Interop is commonly used for:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Downloading files</li>
+
+
+
+<li>Copying text to the clipboard</li>
+
+
+
+<li>Displaying browser notifications</li>
+
+
+
+<li>Accessing camera and microphone</li>
+
+
+
+<li>Integrating Chart.js and ECharts</li>
+
+
+
+<li>Working with local storage</li>
+
+
+
+<li>Scrolling to elements</li>
+
+
+
+<li>Drag-and-drop functionality</li>
+
+
+
+<li>Browser printing</li>
+
+
+
+<li>Calling custom JavaScript animations</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Conclusion</h1>
+
+
+
+<p>JavaScript Interop is an essential part of Blazor development. It enables your application to interact with browser features and JavaScript libraries while keeping most of your application logic in C#. By understanding when and how to use JS Interop, you can build richer and more interactive Blazor applications.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Frequently Asked Questions</h1>
+
+
+
+<h3 class="wp-block-heading">What is JavaScript Interop in Blazor?</h3>
+
+
+
+<p>JavaScript Interop allows Blazor applications to call JavaScript functions and lets JavaScript invoke .NET methods, enabling access to browser APIs and third-party libraries.</p>
+
+
+
+<h3 class="wp-block-heading">When should I use <code>OnAfterRenderAsync</code> for JS Interop?</h3>
+
+
+
+<p>Use <code>OnAfterRenderAsync</code> when the JavaScript code depends on rendered HTML elements, such as initializing charts or manipulating the DOM.</p>
+
+
+
+<h3 class="wp-block-heading">Can Blazor use JavaScript libraries like Chart.js?</h3>
+
+
+
+<p>Yes. Blazor integrates with JavaScript libraries such as Chart.js, ECharts, Plotly, Monaco Editor, and many others through JavaScript Interop.</p>
+
+
+
+<h3 class="wp-block-heading">What causes the "Could not find" JavaScript function error?</h3>
+
+
+
+<p>This usually happens when the JavaScript file isn't loaded, the function name is incorrect, or the script is referenced after the Blazor application starts.</p>
+
+  </div>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

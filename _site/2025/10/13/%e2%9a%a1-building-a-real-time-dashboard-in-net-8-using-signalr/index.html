@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>⚡ Building a Real-Time Dashboard in .NET 8 Using SignalR | Algolassi</title>
+  <meta name="description" content="Real-time dashboards bring life to your web apps — data changes instantly, and users never need to refresh the page. In .NET 8, this is easier than ever with...">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/2025/10/13/%e2%9a%a1-building-a-real-time-dashboard-in-net-8-using-signalr/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="breadcrumbs"><a href="/">🏠 Home</a><span>›</span><a href="/tutorials/">📚 Tutorials</a><span>›</span><span>⚡ Building a Real-Time Dashboard in .NET 8 Using SignalR</span></div>
+  <article class="article">
+    <header class="article-header">
+      <p class="eyebrow">ARTICLE</p>
+      <h1>⚡ Building a Real-Time Dashboard in .NET 8 Using SignalR</h1>
+      <time datetime="2025-10-13T08:42:55">October 13, 2025</time>
+    </header>
+    <div class="article-content">
+<p>Real-time dashboards bring life to your web apps — data changes instantly, and users never need to refresh the page.<br>In .NET 8, this is easier than ever with <strong>SignalR</strong>, which lets your server push updates directly to connected clients using WebSockets.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🧩 What Is SignalR?</h3>
+
+
+
+<p>SignalR is a framework that enables bi-directional communication between server and client.<br>It automatically chooses the best available transport — WebSockets, Server-Sent Events, or Long Polling — depending on browser and server capabilities.</p>
+
+
+
+<p>When used in dashboards, SignalR can instantly update:</p>
+
+
+
+<ul class="wp-block-list">
+<li>IoT data feeds</li>
+
+
+
+<li>Stock prices</li>
+
+
+
+<li>Employee attendance or production stats</li>
+
+
+
+<li>System monitoring metrics</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">⚙️ Step 1. Install the Packages</h3>
+
+
+
+<p>Add SignalR support to your .NET 8 project:</p>
+
+
+
+<pre class="wp-block-code"><code>dotnet add package Microsoft.AspNetCore.SignalR
+dotnet add package Microsoft.AspNetCore.SignalR.Core
+</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🧠 Step 2. Create the SignalR Hub</h3>
+
+
+
+<p>Create a new class named <code>DashboardHub.cs</code> inside your <code>Hubs</code> folder:</p>
+
+
+
+<pre class="wp-block-code"><code>using Microsoft.AspNetCore.SignalR;
+
+public class DashboardHub : Hub
+{
+    public async Task SendUpdate(string user, string message)
+    {
+        await Clients.All.SendAsync("ReceiveUpdate", user, message);
+    }
+}
+</code></pre>
+
+
+
+<p>This hub acts as the bridge between the server and connected browsers.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🌐 Step 3. Configure the Hub in Program.cs</h3>
+
+
+
+<pre class="wp-block-code"><code>var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSignalR();
+
+var app = builder.Build();
+app.MapHub&lt;DashboardHub&gt;("/dashboardHub");
+
+app.UseStaticFiles();
+app.MapFallbackToFile("index.html");
+app.Run();
+</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🧱 Step 4. Front-End Setup (HTML + JavaScript)</h3>
+
+
+
+<p>Create an <code>index.html</code> file:</p>
+
+
+
+<pre class="wp-block-code"><code>&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"&gt;&lt;/script&gt;
+
+&lt;div id="messages"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/dashboardHub")
+    .build();
+
+connection.on("ReceiveUpdate", (user, message) =&gt; {
+    const div = document.createElement("div");
+    div.textContent = `${user}: ${message}`;
+    document.getElementById("messages").appendChild(div);
+});
+
+connection.start().catch(err =&gt; console.error(err));
+
+setInterval(() =&gt; {
+    fetch("/api/updates")
+      .then(res =&gt; res.json())
+      .then(data =&gt; connection.invoke("SendUpdate", "Server", data.status));
+}, 5000);
+&lt;/script&gt;
+</code></pre>
+
+
+
+<p>This example connects to the SignalR hub and displays messages received from the server in real time.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🚀 Step 5. Sending Updates from Backend</h3>
+
+
+
+<p>In your controller or background service, send live updates:</p>
+
+
+
+<pre class="wp-block-code"><code>public class DashboardService
+{
+    private readonly IHubContext&lt;DashboardHub&gt; _hub;
+
+    public DashboardService(IHubContext&lt;DashboardHub&gt; hub)
+    {
+        _hub = hub;
+    }
+
+    public async Task NotifyAsync(string message)
+    {
+        await _hub.Clients.All.SendAsync("ReceiveUpdate", "System", message);
+    }
+}
+</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">🧠 Common Issue: SignalR Works Only a Few Times?</h2>
+
+
+
+<p>If you notice that SignalR seems to work only a few times — for example, updates stop after 8–10 AJAX requests — don’t worry, it’s not a SignalR limitation.</p>
+
+
+
+<p>Here’s what’s really happening 👇</p>
+
+
+
+<h3 class="wp-block-heading">🔹 Cause 1: Re-Creating the Connection Inside AJAX Calls</h3>
+
+
+
+<p>If your page starts a new SignalR connection during every AJAX request, you’ll quickly hit a connection limit.</p>
+
+
+
+<p><strong>✅ Fix:</strong> Create the connection <strong>once</strong> on page load:</p>
+
+
+
+<pre class="wp-block-code"><code>const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/dashboardHub")
+    .build();
+connection.start();
+</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🔹 Cause 2: Server Throttling or Timeout</h3>
+
+
+
+<p>On free tiers or shared hosting (like Azure Free App Service), you may hit connection or idle timeouts.</p>
+
+
+
+<p><strong>✅ Fix:</strong></p>
+
+
+
+<pre class="wp-block-code"><code>const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/dashboardHub")
+    .withAutomaticReconnect()
+    .build();
+</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🔹 Cause 3: Mixing AJAX Polling and SignalR</h3>
+
+
+
+<p>If you use both AJAX and SignalR, rate-limit your polling.<br>SignalR is meant to replace AJAX for real-time events.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🧩 Quick Summary</h3>
+
+
+
+<figure class="wp-block-table"><table class="has-fixed-layout"><thead><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr></thead><tbody><tr><td>Works 8–10 times only</td><td>Recreating hub each AJAX call</td><td>Start once and reuse</td></tr><tr><td>Stops after a while</td><td>Idle timeout</td><td>Enable reconnect</td></tr><tr><td>Works locally but fails on host</td><td>WebSocket fallback</td><td>Force WebSocket or upgrade</td></tr></tbody></table></figure>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🧱 Next Step</h3>
+
+
+
+<p>Integrate a <strong>chart.js</strong> or <strong>blazor component</strong> to visualize these updates live.<br>You’ll then have a complete production-ready real-time dashboard.</p>
+
+
+
+<p></p>
+</div>
+  </article>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

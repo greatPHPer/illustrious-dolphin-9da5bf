@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>⏱ SQL Cursor Logic to Auto-Assign Employee Shifts (with Early Punch &amp; OT Handling) | Algolassi</title>
+  <meta name="description" content="💡 Overview In real-world manufacturing or plant attendance systems, employees often punch in early or work across multiple shifts (for overtime). This SQL Se...">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/2025/10/13/%e2%8f%b1-sql-cursor-logic-to-auto-assign-employee-shifts-with-early-punch-ot-handling/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="breadcrumbs"><a href="/">🏠 Home</a><span>›</span><a href="/tutorials/">📚 Tutorials</a><span>›</span><span>⏱ SQL Cursor Logic to Auto-Assign Employee Shifts (with Early Punch &amp; OT Handling)</span></div>
+  <article class="article">
+    <header class="article-header">
+      <p class="eyebrow">ARTICLE</p>
+      <h1>⏱ SQL Cursor Logic to Auto-Assign Employee Shifts (with Early Punch &amp; OT Handling)</h1>
+      <time datetime="2025-10-13T08:14:28">October 13, 2025</time>
+    </header>
+    <div class="article-content">
+<h3 class="wp-block-heading">💡 Overview</h3>
+
+
+
+<p>In real-world manufacturing or plant attendance systems, employees often <strong>punch in early or work across multiple shifts</strong> (for overtime).<br>This SQL Server script automatically maps swipe entries to the correct shift (A/B/C) by analyzing punch times — even if they occur <strong>hours before or after</strong> their scheduled shift.</p>
+
+
+
+<p>It does this using a <strong>multi-stage validation</strong>:</p>
+
+
+
+<ol class="wp-block-list">
+<li>First determines a probable shift.</li>
+
+
+
+<li>Then rechecks against <code>Pay_tra_shiftnote</code>.</li>
+
+
+
+<li>If no match found, it cascades to earlier shifts — handling <strong>early arrivals</strong> and <strong>OT overlaps</strong>.</li>
+</ol>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🧩 Shift Pattern Reference</h3>
+
+
+
+<figure class="wp-block-table"><table class="has-fixed-layout"><thead><tr><th>Shift</th><th>Time Range</th><th>Punch Consideration Window</th></tr></thead><tbody><tr><td><strong>A</strong></td><td>08:00 – 16:30</td><td>Checks from 05:00 – 13:30</td></tr><tr><td><strong>B</strong></td><td>16:30 – 02:00</td><td>Checks from 13:30 – 23:00</td></tr><tr><td><strong>C</strong></td><td>00:00 – 08:00</td><td>Checks from 23:00 – 05:00</td></tr></tbody></table></figure>
+
+
+
+<blockquote class="wp-block-quote">
+<p>⏳ The script intentionally checks <strong>3 hours earlier</strong> than actual shift start.<br>If no matching shift entry exists in <code>Pay_tra_shiftnote</code>, it backtracks to the <strong>previous shift</strong>, then <strong>one more shift back</strong> in the second check — ensuring even edge cases are covered.</p>
+</blockquote>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">⚙️ How It Works</h3>
+
+
+
+<ol class="wp-block-list">
+<li><strong>Fetch unassigned swipes</strong> from <code>Pay_tra_swipedata</code>.</li>
+
+
+
+<li><strong>Calculate punch time (<code>@Ptime</code>)</strong> and tentatively assign shift (A/B/C).</li>
+
+
+
+<li><strong>First IF block:</strong> Checks if this shift exists for the employee/date. If not → tries previous shift.</li>
+
+
+
+<li><strong>Second IF block:</strong> Performs one more backtrack to catch rare overlaps (OT or double-shift).</li>
+
+
+
+<li><strong>Update</strong> both tables (<code>Pay_tra_shiftnote</code>, <code>Pay_tra_swipedata</code>) with correct shift/date.</li>
+</ol>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">💻 Full SQL Script (Final Production Version)</h3>
+
+
+
+<pre class="wp-block-code"><code>set @sqlstatement = '
+Declare users_cursor CURSOR FOR 
+SELECT Emp_no, PDATE 
+FROM Pay_tra_swipedata 
+WHERE isnull(Shift_date,'''') = '''' 
+ORDER BY Emp_no, PDate'
+
+exec sp_executesql @sqlstatement
+
+OPEN users_cursor
+FETCH NEXT FROM users_cursor INTO @Emp_no, @PDATE
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    if @old_user = @Emp_no
+        set @pdate_index = @pdate_index % 6 + 1
+    else
+    begin
+        set @pdate_index = 1
+        set @old_user = @Emp_no
+    end
+
+    declare @sn_shiftcode nvarchar(1)='', @sn_shift_date nvarchar(10)=''
+    declare @Ptime nvarchar(5) = cast(cast(@PDATE as time(7)) as varchar(5))
+    declare @SDate nvarchar(10), @SCode nvarchar(10)
+
+    -- 🔹 Primary shift window detection
+    if (@Ptime &gt; '05:00' and @Ptime &lt; '13:30')
+    begin
+        set @SDate = convert(varchar(10), @PDATE, 120)
+        set @SCode = 'A'
+    end
+    else if (@Ptime &gt; '13:30' and @Ptime &lt; '23:00')
+    begin
+        set @SDate = convert(varchar(10), @PDATE, 120)
+        set @SCode = 'B'
+    end
+    else if (@Ptime &gt; '23:00' and @Ptime &lt; '23:59')
+    begin
+        set @SDate = convert(varchar(10), @PDATE, 120)
+        set @SCode = 'C'
+    end
+    else if (@Ptime &gt; '00:00' and @Ptime &lt; '05:00')
+    begin
+        set @SDate = convert(varchar(10), dateadd(dd, -1, @PDATE), 120)
+        set @SCode = 'C'
+    end
+
+    -- 🔹 First validation: reassign if shift not found
+    select @sn_shiftcode = Shift_code, @sn_shift_date = Shift_Dt 
+    from Pay_tra_shiftnote 
+    where Emp_no = @Emp_no and Shift_Dt = @SDate and Shift_code = @SCode
+
+    if (@sn_shiftcode = '')
+    begin
+        if @SCode = 'C'
+        begin
+            set @SCode = 'B'
+            set @SDate = convert(varchar(10), @SDate, 120)
+        end
+        else if @SCode = 'B'
+        begin
+            set @SCode = 'A'
+            set @SDate = convert(varchar(10), dateadd(dd, 0, @SDate), 120)
+        end
+        else if @SCode = 'A'
+        begin
+            set @SCode = 'C'
+            set @SDate = convert(varchar(10), dateadd(dd, -1, @SDate), 120)
+        end
+    end
+
+    -- 🔹 Second validation: deeper backtrack for OT / dual-shift
+    select @sn_shiftcode = Shift_code, @sn_shift_date = Shift_Dt 
+    from Pay_tra_shiftnote 
+    where Emp_no = @Emp_no and Shift_Dt = @SDate and Shift_code = @SCode
+
+    if (@sn_shiftcode = '')
+    begin
+        if @SCode = 'B'
+        begin
+            set @SCode = 'A'
+            set @SDate = convert(varchar(10), dateadd(dd, 0, @SDate), 120)
+        end
+        else if @SCode = 'A'
+        begin
+            set @SCode = 'C'
+            set @SDate = convert(varchar(10), dateadd(dd, -1, @SDate), 120)
+        end
+        else if @SCode = 'C'
+        begin
+            set @SCode = 'B'
+            set @SDate = convert(varchar(10), dateadd(dd, 0, @SDate), 120)
+        end
+    end
+
+    -- 🔹 Update shift and swipe tables
+    declare @QRY nvarchar(max)
+    set @QRY = 'update Pay_tra_shiftnote 
+                set PDate_count = ''' + cast(@pdate_index as varchar(10)) + ''',
+                    PDate' + cast(@pdate_index as varchar(10)) + ' = ''' + convert(varchar(19), @PDATE, 120) + ''' 
+                where Comp_Code = ''YJAT'' and Emp_no = ''' + @Emp_no + ''' and Shift_dt = ''' + @SDate + ''''
+    exec sp_executesql @QRY
+
+    set @QRY = 'update Pay_tra_swipedata 
+                set Shift_date = ''' + @SDate + ''', Shift_Code = ''' + @SCode + ''' 
+                where PDate = ''' + convert(varchar(19), @PDATE, 120) + ''' 
+                and isnull(Shift_Date,'''') = ''''' 
+    exec sp_executesql @QRY
+
+    FETCH NEXT FROM users_cursor INTO @Emp_no, @PDATE
+END
+
+CLOSE users_cursor
+DEALLOCATE users_cursor
+</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🧮 Why Two “IF” Checks?</h3>
+
+
+
+<p>This dual-check pattern ensures:</p>
+
+
+
+<ul class="wp-block-list">
+<li><strong>First IF:</strong> Captures early or slightly misaligned punches.</li>
+
+
+
+<li><strong>Second IF:</strong> Backtracks one more shift if employee clocked extra hours or performed OT.</li>
+</ul>
+
+
+
+<p>This makes your logic <strong>robust against shift overlaps and day boundary crossings</strong> — something real swipe systems struggle with.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🏁 Summary</h3>
+
+
+
+<p>✅ Handles early punches (3 hours before shift)<br>✅ Correctly aligns OT and multi-shift scenarios<br>✅ Automatically updates both swipe and shift master tables<br>✅ Fully dynamic and SQL-only — no manual mapping needed</p>
+
+
+
+<p><a href="https://sqlfiddle.com/sql-server/online-compiler?id=0aaa33a8-a444-4cbf-b896-17612dfe993c">You can experiment with this shift assignment logic live on SQL Fiddle:<br>👉 <a href="https://sqlfiddle.com/sql-server/online-compiler?id=0aaa33a8-a444-4cbf-b896-17612dfe993c"><strong>Run the SQL Script Here</strong></a></a></p>
+
+
+
+<p></p>
+</div>
+  </article>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

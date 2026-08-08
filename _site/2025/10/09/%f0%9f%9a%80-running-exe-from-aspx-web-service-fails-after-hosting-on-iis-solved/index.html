@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🚀 Running EXE from ASPX Web Service Fails After Hosting on IIS – Solved! | Algolassi</title>
+  <meta name="description" content="If you’ve ever tried to call a .exe file from an ASP.NET web service, you probably noticed something strange — it runs perfectly fine on your local system, b...">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/2025/10/09/%f0%9f%9a%80-running-exe-from-aspx-web-service-fails-after-hosting-on-iis-solved/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="breadcrumbs"><a href="/">🏠 Home</a><span>›</span><a href="/tutorials/">📚 Tutorials</a><span>›</span><span>🚀 Running EXE from ASPX Web Service Fails After Hosting on IIS – Solved!</span></div>
+  <article class="article">
+    <header class="article-header">
+      <p class="eyebrow">ARTICLE</p>
+      <h1>🚀 Running EXE from ASPX Web Service Fails After Hosting on IIS – Solved!</h1>
+      <time datetime="2025-10-09T10:42:51">October 09, 2025</time>
+    </header>
+    <div class="article-content">
+<p>If you’ve ever tried to call a <code>.exe</code> file from an ASP.NET web service, you probably noticed something strange — it runs perfectly fine on your local system, but once deployed to IIS, it silently fails or throws connection errors.</p>
+
+
+
+<p>That happened to me recently when I tried to execute a <strong>VB6 executable</strong> from an <strong>ASPX web service</strong>. Here’s how I diagnosed the issue and got it working on IIS.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">🧩 Background</h2>
+
+
+
+<p>In my web app, I needed to trigger a <strong>VB6 EXE</strong> that performs SQL database updates. During development in Visual Studio, it worked exactly as expected.</p>
+
+
+
+<p>Here’s the simplified code that starts the process:</p>
+
+
+
+<pre class="wp-block-code"><code>ProcessStartInfo startInfo = new ProcessStartInfo();
+startInfo.FileName = exePath;
+startInfo.WorkingDirectory = basePath;
+startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+startInfo.CreateNoWindow = true;
+startInfo.UseShellExecute = false;
+startInfo.RedirectStandardOutput = true;
+startInfo.RedirectStandardError = true;
+
+if (File.Exists(startInfo.FileName))
+{
+    using (Process process = Process.Start(startInfo))
+    {
+        // Optionally capture output
+    }
+}
+</code></pre>
+
+
+
+<p>Running locally, the executable connected to SQL Server, completed its task, and exited successfully.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">⚠️ What Went Wrong on IIS</h2>
+
+
+
+<p>After deploying the same application to IIS, the EXE stopped working.<br>Instead, it produced a <strong>SQL connection error</strong>:</p>
+
+
+
+<blockquote class="wp-block-quote">
+<p><em>Run-time error ‘-2147467259 (80004005): [DBNETLIB] ConnectionOpen (Connect()). SQL Server does not exist or access denied.</em></p>
+</blockquote>
+
+
+
+<p>Clearly, the issue was <strong>not</strong> with the web service itself — it occurred <strong>inside the EXE</strong> when trying to connect to the database.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">🔍 Root Cause</h2>
+
+
+
+<p>After some digging, I realized what was happening:</p>
+
+
+
+<ol class="wp-block-list">
+<li>When running locally, the web service (and thus the EXE) used <strong>my Windows account</strong>, which had full access to SQL Server.</li>
+
+
+
+<li>When hosted in IIS, the web service ran under the <strong>Application Pool identity</strong> (e.g. <code>IIS APPPOOL\MyApp</code> or <code>Network Service</code>), which <strong>didn’t have</strong>:
+<ul class="wp-block-list">
+<li>Permission to run the EXE.</li>
+
+
+
+<li>Access to SQL Server.</li>
+</ul>
+</li>
+
+
+
+<li>The <strong>runtime environment</strong> in IIS is completely different — no desktop interaction, limited file access, and restricted user rights.</li>
+</ol>
+
+
+
+<p>So while <code>Process.Start()</code> worked, the executable itself failed when it tried to reach the database.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">🧠 Solution That Worked</h2>
+
+
+
+<p>After several experiments, here’s what solved it for me:</p>
+
+
+
+<h3 class="wp-block-heading">✅ Step 1. Grant Proper Permissions</h3>
+
+
+
+<p>First, I gave <strong>Read &amp; Execute</strong> permissions on the EXE file to <code>Everyone</code>.<br>You can later restrict it to the specific <strong>App Pool user</strong>, once confirmed working.</p>
+
+
+
+<h3 class="wp-block-heading">✅ Step 2. Adjust <code>ProcessStartInfo</code></h3>
+
+
+
+<p>Next, I enabled shell execution and specified the <code>runas</code> verb to elevate execution:</p>
+
+
+
+<pre class="wp-block-code"><code>ProcessStartInfo psi = new ProcessStartInfo();
+psi.FileName = exePath;
+psi.WorkingDirectory = basePath;
+psi.Verb = "runas";                // run with elevated privileges
+psi.UseShellExecute = true;        // required when using Verb
+psi.WindowStyle = ProcessWindowStyle.Hidden;
+
+Process.Start(psi);
+</code></pre>
+
+
+
+<p>This combination ensured the EXE had enough permission to access external resources like SQL Server.</p>
+
+
+
+<h3 class="wp-block-heading">✅ Step 3. Verify SQL Access</h3>
+
+
+
+<p>Lastly, I tested SQL connectivity under the same user that IIS runs with.<br>You can either:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Switch to <strong>SQL Authentication</strong> (with username/password), or</li>
+
+
+
+<li>Grant the <strong>IIS App Pool identity</strong> access to your database.</li>
+</ul>
+
+
+
+<p>Once I did that, everything started working — both locally and on the live server.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">🔒 Important Notes</h2>
+
+
+
+<ul class="wp-block-list">
+<li>Avoid giving “Full Control” to <em>Everyone</em> permanently — it’s okay for testing but insecure for production.</li>
+
+
+
+<li>For a safer setup, assign permissions only to the <strong>Application Pool identity</strong> (visible under <em>Advanced Settings → Identity</em>).</li>
+
+
+
+<li>If you frequently need to run system-level executables, consider a <strong>Windows Service</strong> or <strong>background worker</strong> instead of calling <code>.exe</code> directly from IIS.</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">🧭 Lessons Learned</h2>
+
+
+
+<ul class="wp-block-list">
+<li>IIS runs your application under a <strong>different user context</strong> than your development machine.</li>
+
+
+
+<li>Always verify <strong>file permissions</strong>, <strong>database rights</strong>, and <strong>network access</strong> for that account.</li>
+
+
+
+<li>Using <code>UseShellExecute = true</code> is often necessary when calling external processes that depend on user-level permissions.</li>
+
+
+
+<li>Migrating legacy VB6 or native EXEs to a .NET background service can simplify deployment and improve reliability.</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">💬 Final Thoughts</h2>
+
+
+
+<p>After fixing permissions and adjusting <code>ProcessStartInfo</code>, my VB6 executable now runs smoothly when triggered from the web service — even under IIS.</p>
+
+
+
+<p>Sometimes, the hardest bugs aren’t about code — they’re about <strong>context</strong>.<br>Understanding how IIS isolates user identities makes all the difference when dealing with external executables.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<p><strong>Author:</strong> Algolassi<br><strong>Published on:</strong> October 9, 2025<br><strong>Category:</strong> ASP.NET, IIS, Troubleshooting<br><strong>Tags:</strong> <code>asp.net</code>, <code>iis</code>, <code>vb6</code>, <code>process.start</code>, <code>sqlserver</code>, <code>algolassi</code></p>
+
+
+
+<p></p>
+</div>
+  </article>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

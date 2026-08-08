@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ASP.NET Core Dependency Injection Explained with Examples (Beginner to Advanced) | Algolassi</title>
+  <meta name="description" content="Explain what Dependency Injection is in simple terms.">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/aspnet-core-dependency-injection-explained/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="page-content">
+    
+<style>
+/* Suppress iframe scrollbars inside WordPress Editor preview */
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+/* Breadcrumb Styles */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #fff;
+    min-width: 260px;    /* was 300px */
+    max-width: 320px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.2);
+    padding: 4px 0;      /* was 8px */
+    z-index: 9999999;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 6px 12px;
+    text-decoration: none;
+    color: #333;
+    white-space: normal;
+    line-height: 1.3;
+    font-size: 14px;     /* Smaller text */
+    font-weight: 400;    /* Normal weight */
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+.breadcrumb > a:last-child {
+    color: #0056b3;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child:hover {
+    text-decoration: underline;
+}
+/* Current page in dropdown */
+.crumb-current{
+    background:#e8f3ff;
+    color:#0d6efd !important;
+    font-weight:600;
+    pointer-events:none;
+    cursor:default;
+}
+
+.crumb-current:hover{
+    background:#e8f3ff !important;
+}
+.crumb-current{
+    background:#e8f3ff;
+    color:#0d6efd !important;
+    font-weight:600;
+}
+
+.crumb-current:hover{
+    background:#d8ebff !important;
+}
+</style>
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Category -->
+    <!-- ASP.NET Core -->
+<span class="crumb-trigger" data-menu="csharp">
+    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials ▼</a>
+</span>
+
+    &gt;
+
+     <a href="/aspnet-core-dependency-injection-explained/">
+        💉 ASP.NET Core Dependency Injection Explained with Examples
+    </a>
+
+</div>
+
+
+<!-- Home Menu -->
+<div class="crumb-teleport-menu" id="menu-home">
+    <a href="/tutorials/">📚 Tutorials</a>
+    <a href="/about-algolassi/">🌟 About Algolassi</a>
+    <a href="/197-2/">💼 Portfolio</a>
+    <a href="/contact-algolassi/">📧 Contact</a>
+</div>
+
+
+<!-- Tutorials Menu -->
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
+
+    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
+
+    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
+
+    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
+
+    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
+
+    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
+
+    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
+
+</div>
+
+
+<!-- C# Menu -->
+<div class="crumb-teleport-menu" id="menu-csharp">
+
+    <a href="/aspnet-core-dependency-injection-explained/" class="crumb-current">
+        💉 ASP.NET Core Dependency Injection Explained with Examples
+    </a>
+
+    
+
+    <a href="/async-await-csharp-best-practices/">
+        ⚡ Async and Await in C#
+    </a>
+
+</div>
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(trigger => {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById("menu-" + menuName);
+
+        if (!menu) return;
+
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect = trigger.getBoundingClientRect();
+
+            menu.style.left = rect.left + "px";
+            menu.style.top = (rect.bottom + 5) + "px";
+
+        }
+
+        function showMenu() {
+
+            updatePosition();
+
+            document
+                .querySelectorAll(".crumb-teleport-menu")
+                .forEach(m => m.style.display = "none");
+
+            menu.style.display = "block";
+
+        }
+
+        function hideMenu() {
+
+            setTimeout(() => {
+
+                if (!trigger.matches(":hover") &&
+                    !menu.matches(":hover")) {
+
+                    menu.style.display = "none";
+
+                }
+
+            },100);
+
+        }
+
+        trigger.addEventListener("mouseenter",showMenu);
+        trigger.addEventListener("mouseleave",hideMenu);
+
+        menu.addEventListener("mouseenter",showMenu);
+        menu.addEventListener("mouseleave",hideMenu);
+
+        window.addEventListener("resize",updatePosition);
+        window.addEventListener("scroll",updatePosition,true);
+
+    });
+
+})();
+</script>
+
+
+
+<h2 class="wp-block-heading">1. Introduction</h2>
+
+
+
+<p>Explain what Dependency Injection is in simple terms.</p>
+
+
+
+<p>Example:</p>
+
+
+
+<blockquote class="wp-block-quote">
+<p>Imagine a car needs an engine. Instead of the car building its own engine, someone provides the engine when the car is created. ASP.NET Core works similarly by providing required services to your classes.</p>
+</blockquote>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">2. What Problem Does Dependency Injection Solve?</h2>
+
+
+
+<p>Without DI:</p>
+
+
+
+<pre class="wp-block-code"><code>public class UserService
+{
+    private EmailService _email = new EmailService();
+}</code></pre>
+
+
+
+<p>Problems:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Tight coupling</li>
+
+
+
+<li>Difficult to test</li>
+
+
+
+<li>Hard to replace implementations</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">3. Dependency Injection with ASP.NET Core</h2>
+
+
+
+<pre class="wp-block-code"><code>builder.Services.AddScoped&lt;IEmailService, EmailService&gt;();</code></pre>
+
+
+
+<p>Then:</p>
+
+
+
+<pre class="wp-block-code"><code>public class UserService
+{
+    private readonly IEmailService _email;
+
+    public UserService(IEmailService email)
+    {
+        _email = email;
+    }
+}</code></pre>
+
+
+
+<p>Explain that ASP.NET Core automatically creates and injects the service.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">4. Registering Services</h2>
+
+
+
+<p>Explain the three common registrations.</p>
+
+
+
+<h3 class="wp-block-heading">Singleton</h3>
+
+
+
+<pre class="wp-block-code"><code>builder.Services.AddSingleton&lt;ISettingsService, SettingsService&gt;();</code></pre>
+
+
+
+<ul class="wp-block-list">
+<li>One instance for the entire application</li>
+
+
+
+<li>Good for configuration and caching</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">Scoped</h3>
+
+
+
+<pre class="wp-block-code"><code>builder.Services.AddScoped&lt;IUserService, UserService&gt;();</code></pre>
+
+
+
+<ul class="wp-block-list">
+<li>One instance per HTTP request</li>
+
+
+
+<li>Best choice for EF Core <code>DbContext</code></li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">Transient</h3>
+
+
+
+<pre class="wp-block-code"><code>builder.Services.AddTransient&lt;IReportService, ReportService&gt;();</code></pre>
+
+
+
+<ul class="wp-block-list">
+<li>New instance every time</li>
+
+
+
+<li>Good for lightweight services</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">5. Understanding Service Lifetimes</h2>
+
+
+
+<p>Include a simple comparison table:</p>
+
+
+
+<figure class="wp-block-table"><table class="has-fixed-layout"><thead><tr><th>Lifetime</th><th>Created</th><th>Typical Use</th></tr></thead><tbody><tr><td>Singleton</td><td>Once for the application</td><td>Configuration, cache</td></tr><tr><td>Scoped</td><td>Once per request</td><td>Business services, DbContext</td></tr><tr><td>Transient</td><td>Every injection</td><td>Utility/helper services</td></tr></tbody></table></figure>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">6. Constructor Injection</h2>
+
+
+
+<p>Example:</p>
+
+
+
+<pre class="wp-block-code"><code>public class ProductController : Controller
+{
+    private readonly IProductService _service;
+
+    public ProductController(IProductService service)
+    {
+        _service = service;
+    }
+}</code></pre>
+
+
+
+<p>Explain why constructor injection is preferred over creating objects manually.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">7. Dependency Injection in Blazor</h2>
+
+
+
+<p>Since you work with Blazor, this section will make the article stand out.</p>
+
+
+
+<pre class="wp-block-code"><code>@inject NavigationManager Navigation
+@inject HttpClient Http</code></pre>
+
+
+
+<p>Also show a custom service:</p>
+
+
+
+<pre class="wp-block-code"><code>@inject WeatherService WeatherService</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">8. Dependency Injection in .NET MAUI Blazor</h2>
+
+
+
+<p>Connect it to your expertise.</p>
+
+
+
+<p>Example:</p>
+
+
+
+<pre class="wp-block-code"><code>builder.Services.AddSingleton&lt;AppSessionService&gt;();
+builder.Services.AddScoped&lt;AuthApiService&gt;();
+builder.Services.AddSingleton&lt;ModuleState&gt;();</code></pre>
+
+
+
+<p>Explain why:</p>
+
+
+
+<ul class="wp-block-list">
+<li><code>AppSessionService</code> may be singleton to hold app-wide session state.</li>
+
+
+
+<li><code>AuthApiService</code> can be scoped depending on your app architecture.</li>
+
+
+
+<li>Always choose lifetimes intentionally rather than by habit.</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">9. Common Mistakes</h2>
+
+
+
+<p>Cover things developers actually encounter:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Registering a service but forgetting the interface.</li>
+
+
+
+<li>Using <code>new</code> instead of DI.</li>
+
+
+
+<li>Injecting a scoped service into a singleton.</li>
+
+
+
+<li>Forgetting to register a service.</li>
+
+
+
+<li>Creating circular dependencies.</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">10. Best Practices</h2>
+
+
+
+<p>Recommend:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Depend on interfaces (<code>IEmailService</code>) instead of concrete classes.</li>
+
+
+
+<li>Keep services focused on one responsibility.</li>
+
+
+
+<li>Use constructor injection.</li>
+
+
+
+<li>Register the correct lifetime.</li>
+
+
+
+<li>Avoid service locator patterns.</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">11. Conclusion</h2>
+
+
+
+<p>Summarize why DI matters:</p>
+
+
+
+<blockquote class="wp-block-quote">
+<p>Dependency Injection is one of the core features of ASP.NET Core. It reduces coupling, improves testability, and makes applications easier to maintain as they grow.</p>
+</blockquote>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Internal Links</h1>
+
+
+
+<p>Link this article to:</p>
+
+
+
+<ul class="wp-block-list">
+<li><strong><a href="/csharp-tutorials/" data-type="page" data-id="247">C# Tutorials</a></strong> (interfaces and object-oriented concepts)</li>
+
+
+
+<li><strong><a href="/asp-net-core-tutorials/" data-type="page" data-id="258">ASP.NET Core Tutorials</a></strong> (hub page)</li>
+
+
+
+<li><strong><a href="/blazor-tutorials/" data-type="page" data-id="262">Blazor Tutorials</a></strong></li>
+
+
+
+<li><strong><a href="/net-maui-tutorials/" data-type="page" data-id="270">.NET MAUI Tutorials</a></strong></li>
+</ul>
+
+
+
+<p><strong>Related articles</strong></p>
+
+
+
+<ul class="wp-block-list">
+<li><a href="/what-is-dependency-injection-asp-net-core/" data-type="page" data-id="460">What Is Dependency Injection in ASP.NET Core? A Beginner's Guide</a></li>
+
+
+
+<li><a href="/register-services-asp-net-core-dependency-injection/" data-type="page" data-id="463">How to Register Services in ASP.NET Core Dependency Injection</a></li>
+
+
+
+<li><a href="/singleton-scoped-transient-asp-net-core/" data-type="page" data-id="466">Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?</a></li>
+
+
+
+<li>How to Use Constructor Injection in ASP.NET Core</li>
+
+
+
+<li>How to Inject Services into Controllers, Razor Pages, and Blazor</li>
+
+
+
+<li>Common Dependency Injection Errors in ASP.NET Core and How to Fix Them</li>
+
+
+
+<li>Advanced Dependency Injection in ASP.NET Core: Factory, Keyed Services, and Service Lifetimes</li>
+</ul>
+
+  </div>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

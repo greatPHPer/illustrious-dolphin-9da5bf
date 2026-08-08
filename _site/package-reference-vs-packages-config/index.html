@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>📦 PackageReference vs packages.config: Which Should You Use? | Algolassi</title>
+  <meta name="description" content="If you have worked with different versions of .NET and Visual Studio, you may have seen two different ways of managing NuGet packages: PackageReference...">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/package-reference-vs-packages-config/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="page-content">
+    
+<style>
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.crumb-trigger a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 340px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+.crumb-active {
+    color: #0d6efd !important;
+    font-weight: 600 !important;
+    background: #eef5ff !important;
+}
+
+.crumb-last {
+    color: #0d6efd !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.crumb-last:hover {
+    color: #0b5ed7 !important;
+    text-decoration: underline;
+}
+</style>
+
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- C# Tutorials -->
+    <span class="crumb-trigger" data-menu="csharp">
+        <a href="/csharp-tutorials/">💻 C# Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Article #6 -->
+    <a href="/package-reference-vs-packages-config/"
+       class="crumb-last">
+        📦 PackageReference vs packages.config: Which Should You Use?
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Home Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <!-- Active parent -->
+    <a href="/tutorials/" class="crumb-active">
+        📚 Tutorials
+    </a>
+
+    <a href="/about-algolassi/">
+        🌟 About Algolassi
+    </a>
+
+    <a href="/197-2/">
+        💼 Portfolio
+    </a>
+
+    <a href="/contact-algolassi/">
+        📧 Contact
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- Tutorials Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <!-- Active parent -->
+    <a href="/csharp-tutorials/" class="crumb-active">
+        💻 C# Tutorials
+    </a>
+
+    <a href="/net-tutorials/">
+        ⚙️ .NET Tutorials
+    </a>
+
+    <a href="/asp-net-core-tutorials/">
+        🌐 ASP.NET Core Tutorials
+    </a>
+
+    <a href="/blazor-tutorials/">
+        ⚡ Blazor Tutorials
+    </a>
+
+    <a href="/sql-server-tutorials/">
+        🗄️ SQL Server Tutorials
+    </a>
+
+    <a href="/visual-studio-tutorials/">
+        🖥️ Visual Studio Tutorials
+    </a>
+
+    <a href="/net-maui-tutorials/">
+        📱 .NET MAUI Tutorials
+    </a>
+
+</div>
+
+
+<!-- ========================= -->
+<!-- C# Tutorials Dropdown -->
+<!-- ========================= -->
+
+<div class="crumb-teleport-menu" id="menu-csharp">
+
+    <!-- Article #1 -->
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+
+    <!-- Article #2 -->
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+
+    <!-- Article #3 -->
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+
+    <!-- Article #4 -->
+    <a href="/direct-vs-transitive-nuget-dependencies/">
+        📦 Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+
+    <!-- Article #5 -->
+    <a href="/update-nuget-packages-safely/">
+        🔄 How to Update NuGet Packages Safely Without Breaking Your Project
+    </a>
+
+    <!-- Article #6 - Current -->
+    <a href="/package-reference-vs-packages-config/"
+       class="crumb-active">
+        📦 PackageReference vs packages.config: Which Should You Use?
+    </a>
+
+</div>
+
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(function (trigger) {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById('menu-' + menuName);
+
+        if (!menu) return;
+
+        /*
+         * Move dropdown outside the WordPress
+         * content container so it isn't clipped.
+         */
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect = trigger.getBoundingClientRect();
+
+            menu.style.left = rect.left + 'px';
+            menu.style.top = (rect.bottom + 5) + 'px';
+
+        }
+
+        function showMenu() {
+
+            document
+                .querySelectorAll('.crumb-teleport-menu')
+                .forEach(function (m) {
+                    m.style.display = 'none';
+                });
+
+            updatePosition();
+
+            menu.style.display = 'block';
+
+        }
+
+        function hideMenu() {
+
+            setTimeout(function () {
+
+                if (!trigger.matches(':hover') &&
+                    !menu.matches(':hover')) {
+
+                    menu.style.display = 'none';
+
+                }
+
+            }, 100);
+
+        }
+
+        trigger.addEventListener('mouseenter', showMenu);
+        trigger.addEventListener('mouseleave', hideMenu);
+
+        menu.addEventListener('mouseenter', showMenu);
+        menu.addEventListener('mouseleave', hideMenu);
+
+        window.addEventListener('resize', updatePosition);
+
+        window.addEventListener('scroll', updatePosition, true);
+
+    });
+
+})();
+</script>
+
+<p>
+    If you have worked with different versions of .NET and Visual Studio,
+    you may have seen two different ways of managing NuGet packages:
+    <strong>PackageReference</strong> and <strong>packages.config</strong>.
+</p>
+
+<p>
+    Both approaches can manage NuGet dependencies, but they work differently
+    and are associated with different project types and .NET development
+    styles.
+</p>
+
+<p>
+    In this guide, we'll compare <strong>PackageReference</strong> and
+    <strong>packages.config</strong>, explain how they work, and help you
+    understand which approach is appropriate for your project.
+</p>
+
+<hr>
+
+<h2>📦 What Is PackageReference?</h2>
+
+<p>
+    <strong>PackageReference</strong> is a NuGet package management format
+    where package dependencies are declared directly in the project file,
+    usually the <code>.csproj</code> file.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>&lt;ItemGroup&gt;
+    &lt;PackageReference Include="Newtonsoft.Json" Version="13.0.3" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+    The package information is therefore part of the project definition.
+</p>
+
+<p>
+    PackageReference is commonly used by modern SDK-style .NET projects,
+    including modern .NET applications.
+</p>
+
+<hr>
+
+<h2>📄 What Is packages.config?</h2>
+
+<p>
+    <strong>packages.config</strong> is an older NuGet package management
+    format where package dependencies are stored in a separate XML file
+    named <code>packages.config</code>.
+</p>
+
+<p>
+    A typical file might look like this:
+</p>
+
+<pre><code>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;packages&gt;
+    &lt;package id="Newtonsoft.Json"
+             version="13.0.3"
+             targetFramework="net48" /&gt;
+
+    &lt;package id="Example.Package"
+             version="2.1.0"
+             targetFramework="net48" /&gt;
+&lt;/packages&gt;</code></pre>
+
+<p>
+    Instead of putting package references directly inside the project file,
+    the package list is maintained separately.
+</p>
+
+<hr>
+
+<h2>⚔️ PackageReference vs packages.config</h2>
+
+<table style="width:100%;border-collapse:collapse;margin:20px 0;">
+    <thead>
+        <tr>
+            <th style="border:1px solid #ddd;padding:10px;text-align:left;">
+                PackageReference
+            </th>
+            <th style="border:1px solid #ddd;padding:10px;text-align:left;">
+                packages.config
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Package information is stored in the project file
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Package information is stored in packages.config
+            </td>
+        </tr>
+
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Common in modern SDK-style projects
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Common in older .NET Framework projects
+            </td>
+        </tr>
+
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Supports transitive dependency management
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Uses the older package management model
+            </td>
+        </tr>
+
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Usually produces a simpler project structure
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Requires a separate packages.config file
+            </td>
+        </tr>
+
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Preferred for modern projects
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Still found in many legacy projects
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<hr>
+
+<h2>🔍 How PackageReference Works</h2>
+
+<p>
+    With PackageReference, the package dependency is declared directly
+    inside the project file.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+
+    &lt;PropertyGroup&gt;
+        &lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
+    &lt;/PropertyGroup&gt;
+
+    &lt;ItemGroup&gt;
+        &lt;PackageReference Include="Newtonsoft.Json"
+                          Version="13.0.3" /&gt;
+    &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</code></pre>
+
+<p>
+    The project file contains both the project configuration and its direct
+    package references.
+</p>
+
+<p>
+    This makes the dependency declaration easy to see and manage alongside
+    the rest of the project configuration.
+</p>
+
+<hr>
+
+<h2>📁 How packages.config Works</h2>
+
+<p>
+    With packages.config, the project and package list are separate.
+</p>
+
+<p>
+    The project may contain a reference to a package, while the actual
+    package information is stored in:
+</p>
+
+<pre><code>packages.config</code></pre>
+
+<p>
+    For example:
+</p>
+
+<pre><code>&lt;packages&gt;
+    &lt;package id="Newtonsoft.Json"
+             version="13.0.3"
+             targetFramework="net48" /&gt;
+&lt;/packages&gt;</code></pre>
+
+<p>
+    This approach was widely used by older .NET Framework projects.
+</p>
+
+<hr>
+
+<h2>🌳 Dependency Management Differences</h2>
+
+<p>
+    One of the biggest differences is how dependencies are represented and
+    resolved.
+</p>
+
+<p>
+    With PackageReference, NuGet can build a dependency graph containing
+    direct and transitive dependencies.
+</p>
+
+<pre><code>Your Project
+│
+├── PackageA       ← Direct
+│   └── PackageB   ← Transitive
+│       └── PackageC
+│
+└── PackageD       ← Direct</code></pre>
+
+<p>
+    This makes understanding transitive dependencies particularly important
+    when troubleshooting modern .NET projects.
+</p>
+
+<p>
+    You can inspect them with:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    For a detailed explanation of direct and transitive dependencies, see:
+</p>
+
+<p>
+    <a href="/direct-vs-transitive-nuget-dependencies/">
+        📦 Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+</p>
+
+<hr>
+
+<h2>💻 Which Project Types Use PackageReference?</h2>
+
+<p>
+    PackageReference is commonly associated with modern SDK-style projects.
+</p>
+
+<p>
+    Examples include:
+</p>
+
+<ul>
+    <li>Modern .NET applications</li>
+    <li>ASP.NET Core applications</li>
+    <li>Console applications</li>
+    <li>Class libraries</li>
+    <li>Modern .NET MAUI projects</li>
+    <li>Other SDK-style projects</li>
+</ul>
+
+<p>
+    A quick way to recognize an SDK-style project is to see a project file
+    beginning with:
+</p>
+
+<pre><code>&lt;Project Sdk="Microsoft.NET.Sdk"&gt;</code></pre>
+
+<hr>
+
+<h2>🏛️ Which Projects Commonly Use packages.config?</h2>
+
+<p>
+    packages.config is most commonly encountered in older
+    <strong>.NET Framework</strong> projects.
+</p>
+
+<p>
+    For example, an older ASP.NET MVC or Windows Forms application may still
+    contain:
+</p>
+
+<pre><code>packages.config</code></pre>
+
+<p>
+    If you are maintaining an older application, there is no need to
+    immediately change the package management format simply because
+    PackageReference is newer.
+</p>
+
+<p>
+    First consider the project's framework, project format, dependencies,
+    and migration requirements.
+</p>
+
+<hr>
+
+<h2>🔄 Can You Move from packages.config to PackageReference?</h2>
+
+<p>
+    In many supported project scenarios, migration from
+    <code>packages.config</code> to <code>PackageReference</code> is possible.
+</p>
+
+<p>
+    However, migration should be planned carefully, especially for older
+    applications with many dependencies.
+</p>
+
+<p>
+    Before migrating, consider:
+</p>
+
+<ul>
+    <li>Project type</li>
+    <li>Target framework</li>
+    <li>Package compatibility</li>
+    <li>Build configuration</li>
+    <li>Package dependencies</li>
+    <li>Custom build scripts</li>
+    <li>Existing project references</li>
+</ul>
+
+<hr>
+
+<h2>⚠️ Why Migration Can Cause Problems</h2>
+
+<p>
+    A legacy project may have packages that were designed around the older
+    packages.config workflow.
+</p>
+
+<p>
+    During migration, you may encounter:
+</p>
+
+<ul>
+    <li>Package compatibility issues</li>
+    <li>Missing references</li>
+    <li>Changed dependency resolution</li>
+    <li>Build errors</li>
+    <li>Configuration differences</li>
+    <li>Package version conflicts</li>
+</ul>
+
+<p>
+    This is why migration should ideally be performed with source control
+    enabled so that changes can be reviewed or reverted if necessary.
+</p>
+
+<hr>
+
+<h2>🧩 PackageReference and Transitive Dependencies</h2>
+
+<p>
+    PackageReference makes transitive dependencies an important part of
+    understanding your project's dependency graph.
+</p>
+
+<p>
+    Suppose your project directly references:
+</p>
+
+<pre><code>PackageA 5.0.0</code></pre>
+
+<p>
+    Package A requires:
+</p>
+
+<pre><code>PackageB 3.0.0</code></pre>
+
+<p>
+    Your project therefore receives Package B transitively.
+</p>
+
+<pre><code>YourProject
+    │
+    └── PackageA 5.0.0
+            │
+            └── PackageB 3.0.0</code></pre>
+
+<p>
+    If another direct dependency requires a different version of Package B,
+    NuGet has to resolve those version requirements.
+</p>
+
+<p>
+    This can result in dependency warnings or errors.
+</p>
+
+<hr>
+
+<h2>🚨 PackageReference and NuGet Conflicts</h2>
+
+<p>
+    When working with PackageReference, a dependency conflict can sometimes
+    involve a package that isn't directly listed in your project file.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>YourProject
+│
+├── PackageA
+│   └── CommonLibrary 1.x
+│
+└── PackageB
+    └── CommonLibrary 2.x</code></pre>
+
+<p>
+    Neither Package A nor Package B may appear to be the obvious source of
+    the problem when you first see the error.
+</p>
+
+<p>
+    Inspecting the dependency tree can reveal the complete chain.
+</p>
+
+<p>
+    If you're experiencing a package version conflict, start here:
+</p>
+
+<p>
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+</p>
+
+<hr>
+
+<h2>🔎 How to Identify Your Project's Package Management Format</h2>
+
+<p>
+    The easiest way is to inspect the project files.
+</p>
+
+<p>
+    If you see:
+</p>
+
+<pre><code>&lt;PackageReference Include="Some.Package"
+                  Version="1.0.0" /&gt;</code></pre>
+
+<p>
+    your project is using PackageReference for that package.
+</p>
+
+<p>
+    If you see a file named:
+</p>
+
+<pre><code>packages.config</code></pre>
+
+<p>
+    the project is using the packages.config format.
+</p>
+
+<hr>
+
+<h2>📊 Which One Should You Use?</h2>
+
+<p>
+    For a new modern .NET project, <strong>PackageReference is generally the
+    preferred approach</strong>.
+</p>
+
+<p>
+    It integrates naturally with SDK-style projects and provides modern
+    dependency management capabilities.
+</p>
+
+<p>
+    However, if you are maintaining an existing legacy project that uses
+    packages.config, changing the package management format isn't
+    automatically necessary.
+</p>
+
+<p>
+    The best choice depends on your project type and whether migration
+    provides a meaningful benefit.
+</p>
+
+<hr>
+
+<h2>🛠️ Practical Recommendation</h2>
+
+<table style="width:100%;border-collapse:collapse;margin:20px 0;">
+    <thead>
+        <tr>
+            <th style="border:1px solid #ddd;padding:10px;text-align:left;">
+                Situation
+            </th>
+            <th style="border:1px solid #ddd;padding:10px;text-align:left;">
+                Recommended Approach
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                New modern .NET project
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                PackageReference
+            </td>
+        </tr>
+
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Existing SDK-style project
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                PackageReference
+            </td>
+        </tr>
+
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Older .NET Framework project
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Evaluate the existing setup before migrating
+            </td>
+        </tr>
+
+        <tr>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Legacy application that works correctly
+            </td>
+            <td style="border:1px solid #ddd;padding:10px;">
+                Don't migrate without a specific reason
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<hr>
+
+<h2>❓ Frequently Asked Questions</h2>
+
+<h3>What is the difference between PackageReference and packages.config?</h3>
+
+<p>
+    PackageReference stores package references directly in the project file,
+    while packages.config stores package information in a separate
+    <code>packages.config</code> file.
+</p>
+
+<h3>Is PackageReference newer than packages.config?</h3>
+
+<p>
+    Yes. PackageReference is the modern NuGet package management approach
+    commonly used by SDK-style projects, while packages.config is associated
+    with the older project model.
+</p>
+
+<h3>Should I convert every packages.config project?</h3>
+
+<p>
+    No. Migration should be considered based on the project type, package
+    compatibility, target framework, and the benefits you expect from the
+    migration.
+</p>
+
+<h3>Does PackageReference support transitive dependencies?</h3>
+
+<p>
+    Yes. Understanding transitive dependencies is an important part of
+    working with PackageReference-based projects.
+</p>
+
+<h3>Can packages.config cause NuGet dependency problems?</h3>
+
+<p>
+    NuGet dependency problems can occur with either package management
+    approach. The exact cause depends on the project's dependencies,
+    package versions, framework, and package resolution requirements.
+</p>
+
+<hr>
+
+<h2>📚 Related NuGet Articles</h2>
+
+<p>
+    📦
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+</p>
+
+<p>
+    🔧
+    <a href="/fix-nu1107-version-conflict-nuget-package/">
+        How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+</p>
+
+<p>
+    🔍
+    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
+        How to Check Which NuGet Package Is Causing a Dependency Conflict
+    </a>
+</p>
+
+<p>
+    📦
+    <a href="/direct-vs-transitive-nuget-dependencies/">
+        Direct vs Transitive NuGet Dependencies: What's the Difference?
+    </a>
+</p>
+
+<p>
+    🔄
+    <a href="/update-nuget-packages-safely/">
+        How to Update NuGet Packages Safely Without Breaking Your Project
+    </a>
+</p>
+
+<hr>
+
+<h2>🎯 Conclusion</h2>
+
+<p>
+    <strong>PackageReference</strong> and <strong>packages.config</strong>
+    are two different approaches to managing NuGet dependencies.
+</p>
+
+<p>
+    PackageReference integrates package references directly into the project
+    file and is commonly used by modern SDK-style projects.
+</p>
+
+<p>
+    packages.config uses a separate XML file and is commonly encountered in
+    older .NET Framework projects.
+</p>
+
+<p>
+    If you're creating a new modern .NET application, PackageReference is
+    generally the natural choice. If you're maintaining an existing legacy
+    project, however, there may be no reason to migrate unless you have a
+    specific need.
+</p>
+
+<div style="margin-top:30px;padding:20px;border:1px solid #ddd;border-radius:10px;background:#f7f7f7;">
+
+    <strong>📦 Having a NuGet dependency conflict?</strong>
+
+    <p style="margin-bottom:0;">
+        Continue with the main troubleshooting guide:
+        <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+            How to Fix NuGet Package Version Conflicts in Visual Studio →
+        </a>
+    </p>
+
+</div>
+
+  </div>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

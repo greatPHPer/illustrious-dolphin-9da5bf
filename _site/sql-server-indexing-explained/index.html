@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SQL Server Indexing Explained: Improve Query Performance | Algolassi</title>
+  <meta name="description" content="When SQL Server tables grow from thousands to millions of rows, poorly optimized queries can become slow and consume unnecessary resources. Indexes are...">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/sql-server-indexing-explained/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="page-content">
+    
+<style>
+/* Suppress iframe scrollbars inside WordPress Editor preview */
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* Current page in breadcrumb */
+.breadcrumb > a:last-child,
+.breadcrumb > a:last-child:visited {
+    color: #0056b3;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child:hover {
+    color: #004494;
+    text-decoration: underline;
+}
+
+/* Trigger */
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Dropdown */
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 320px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+.crumb-current{
+    background:#e8f3ff;
+    color:#0d6efd !important;
+    font-weight:600;
+}
+
+.crumb-current:hover{
+    background:#d8ebff !important;
+}
+</style>
+
+<div class="breadcrumb">
+
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <span class="crumb-trigger" data-menu="sqlserver">
+        <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <a href="/sql-server-indexing-explained/">
+        🚀 SQL Server Indexing Explained: Improve Query Performance
+    </a>
+
+</div>
+
+<!-- Home Menu -->
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <a href="/tutorials/">📚 Tutorials</a>
+    <a href="/about-algolassi/">🌟 About Algolassi</a>
+    <a href="/197-2/">💼 Portfolio</a>
+    <a href="/contact-algolassi/">📧 Contact</a>
+
+</div>
+
+<!-- Tutorials Menu -->
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
+    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
+    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
+    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
+    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
+    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
+    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
+
+</div>
+
+<!-- SQL Server Menu -->
+<div class="crumb-teleport-menu" id="menu-sqlserver">
+
+    <a href="/sql-server-cte-vs-temporary-tables/">
+        📊 SQL Server CTE vs Temporary Tables: When to Use Each
+    </a>
+
+    <a href="/sql-server-indexing-explained/" class="crumb-current">
+        🚀 SQL Server Indexing Explained: Improve Query Performance
+    </a>
+
+</div>
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(trigger => {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById("menu-" + menuName);
+
+        if (!menu) return;
+
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect = trigger.getBoundingClientRect();
+
+            menu.style.left = rect.left + "px";
+            menu.style.top = (rect.bottom + 5) + "px";
+
+        }
+
+        function showMenu() {
+
+            updatePosition();
+
+            document
+                .querySelectorAll(".crumb-teleport-menu")
+                .forEach(m => m.style.display = "none");
+
+            menu.style.display = "block";
+
+        }
+
+        function hideMenu() {
+
+            setTimeout(() => {
+
+                if (!trigger.matches(":hover") &&
+                    !menu.matches(":hover")) {
+
+                    menu.style.display = "none";
+
+                }
+
+            },100);
+
+        }
+
+        trigger.addEventListener("mouseenter",showMenu);
+        trigger.addEventListener("mouseleave",hideMenu);
+
+        menu.addEventListener("mouseenter",showMenu);
+        menu.addEventListener("mouseleave",hideMenu);
+
+        window.addEventListener("resize",updatePosition);
+        window.addEventListener("scroll",updatePosition,true);
+
+    });
+
+})();
+</script>
+
+
+
+<h2 class="wp-block-heading">Introduction</h2>
+
+
+
+<p>When SQL Server tables grow from thousands to millions of rows, poorly optimized queries can become slow and consume unnecessary resources. Indexes are one of the most effective ways to improve query performance by helping SQL Server locate data efficiently instead of scanning entire tables.</p>
+
+
+
+<p>This guide explains how SQL Server indexes work, the different index types, and when to use each one.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">What is an Index?</h1>
+
+
+
+<p>An index is a data structure that helps SQL Server find rows quickly.</p>
+
+
+
+<p>Without an index:</p>
+
+
+
+<pre class="wp-block-code"><code>Table Scan
+↓
+
+Reads every row
+↓
+
+Returns matching rows</code></pre>
+
+
+
+<p>With an index:</p>
+
+
+
+<pre class="wp-block-code"><code>Index Seek
+↓
+
+Find matching rows
+
+↓
+
+Return results</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Why Are Indexes Important?</h1>
+
+
+
+<p>Indexes help:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Improve SELECT query performance</li>
+
+
+
+<li>Speed up JOIN operations</li>
+
+
+
+<li>Optimize ORDER BY clauses</li>
+
+
+
+<li>Enhance WHERE clause filtering</li>
+</ul>
+
+
+
+<p>However, indexes also have a cost. Every INSERT, UPDATE, and DELETE operation must update the indexes as well.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Types of SQL Server Indexes</h1>
+
+
+
+<h3 class="wp-block-heading">Clustered Index</h3>
+
+
+
+<p>A clustered index determines the physical order of rows in a table.</p>
+
+
+
+<p>Characteristics:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Only one clustered index per table</li>
+
+
+
+<li>Ideal for primary keys and range queries</li>
+</ul>
+
+
+
+<p>Example:</p>
+
+
+
+<pre class="wp-block-code"><code>CREATE CLUSTERED INDEX IX_EmployeeID
+ON Employees(EmployeeID);</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">Non-Clustered Index</h3>
+
+
+
+<p>A non-clustered index stores key values separately from the table and points to the data rows.</p>
+
+
+
+<p>Example:</p>
+
+
+
+<pre class="wp-block-code"><code>CREATE NONCLUSTERED INDEX IX_LastName
+ON Employees(LastName);</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">Composite Index</h3>
+
+
+
+<p>A composite index includes multiple columns.</p>
+
+
+
+<p>Example:</p>
+
+
+
+<pre class="wp-block-code"><code>CREATE INDEX IX_NameDepartment
+ON Employees(LastName, DepartmentID);</code></pre>
+
+
+
+<p>This is useful when queries frequently filter by both columns.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">Covering Index</h3>
+
+
+
+<p>A covering index contains all the columns required by a query, reducing the need to access the base table.</p>
+
+
+
+<p>Example:</p>
+
+
+
+<pre class="wp-block-code"><code>CREATE INDEX IX_Department
+ON Employees(DepartmentID)
+INCLUDE (FirstName, LastName);</code></pre>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Execution Plans</h1>
+
+
+
+<p>Use SQL Server Management Studio to view execution plans.</p>
+
+
+
+<p>Look for:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Index Seek ✅</li>
+
+
+
+<li>Index Scan ⚠️</li>
+
+
+
+<li>Table Scan ❌</li>
+</ul>
+
+
+
+<p>A table scan on a large table often indicates that an index may be beneficial.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">When Should You Create an Index?</h1>
+
+
+
+<p>Indexes are useful when:</p>
+
+
+
+<ul class="wp-block-list">
+<li>A column is frequently used in <code>WHERE</code> clauses</li>
+
+
+
+<li>Tables participate in JOINs</li>
+
+
+
+<li>Queries use <code>ORDER BY</code></li>
+
+
+
+<li>Reports run on large datasets</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">When Should You Avoid Indexes?</h1>
+
+
+
+<p>Avoid excessive indexing when:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Tables are updated very frequently</li>
+
+
+
+<li>Columns have very low selectivity (for example, a column with only two distinct values)</li>
+
+
+
+<li>An index duplicates another existing index</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Common Mistakes</h1>
+
+
+
+<ul class="wp-block-list">
+<li>Creating too many indexes</li>
+
+
+
+<li>Ignoring execution plans</li>
+
+
+
+<li>Indexing every column</li>
+
+
+
+<li>Never rebuilding fragmented indexes</li>
+
+
+
+<li>Not reviewing unused indexes</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Best Practices</h1>
+
+
+
+<ul class="wp-block-list">
+<li>Index columns used in filters and joins.</li>
+
+
+
+<li>Keep indexes as narrow as possible.</li>
+
+
+
+<li>Monitor fragmentation and rebuild or reorganize when appropriate.</li>
+
+
+
+<li>Review execution plans before adding new indexes.</li>
+
+
+
+<li>Remove indexes that are never used.</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Real-World Example</h1>
+
+
+
+<p>Suppose an <code>Orders</code> table contains 10 million rows.</p>
+
+
+
+<p>Query:</p>
+
+
+
+<pre class="wp-block-code"><code>SELECT *
+FROM Orders
+WHERE CustomerID = 1050;</code></pre>
+
+
+
+<p>Without an index:</p>
+
+
+
+<ul class="wp-block-list">
+<li>SQL Server scans the entire table.</li>
+</ul>
+
+
+
+<p>With an index on <code>CustomerID</code>:</p>
+
+
+
+<ul class="wp-block-list">
+<li>SQL Server performs an Index Seek, dramatically reducing the amount of data read.</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Conclusion</h1>
+
+
+
+<p>Indexes are one of the most powerful performance optimization tools in SQL Server. Used correctly, they can significantly improve query speed and reduce server load. However, they should be created thoughtfully and maintained regularly to avoid unnecessary overhead.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">Frequently Asked Questions</h1>
+
+
+
+<h3 class="wp-block-heading">What is the difference between a clustered and non-clustered index?</h3>
+
+
+
+<p>A clustered index defines the physical order of data in the table, while a non-clustered index stores keys separately and points to the corresponding rows.</p>
+
+
+
+<h3 class="wp-block-heading">How many clustered indexes can a table have?</h3>
+
+
+
+<p>Only one, because the table's data can only be stored in one physical order.</p>
+
+
+
+<h3 class="wp-block-heading">Do indexes improve INSERT performance?</h3>
+
+
+
+<p>Generally no. Additional indexes can slow INSERT, UPDATE, and DELETE operations because SQL Server must keep the indexes up to date.</p>
+
+
+
+<h3 class="wp-block-heading">How do I know if I need an index?</h3>
+
+
+
+<p>Review query execution plans, monitor slow-running queries, and identify frequent table scans on large tables.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h1 class="wp-block-heading">🔗 Internal Links</h1>
+
+
+
+<p>At the bottom, include links to:</p>
+
+
+
+<ul class="wp-block-list">
+<li>SQL Server CTE vs Temporary Tables: When to Use Each</li>
+
+
+
+<li>Entity Framework Core vs ADO.NET: Which One Should You Use?</li>
+
+
+
+<li>Async and Await in C#</li>
+
+
+
+<li>SQL Server Tutorials</li>
+
+
+
+<li>.NET Tutorials</li>
+</ul>
+
+  </div>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

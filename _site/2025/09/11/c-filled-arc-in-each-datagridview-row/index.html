@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>While we need a C# filled arc in each DataGridView row | Algolassi</title>
+  <meta name="description" content="private Rectangle GetCellBounds(int col, int row) { int x = tlp_tra_actual.GetColumnWidths().Take(col).Sum(); int y = tlp_tra_actual.GetRowHeights().Take(row...">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/2025/09/11/c-filled-arc-in-each-datagridview-row/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="breadcrumbs"><a href="/">🏠 Home</a><span>›</span><a href="/tutorials/">📚 Tutorials</a><span>›</span><span>While we need a C# filled arc in each DataGridView row</span></div>
+  <article class="article">
+    <header class="article-header">
+      <p class="eyebrow">ARTICLE</p>
+      <h1>While we need a C# filled arc in each DataGridView row</h1>
+      <time datetime="2025-09-11T13:30:05">September 11, 2025</time>
+    </header>
+    <div class="article-content">
+<pre class="wp-block-code"><code>private Rectangle GetCellBounds(int col, int row)
+{
+    int x = tlp_tra_actual.GetColumnWidths().Take(col).Sum();
+    int y = tlp_tra_actual.GetRowHeights().Take(row).Sum();
+    int w = tlp_tra_actual.GetColumnWidths()&#91;col];
+    int h = tlp_tra_actual.GetRowHeights()&#91;row];
+    return new Rectangle(x, y, w, h);
+}
+void tableLayoutPanel1_CellPaint(object sender, TableLayoutCellPaintEventArgs e)
+{
+    e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+    try
+    {
+            int row = e.Row;
+        var g = e.Graphics;
+        float radiusFactor = 1.4f; // 1.0 = original, >1 = bigger arc
+    
+        Rectangle cellRect = GetCellBounds(0, row);
+    
+        // Make radius bigger than cell min size * factor
+        int baseRadius = Math.Min(cellRect.Width, cellRect.Height);
+        int radius = (int)(baseRadius * radiusFactor);
+    
+        using (GraphicsPath path = new GraphicsPath())
+        {
+            // Move starting point higher up (because arc is larger)
+            path.StartFigure();
+            path.AddLine(cellRect.Left, cellRect.Bottom - radius, cellRect.Left, cellRect.Bottom);
+            path.AddLine(cellRect.Left, cellRect.Bottom, cellRect.Left + radius, cellRect.Bottom);
+    
+            // Bigger arc, starts at bottom and sweeps up to left
+            path.AddArc(
+                cellRect.Left,                    // arc X
+                cellRect.Bottom - radius,         // arc Y
+                radius,                           // arc width
+                radius,                           // arc height
+                90, 90);
+    
+            path.CloseFigure();
+    
+            using (Brush brush = new SolidBrush(Color.FromArgb(150, Color.DarkBlue)))
+            {
+                g.FillPath(brush, path);
+            }
+        }
+    }
+    catch
+    {
+    
+    }
+}
+</code></pre>
+
+
+
+<figure class="wp-block-image size-full"><img src="/wp-content/uploads/2025/09/f59ETHw6-1.png" alt="" class="wp-image-14"/></figure>
+
+
+
+<p>Thanks</p>
+</div>
+  </article>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

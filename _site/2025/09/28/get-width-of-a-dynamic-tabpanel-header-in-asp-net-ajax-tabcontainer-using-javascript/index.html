@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Get Width of a Dynamic TabPanel Header in ASP.NET Ajax TabContainer Using JavaScript | Algolassi</title>
+  <meta name="description" content="Introduction When working with the AjaxControlToolkit TabContainer , each TabPanel is rendered with a corresponding tab header span . Sometimes, you may need...">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/2025/09/28/get-width-of-a-dynamic-tabpanel-header-in-asp-net-ajax-tabcontainer-using-javascript/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="breadcrumbs"><a href="/">🏠 Home</a><span>›</span><a href="/tutorials/">📚 Tutorials</a><span>›</span><span>Get Width of a Dynamic TabPanel Header in ASP.NET Ajax TabContainer Using JavaScript</span></div>
+  <article class="article">
+    <header class="article-header">
+      <p class="eyebrow">ARTICLE</p>
+      <h1>Get Width of a Dynamic TabPanel Header in ASP.NET Ajax TabContainer Using JavaScript</h1>
+      <time datetime="2025-09-28T04:45:55">September 28, 2025</time>
+    </header>
+    <div class="article-content">
+<p><strong>Introduction</strong></p>
+
+
+
+<p>When working with the <strong>AjaxControlToolkit TabContainer</strong>, each <code>TabPanel</code> is rendered with a corresponding <strong>tab header span</strong>. Sometimes, you may need to calculate the width of a tab header dynamically — for example, to adjust the UI when a tab is closed, or to realign a close button to stay under the mouse pointer.</p>
+
+
+
+<p>A developer ran into this issue while debugging an ASP.NET page in IE11:</p>
+
+
+
+<blockquote class="wp-block-quote">
+<p><em>“When closing the last tab, I want the close button of the previous tab to appear exactly where the mouse was. But how do I get the width of the previous tab’s header?”</em></p>
+</blockquote>
+
+
+
+<p><strong>The Problem</strong></p>
+
+
+
+<p>A first attempt looked like this:</p>
+
+
+
+<pre class="wp-block-code"><code>var i = 1; 
+var count = 1;
+
+function removeAt(tabPanelClientID, index) {
+    if (index == i) {
+        var prevTabPanel = $get('__tab_TabContainerMain_TabPanel' + (index - 1));
+        alert('ptp=' + prevTabPanel + ' width=' + prevTabPanel.style.width);
+    }
+    count--;
+}
+</code></pre>
+
+
+
+<p>But <code>prevTabPanel.style.width</code> returns nothing, because <code>style.width</code> only works if an <strong>inline style</strong> was set. For dynamically rendered elements like TabContainer headers, the width is controlled by CSS and layout, not inline styles.</p>
+
+
+
+<p>Calling <code>prevTabPanel.width()</code> also failed with <code>undefined</code>, since raw DOM elements don’t have a <code>.width()</code> method (that’s a <strong>jQuery</strong> function, not native JS).</p>
+
+
+
+<p><strong>The Solution: Use offsetWidth</strong></p>
+
+
+
+<p>In JavaScript, the proper way to get the <strong>actual rendered width</strong> of an element is via the <code>offsetWidth</code> property:</p>
+
+
+
+<pre class="wp-block-code"><code>var prevTabPanel = $get('__tab_TabContainerMain_TabPanel' + (index - 1));
+if (prevTabPanel) {
+    var width = prevTabPanel.offsetWidth;
+    alert("Previous tab width = " + width + "px");
+}
+</code></pre>
+
+
+
+<ul class="wp-block-list">
+<li><code>offsetWidth</code> → Returns the element’s layout width (including padding and borders).</li>
+
+
+
+<li><code>clientWidth</code> → Returns width without borders.</li>
+
+
+
+<li><code>getBoundingClientRect().width</code> → Returns a floating-point width, useful for more precise layout calculations.</li>
+</ul>
+
+
+
+<p><strong>Visual Studio Tip</strong></p>
+
+
+
+<p>If you’re debugging in <strong>Visual Studio</strong>, you can also quickly check an element’s <strong>rendered width/height</strong> by hovering your mouse over the resizing handles (the “bubbles”) of the control in <strong>Design View</strong> — Visual Studio displays the current size.</p>
+
+
+
+<p><strong>Conclusion</strong></p>
+
+
+
+<p>To get the width of a TabPanel’s header in an ASP.NET Ajax TabContainer:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Don’t use <code>.style.width</code> (works only for inline CSS).</li>
+
+
+
+<li>Don’t use <code>.width()</code> unless you’re using jQuery.</li>
+
+
+
+<li>✅ Use <strong><code>offsetWidth</code></strong>, <strong><code>clientWidth</code></strong>, or <strong><code>getBoundingClientRect().width</code></strong> for reliable results.</li>
+</ul>
+
+
+
+<p>This approach ensures you can dynamically measure tab header widths and build UI behaviors like repositioning close buttons or aligning controls on tab change.</p>
+
+
+
+<p>Cheers!!!</p>
+</div>
+  </article>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

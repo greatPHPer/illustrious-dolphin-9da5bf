@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Singleton vs Scoped vs Transient in ASP.NET Core: What&#39;s the Difference? | Algolassi</title>
+  <meta name="description" content="When working with Dependency Injection in ASP.NET Core, you will frequently encounter three service lifetimes: Singleton , Scoped , and Transient .">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/singleton-scoped-transient-asp-net-core/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="page-content">
+    
+<style>
+/* ==========================================
+   BREADCRUMB
+   ========================================== */
+
+html,
+body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.crumb-trigger > a,
+.crumb-trigger > a:visited {
+    color: inherit;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child,
+.breadcrumb > a:last-child:visited {
+    color: #0d6efd !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child:hover {
+    color: #004494 !important;
+    text-decoration: underline;
+}
+
+
+/* ==========================================
+   DROPDOWN MENUS
+   ========================================== */
+
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 340px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+
+/* ==========================================
+   CURRENT / ACTIVE ITEM
+   ========================================== */
+
+.crumb-current {
+    background: #e8f3ff !important;
+    color: #0d6efd !important;
+    font-weight: 600 !important;
+}
+
+.crumb-current:hover {
+    background: #d8ebff !important;
+    color: #0d6efd !important;
+}
+</style>
+
+
+<!-- ==========================================
+     BREADCRUMB
+     ========================================== -->
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- ASP.NET Core Tutorials -->
+    <span class="crumb-trigger" data-menu="aspnetcore">
+        <a href="/asp-net-core-tutorials/">
+            🌐 ASP.NET Core Tutorials ▼
+        </a>
+    </span>
+
+    &gt;
+
+    <!-- Current Article -->
+    <a href="/singleton-scoped-transient-asp-net-core/">
+        🔄 Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
+    </a>
+
+</div>
+
+
+<!-- ==========================================
+     HOME DROPDOWN
+     Tutorials highlighted
+     ========================================== -->
+
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <a href="/tutorials/" class="crumb-current">
+        📚 Tutorials
+    </a>
+
+    <a href="/about-algolassi/">
+        🌟 About Algolassi
+    </a>
+
+    <a href="/197-2/">
+        💼 Portfolio
+    </a>
+
+    <a href="/contact-algolassi/">
+        📧 Contact
+    </a>
+
+</div>
+
+
+<!-- ==========================================
+     TUTORIALS DROPDOWN
+     ASP.NET Core Tutorials highlighted
+     ========================================== -->
+
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/">
+        💻 C# Tutorials
+    </a>
+
+    <a href="/net-tutorials/">
+        ⚙️ .NET Tutorials
+    </a>
+
+    <a href="/asp-net-core-tutorials/" class="crumb-current">
+        🌐 ASP.NET Core Tutorials
+    </a>
+
+    <a href="/blazor-tutorials/">
+        ⚡ Blazor Tutorials
+    </a>
+
+    <a href="/sql-server-tutorials/">
+        🗄️ SQL Server Tutorials
+    </a>
+
+    <a href="/visual-studio-tutorials/">
+        🖥️ Visual Studio Tutorials
+    </a>
+
+    <a href="/net-maui-tutorials/">
+        📱 .NET MAUI Tutorials
+    </a>
+
+</div>
+
+
+<!-- ==========================================
+     ASP.NET CORE DROPDOWN
+     Article #3 highlighted
+     ========================================== -->
+
+<div class="crumb-teleport-menu" id="menu-aspnetcore">
+
+    <!-- Pillar -->
+    <a href="/aspnet-core-dependency-injection-explained/">
+        🏛️ ASP.NET Core Dependency Injection Explained with Examples
+    </a>
+
+    <!-- Article #1 -->
+    <a href="/what-is-dependency-injection-asp-net-core/">
+        💉 What Is Dependency Injection in ASP.NET Core? A Beginner's Guide
+    </a>
+
+    <!-- Article #2 -->
+    <a href="/register-services-asp-net-core-dependency-injection/">
+        ⚙️ How to Register Services in ASP.NET Core Dependency Injection
+    </a>
+
+    <!-- Article #3 -->
+    <a href="/singleton-scoped-transient-asp-net-core/" class="crumb-current">
+        🔄 Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
+    </a>
+
+    <!-- Article #4 -->
+    <a href="/constructor-injection-asp-net-core/">
+        🧩 How to Use Constructor Injection in ASP.NET Core
+    </a>
+
+    <!-- Article #5 -->
+    <a href="/inject-services-controllers-razor-pages-blazor/">
+        💉 How to Inject Services into Controllers, Razor Pages, and Blazor
+    </a>
+
+    <!-- Article #6 -->
+    <a href="/common-dependency-injection-errors-asp-net-core/">
+        🚨 Common Dependency Injection Errors in ASP.NET Core and How to Fix Them
+    </a>
+
+    <!-- Article #7 -->
+    <a href="/advanced-dependency-injection-asp-net-core/">
+        🚀 Advanced Dependency Injection in ASP.NET Core: Factory, Keyed Services, and Service Lifetimes
+    </a>
+
+</div>
+
+
+<!-- ==========================================
+     BREADCRUMB JAVASCRIPT
+     ========================================== -->
+
+<script>
+(function () {
+
+    const triggers =
+        document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(function (trigger) {
+
+        const menuName = trigger.dataset.menu;
+
+        const menu = document.getElementById(
+            "menu-" + menuName
+        );
+
+        if (!menu) {
+            return;
+        }
+
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect =
+                trigger.getBoundingClientRect();
+
+            menu.style.left =
+                rect.left + "px";
+
+            menu.style.top =
+                (rect.bottom + 5) + "px";
+        }
+
+        function showMenu() {
+
+            document
+                .querySelectorAll(".crumb-teleport-menu")
+                .forEach(function (m) {
+                    m.style.display = "none";
+                });
+
+            updatePosition();
+
+            menu.style.display = "block";
+        }
+
+        function hideMenu() {
+
+            setTimeout(function () {
+
+                if (
+                    !trigger.matches(":hover") &&
+                    !menu.matches(":hover")
+                ) {
+                    menu.style.display = "none";
+                }
+
+            }, 100);
+        }
+
+        trigger.addEventListener(
+            "mouseenter",
+            showMenu
+        );
+
+        trigger.addEventListener(
+            "mouseleave",
+            hideMenu
+        );
+
+        menu.addEventListener(
+            "mouseenter",
+            showMenu
+        );
+
+        menu.addEventListener(
+            "mouseleave",
+            hideMenu
+        );
+
+        window.addEventListener(
+            "resize",
+            updatePosition
+        );
+
+        window.addEventListener(
+            "scroll",
+            updatePosition,
+            true
+        );
+
+    });
+
+})();
+</script>
+
+<!-- ============================= -->
+<!-- ARTICLE CONTENT STARTS HERE -->
+<!-- ============================= -->
+
+<h1>Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?</h1>
+
+<p>
+    When working with Dependency Injection in ASP.NET Core, you will frequently
+    encounter three service lifetimes: <strong>Singleton</strong>,
+    <strong>Scoped</strong>, and <strong>Transient</strong>.
+</p>
+
+<p>
+    These lifetimes determine how long an instance of a registered service
+    remains available and when a new instance should be created.
+</p>
+
+<h2>What Are Service Lifetimes?</h2>
+
+<p>
+    A service lifetime defines how the ASP.NET Core Dependency Injection
+    container manages instances of a service.
+</p>
+
+<p>ASP.NET Core provides three main service lifetimes:</p>
+
+<ul>
+    <li><strong>Singleton</strong> – One instance is created for the entire application.</li>
+    <li><strong>Scoped</strong> – One instance is created per request/scope.</li>
+    <li><strong>Transient</strong> – A new instance is created every time the service is requested.</li>
+</ul>
+
+<h2>1. Singleton</h2>
+
+<p>
+    A Singleton service is created only once and the same instance is reused
+    throughout the lifetime of the application.
+</p>
+
+<pre><code>builder.Services.AddSingleton&lt;IMyService, MyService&gt;();</code></pre>
+
+<h3>When should you use Singleton?</h3>
+
+<ul>
+    <li>Configuration or application-wide services</li>
+    <li>Stateless services that are safe to share</li>
+    <li>Expensive objects that can safely be reused</li>
+    <li>Application-wide caching</li>
+</ul>
+
+<h2>2. Scoped</h2>
+
+<p>
+    A Scoped service creates one instance for each scope. In a typical
+    ASP.NET Core web application, a scope normally corresponds to an
+    HTTP request.
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;IMyService, MyService&gt;();</code></pre>
+
+<p>
+    If the same service is requested multiple times during one HTTP request,
+    the same instance is returned.
+</p>
+
+<h3>When should you use Scoped?</h3>
+
+<ul>
+    <li>Database-related services</li>
+    <li>Entity Framework Core DbContext</li>
+    <li>Services that should live for one HTTP request</li>
+    <li>Request-specific state</li>
+</ul>
+
+<h2>3. Transient</h2>
+
+<p>
+    A Transient service creates a new instance every time the service is
+    requested from the Dependency Injection container.
+</p>
+
+<pre><code>builder.Services.AddTransient&lt;IMyService, MyService&gt;();</code></pre>
+
+<h3>When should you use Transient?</h3>
+
+<ul>
+    <li>Lightweight stateless services</li>
+    <li>Services that do not maintain state</li>
+    <li>Short-lived operations</li>
+</ul>
+
+<h2>Singleton vs Scoped vs Transient</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Lifetime</th>
+            <th>Instance Created</th>
+            <th>Typical Usage</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Singleton</td>
+            <td>Once for the application</td>
+            <td>Application-wide services</td>
+        </tr>
+        <tr>
+            <td>Scoped</td>
+            <td>Once per request/scope</td>
+            <td>DbContext and request services</td>
+        </tr>
+        <tr>
+            <td>Transient</td>
+            <td>Every time requested</td>
+            <td>Lightweight stateless services</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Example</h2>
+
+<p>
+    You can register all three service lifetimes in the
+    <code>Program.cs</code> file:
+</p>
+
+<pre><code>builder.Services.AddSingleton&lt;ISingletonService, SingletonService&gt;();
+
+builder.Services.AddScoped&lt;IScopedService, ScopedService&gt;();
+
+builder.Services.AddTransient&lt;ITransientService, TransientService&gt;();</code></pre>
+
+<h2>Which Lifetime Should You Choose?</h2>
+
+<p>
+    The correct lifetime depends on how your service should behave.
+</p>
+
+<ul>
+    <li>
+        Choose <strong>Singleton</strong> when one shared instance should
+        exist for the entire application.
+    </li>
+    <li>
+        Choose <strong>Scoped</strong> when the service should have one
+        instance per request or scope.
+    </li>
+    <li>
+        Choose <strong>Transient</strong> when a fresh instance should be
+        created whenever the service is requested.
+    </li>
+</ul>
+
+<h2>Important: Avoid Captive Dependencies</h2>
+
+<p>
+    One important rule is that a Singleton should not directly depend on a
+    Scoped service. This can cause a lifetime mismatch known as a
+    <strong>captive dependency</strong>.
+</p>
+
+<p>
+    For example, injecting a Scoped service directly into a Singleton can
+    cause the scoped service to live much longer than intended.
+</p>
+
+<h2>Conclusion</h2>
+
+<p>
+    Singleton, Scoped, and Transient are the three fundamental service
+    lifetimes in ASP.NET Core Dependency Injection.
+</p>
+
+<p>
+    Understanding these lifetimes is important because choosing the wrong
+    lifetime can lead to unexpected behavior, excessive object creation,
+    memory usage, or incorrect state sharing.
+</p>
+
+<p>
+    As a general rule, use <strong>Scoped</strong> for request-based services,
+    <strong>Transient</strong> for lightweight stateless services, and
+    <strong>Singleton</strong> only when sharing one application-wide
+    instance is appropriate.
+</p>
+
+  </div>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

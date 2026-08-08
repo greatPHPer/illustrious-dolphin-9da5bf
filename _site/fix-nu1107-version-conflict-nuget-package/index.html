@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package | Algolassi</title>
+  <meta name="description" content="Are you seeing the NU1107 error in Visual Studio when you restore or build a .NET project? The error means that NuGet has detected a version conflict...">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/fix-nu1107-version-conflict-nuget-package/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="page-content">
+    
+<!-- Breadcrumb will be added separately -->
+
+<style>
+/* Suppress iframe scrollbars inside WordPress Editor preview */
+html, body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* Trigger */
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Dropdown */
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 320px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+/* Current article */
+.crumb-current{
+    background:#e8f3ff;
+    color:#0d6efd !important;
+    font-weight:600;
+}
+
+.breadcrumb > a:last-child {
+    color: #0056b3;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child:hover {
+    text-decoration: underline;
+}
+
+.crumb-current:hover{
+    background:#d8ebff !important;
+}
+
+.crumb-last{
+    color:#0d6efd !important;
+    font-weight:600;
+    text-decoration:none;
+}
+
+.crumb-last:hover{
+    color:#0b5ed7 !important;
+    text-decoration:underline;
+}
+</style>
+
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- C# -->
+    <span class="crumb-trigger" data-menu="csharp">
+        <a href="/csharp-tutorials/">💻 C# Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Current Article -->
+    <a href="/fix-nu1107-version-conflict-nuget-package/"
+       class="crumb-last">
+        🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+
+</div>
+
+
+<!-- Home Menu -->
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <a href="/tutorials/">📚 Tutorials</a>
+
+    <a href="/about-algolassi/">🌟 About Algolassi</a>
+
+    <a href="/197-2/">💼 Portfolio</a>
+
+    <a href="/contact-algolassi/">📧 Contact</a>
+
+</div>
+
+
+<!-- Tutorials Menu -->
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
+
+    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
+
+    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
+
+    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
+
+    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
+
+    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
+
+    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
+
+</div>
+
+
+<!-- C# Menu -->
+<div class="crumb-teleport-menu" id="menu-csharp">
+
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/"
+       style="color:#0d6efd !important;font-weight:600;text-decoration:none;">
+        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+
+    <a href="/fix-nu1605-nuget-package-downgrade/"
+       style="color:#0d6efd !important;font-weight:600;text-decoration:none;">
+        🔧 NuGet Package Downgrade Detected: How to Fix NU1605
+    </a>
+
+    <a href="/fix-nu1107-version-conflict-nuget-package/"
+       style="color:#0d6efd !important;font-weight:600;text-decoration:none;">
+        🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package
+    </a>
+
+    <a href="/async-await-csharp-best-practices/">
+        ⚡ Async and Await in C#: Common Mistakes and Best Practices
+    </a>
+
+</div>
+
+
+<script>
+(function () {
+
+    const triggers = document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(trigger => {
+
+        const menuName = trigger.dataset.menu;
+        const menu = document.getElementById("menu-" + menuName);
+
+        if (!menu) return;
+
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect = trigger.getBoundingClientRect();
+
+            menu.style.left = rect.left + "px";
+            menu.style.top = (rect.bottom + 5) + "px";
+
+        }
+
+        function showMenu() {
+
+            updatePosition();
+
+            document
+                .querySelectorAll(".crumb-teleport-menu")
+                .forEach(m => m.style.display = "none");
+
+            menu.style.display = "block";
+
+        }
+
+        function hideMenu() {
+
+            setTimeout(() => {
+
+                if (!trigger.matches(":hover") &&
+                    !menu.matches(":hover")) {
+
+                    menu.style.display = "none";
+
+                }
+
+            },100);
+
+        }
+
+        trigger.addEventListener("mouseenter",showMenu);
+        trigger.addEventListener("mouseleave",hideMenu);
+
+        menu.addEventListener("mouseenter",showMenu);
+        menu.addEventListener("mouseleave",hideMenu);
+
+        window.addEventListener("resize",updatePosition);
+        window.addEventListener("scroll",updatePosition,true);
+
+    });
+
+})();
+</script>
+
+<p>
+    Are you seeing the <strong>NU1107</strong> error in Visual Studio when you
+    restore or build a .NET project?
+    The error means that NuGet has detected a version conflict between packages
+    and cannot determine a compatible dependency version automatically.
+</p>
+
+<p>
+    In this guide, you'll learn what <strong>NU1107</strong> means, why it
+    happens, how to identify the conflicting packages, and several practical
+    ways to fix the problem in Visual Studio.
+</p>
+
+<hr>
+
+<h2>📌 What Is NU1107?</h2>
+
+<p>
+    <strong>NU1107</strong> is a NuGet dependency conflict error. It occurs when
+    two or more packages require incompatible versions of the same dependency.
+</p>
+
+<p>
+    For example, imagine your project references two packages:
+</p>
+
+<pre><code>PackageA → requires DependencyX 5.0.0
+PackageB → requires DependencyX 6.0.0</code></pre>
+
+<p>
+    If NuGet cannot resolve a version of <code>DependencyX</code> that satisfies
+    both requirements, it reports a version conflict.
+</p>
+
+<p>
+    You may see an error similar to:
+</p>
+
+<pre><code>error NU1107: Version conflict detected for DependencyX.
+Install/reference DependencyX directly from the project
+to resolve this issue.</code></pre>
+
+<p>
+    The actual package names and versions in your error message will depend on
+    your project.
+</p>
+
+<hr>
+
+<h2>🔍 Why Does NU1107 Happen?</h2>
+
+<p>
+    NU1107 usually occurs because different NuGet packages have incompatible
+    dependency requirements.
+</p>
+
+<p>
+    Consider this dependency tree:
+</p>
+
+<pre><code>YourProject
+│
+├── PackageA
+│   └── DependencyX 5.x
+│
+└── PackageB
+    └── DependencyX 6.x</code></pre>
+
+<p>
+    Your project depends on both <code>PackageA</code> and
+    <code>PackageB</code>.
+</p>
+
+<p>
+    However, the two packages require different versions of
+    <code>DependencyX</code>.
+</p>
+
+<p>
+    If NuGet cannot select a compatible version, the restore operation fails
+    with NU1107.
+</p>
+
+<hr>
+
+<h2>🧪 A Simple NU1107 Example</h2>
+
+<p>
+    Suppose your project contains these package references:
+</p>
+
+<pre><code>&lt;ItemGroup&gt;
+    &lt;PackageReference Include="PackageA" Version="2.0.0" /&gt;
+    &lt;PackageReference Include="PackageB" Version="3.0.0" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+    Now imagine that their dependencies are:
+</p>
+
+<pre><code>PackageA 2.0.0
+    → DependencyX 5.x
+
+PackageB 3.0.0
+    → DependencyX 6.x</code></pre>
+
+<p>
+    NuGet may be unable to satisfy both dependency requirements and produce
+    <strong>NU1107</strong>.
+</p>
+
+<hr>
+
+<h2>🔎 How to Find the Conflicting Package</h2>
+
+<p>
+    The first step is to read the complete NU1107 message in the
+    <strong>Visual Studio Error List</strong>.
+</p>
+
+<p>
+    The error normally tells you which packages are involved in the conflict
+    and which versions are being requested.
+</p>
+
+<p>
+    For example, you might see a dependency chain similar to:
+</p>
+
+<pre><code>PackageA
+    → DependencyX (≥ 5.0.0)
+
+PackageB
+    → DependencyX (≥ 6.0.0)
+
+NU1107: Version conflict detected for DependencyX</code></pre>
+
+<p>
+    In this example, <code>DependencyX</code> is the package you need to
+    investigate.
+</p>
+
+<hr>
+
+<h2>🛠️ Fix 1: Update the Packages Causing the Conflict</h2>
+
+<p>
+    The easiest solution is often to update the packages involved in the
+    conflict.
+</p>
+
+<p>In Visual Studio:</p>
+
+<ol>
+    <li>Right-click your project.</li>
+    <li>Select <strong>Manage NuGet Packages</strong>.</li>
+    <li>Open the <strong>Updates</strong> tab.</li>
+    <li>Look for newer versions of the packages involved in NU1107.</li>
+    <li>Update compatible packages.</li>
+    <li>Restore and rebuild the project.</li>
+</ol>
+
+<p>
+    A newer version of one package may change its dependency requirements and
+    remove the conflict.
+</p>
+
+<hr>
+
+<h2>🛠️ Fix 2: Reference the Conflicting Package Directly</h2>
+
+<p>
+    The NU1107 message may recommend installing or referencing the conflicting
+    package directly from your project.
+</p>
+
+<p>
+    For example, if the conflicting dependency is
+    <code>DependencyX</code>, you can add an explicit package reference:
+</p>
+
+<pre><code>&lt;ItemGroup&gt;
+    &lt;PackageReference Include="DependencyX" Version="6.0.0" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+    This gives your project an explicit dependency on the selected version.
+</p>
+
+<p>
+    However, don't choose a version randomly. Check the requirements of the
+    packages involved in the conflict and select a version that is compatible
+    with your project.
+</p>
+
+<hr>
+
+<h2>🛠️ Fix 3: Check the .csproj File</h2>
+
+<p>
+    SDK-style .NET projects normally store NuGet package references inside the
+    <code>.csproj</code> file.
+</p>
+
+<p>
+    Open your project file and look for package references related to the
+    NU1107 error.
+</p>
+
+<p>For example:</p>
+
+<pre><code>&lt;ItemGroup&gt;
+    &lt;PackageReference Include="PackageA" Version="2.0.0" /&gt;
+    &lt;PackageReference Include="PackageB" Version="3.0.0" /&gt;
+    &lt;PackageReference Include="DependencyX" Version="6.0.0" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+
+<p>
+    Compare the versions with the dependency requirements shown in the
+    NU1107 error.
+</p>
+
+<hr>
+
+<h2>🔗 Direct vs Transitive Dependencies</h2>
+
+<p>
+    Understanding the difference between direct and transitive dependencies
+    makes NU1107 much easier to troubleshoot.
+</p>
+
+<h3>📦 Direct Dependency</h3>
+
+<p>
+    A direct dependency is a package that your project explicitly references.
+</p>
+
+<pre><code>YourProject
+    ↓
+PackageA</code></pre>
+
+<h3>📦 Transitive Dependency</h3>
+
+<p>
+    A transitive dependency is brought into your project through another
+    package.
+</p>
+
+<pre><code>YourProject
+    ↓
+PackageA
+    ↓
+DependencyX</code></pre>
+
+<p>
+    You may therefore encounter a dependency conflict involving a package that
+    you never explicitly installed.
+</p>
+
+<p>
+    This is why reading the complete NU1107 dependency chain is important.
+</p>
+
+<hr>
+
+<h2>🧰 Check Installed NuGet Packages in Visual Studio</h2>
+
+<p>
+    You can inspect your project's installed packages through Visual Studio.
+</p>
+
+<p>Open:</p>
+
+<pre><code>Right-click Project
+→ Manage NuGet Packages
+→ Installed</code></pre>
+
+<p>
+    Check the versions of the packages involved in the NU1107 message.
+</p>
+
+<p>
+    If one of the packages is outdated, check whether a newer compatible
+    version is available.
+</p>
+
+<hr>
+
+<h2>🧹 Clean and Restore the Project</h2>
+
+<p>
+    After changing package references, restore the project and rebuild it.
+</p>
+
+<p>In Visual Studio, you can use:</p>
+
+<pre><code>Build
+→ Clean Solution
+
+Build
+→ Rebuild Solution</code></pre>
+
+<p>
+    You can also restore packages using the .NET CLI:
+</p>
+
+<pre><code>dotnet restore</code></pre>
+
+<p>
+    If the conflict continues after changing the package references, close
+    Visual Studio and remove the project's <code>bin</code> and
+    <code>obj</code> folders.
+</p>
+
+<p>
+    Then restore the packages again and rebuild the project.
+</p>
+
+<hr>
+
+<h2>🛠️ Use the .NET CLI to Investigate Dependencies</h2>
+
+<p>
+    For SDK-style projects, the .NET CLI can help you inspect the dependency
+    graph.
+</p>
+
+<p>
+    From the project directory, run:
+</p>
+
+<pre><code>dotnet list package</code></pre>
+
+<p>
+    This displays the packages referenced by the project and can help you
+    identify direct and transitive dependencies.
+</p>
+
+<p>
+    On newer .NET SDK versions, you can also use:
+</p>
+
+<pre><code>dotnet list package --include-transitive</code></pre>
+
+<p>
+    This is particularly useful when the conflicting package is not directly
+    listed in your project file.
+</p>
+
+<hr>
+
+<h2>⚠️ Don't Just Pick a Random Package Version</h2>
+
+<p>
+    One common mistake when fixing NU1107 is changing package versions until
+    the error disappears.
+</p>
+
+<p>
+    That may make the restore succeed while introducing compatibility problems
+    elsewhere in the application.
+</p>
+
+<p>
+    Instead, identify the dependency chain first and choose a version that is
+    supported by the packages you're using.
+</p>
+
+<hr>
+
+<h2>💡 Recommended Way to Fix NU1107</h2>
+
+<p>
+    When you encounter NU1107, follow this order:
+</p>
+
+<ol>
+    <li>Read the complete NU1107 error message.</li>
+    <li>Identify the conflicting dependency.</li>
+    <li>Identify the packages requiring different versions.</li>
+    <li>Check whether newer versions of those packages are available.</li>
+    <li>Update compatible packages where possible.</li>
+    <li>Reference the conflicting dependency directly when appropriate.</li>
+    <li>Restore the NuGet packages.</li>
+    <li>Clean and rebuild the project.</li>
+    <li>Test the application after resolving the conflict.</li>
+</ol>
+
+<hr>
+
+<h2>🔄 NU1107 vs NU1605</h2>
+
+<p>
+    NU1107 and NU1605 are both related to NuGet dependency versions, but they
+    are not exactly the same problem.
+</p>
+
+<p>
+    <strong>NU1107</strong> indicates a version conflict that NuGet cannot
+    resolve automatically.
+</p>
+
+<p>
+    <strong>NU1605</strong> reports a detected package downgrade, where a
+    dependency is resolved to a lower version than another dependency expects.
+</p>
+
+<p>
+    If you're dealing with a package downgrade, see:
+</p>
+
+<p>
+    👉
+    <a href="/fix-nu1605-nuget-package-downgrade/">
+        NuGet Package Downgrade Detected: How to Fix NU1605 in Visual Studio
+    </a>
+</p>
+
+<hr>
+
+<h2>🔗 More NuGet Package Version Troubleshooting</h2>
+
+<p>
+    NU1107 is one of several package dependency problems you can encounter in
+    Visual Studio and .NET projects.
+</p>
+
+<p>
+    For a broader explanation of package version conflicts, see our main guide:
+</p>
+
+<p>
+    👉
+    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+        How to Fix NuGet Package Version Conflicts in Visual Studio
+    </a>
+</p>
+
+<hr>
+
+<h2>🎯 Conclusion</h2>
+
+<p>
+    <strong>NU1107</strong> occurs when NuGet detects incompatible dependency
+    version requirements and cannot resolve the conflict automatically.
+</p>
+
+<p>
+    The best approach is to identify the conflicting dependency, inspect the
+    packages that require it, update compatible packages, and explicitly
+    reference a suitable version when necessary.
+</p>
+
+<p>
+    Don't simply choose a package version at random. Understanding the
+    dependency chain helps you fix NU1107 without introducing new compatibility
+    problems.
+</p>
+
+<div style="margin-top:30px;padding:20px;border:1px solid #ddd;border-radius:10px;background:#f7f7f7;">
+
+    <strong>📚 More NuGet &amp; Visual Studio Tutorials</strong>
+
+    <p style="margin-bottom:0;">
+        Having another NuGet dependency problem?
+        <a href="/fix-nuget-package-version-conflicts-visual-studio/">
+            Read the complete NuGet Package Version Conflicts guide →
+        </a>
+    </p>
+
+</div>
+
+  </div>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

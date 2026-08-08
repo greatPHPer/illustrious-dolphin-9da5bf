@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How to Register Services in ASP.NET Core Dependency Injection | Algolassi</title>
+  <meta name="description" content="Dependency Injection is a core feature of ASP.NET Core applications. Before ASP.NET Core can provide a service to a controller, Razor Page, Blazor...">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/register-services-asp-net-core-dependency-injection/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="page-content">
+    
+<style>
+/* ==========================================
+   ARTICLE CONTENT
+   ========================================== */
+
+.article-content {
+    line-height: 1.75;
+    font-size: 17px;
+}
+
+.article-content h2 {
+    margin-top: 35px;
+}
+
+.article-content h3 {
+    margin-top: 28px;
+}
+
+.article-content code {
+    font-size: 0.95em;
+}
+
+.article-content pre {
+    padding: 16px;
+    overflow-x: auto;
+    border-radius: 6px;
+    background: #f6f8fa;
+}
+
+.article-content pre code {
+    background: transparent;
+}
+
+.article-note {
+    padding: 16px 18px;
+    margin: 22px 0;
+    border-left: 4px solid #0d6efd;
+    background: #f4f8ff;
+    border-radius: 4px;
+}
+
+.article-tip {
+    padding: 16px 18px;
+    margin: 22px 0;
+    border-left: 4px solid #198754;
+    background: #f3fbf6;
+    border-radius: 4px;
+}
+
+
+/* ==========================================
+   BREADCRUMB
+   ========================================== */
+
+html,
+body {
+    overflow: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.crumb-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.crumb-trigger > a,
+.crumb-trigger > a:visited {
+    color: inherit;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child,
+.breadcrumb > a:last-child:visited {
+    color: #0d6efd !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.breadcrumb > a:last-child:hover {
+    color: #004494 !important;
+    text-decoration: underline;
+}
+
+
+/* ==========================================
+   DROPDOWN MENUS
+   ========================================== */
+
+.crumb-teleport-menu {
+    display: none;
+    position: fixed;
+    background: #ffffff;
+    min-width: 260px;
+    max-width: 340px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.20);
+    padding: 4px 0;
+    z-index: 9999999 !important;
+}
+
+.crumb-teleport-menu a {
+    display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.crumb-teleport-menu a:hover {
+    background: #f2f2f2;
+}
+
+
+/* ==========================================
+   CURRENT / ACTIVE DROPDOWN ITEM
+   ========================================== */
+
+.crumb-current {
+    background: #e8f3ff !important;
+    color: #0d6efd !important;
+    font-weight: 600 !important;
+}
+
+.crumb-current:hover {
+    background: #d8ebff !important;
+    color: #0d6efd !important;
+}
+</style>
+
+
+<!-- ==========================================
+     BREADCRUMB
+     ========================================== -->
+
+<div class="breadcrumb">
+
+    <!-- Home -->
+    <span class="crumb-trigger" data-menu="home">
+        <a href="/">🏠 Home ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- Tutorials -->
+    <span class="crumb-trigger" data-menu="tutorials">
+        <a href="/tutorials/">📚 Tutorials ▼</a>
+    </span>
+
+    &gt;
+
+    <!-- ASP.NET Core Tutorials -->
+    <span class="crumb-trigger" data-menu="aspnetcore">
+        <a href="/asp-net-core-tutorials/">
+            🌐 ASP.NET Core Tutorials ▼
+        </a>
+    </span>
+
+    &gt;
+
+    <!-- Current Article -->
+    <a href="/register-services-asp-net-core-dependency-injection/">
+        ⚙️ How to Register Services in ASP.NET Core Dependency Injection
+    </a>
+
+</div>
+
+
+<!-- ==========================================
+     HOME DROPDOWN
+     Tutorials is highlighted
+     ========================================== -->
+
+<div class="crumb-teleport-menu" id="menu-home">
+
+    <a href="/tutorials/" class="crumb-current">
+        📚 Tutorials
+    </a>
+
+    <a href="/about-algolassi/">
+        🌟 About Algolassi
+    </a>
+
+    <a href="/197-2/">
+        💼 Portfolio
+    </a>
+
+    <a href="/contact-algolassi/">
+        📧 Contact
+    </a>
+
+</div>
+
+
+<!-- ==========================================
+     TUTORIALS DROPDOWN
+     ASP.NET Core Tutorials is highlighted
+     ========================================== -->
+
+<div class="crumb-teleport-menu" id="menu-tutorials">
+
+    <a href="/csharp-tutorials/">
+        💻 C# Tutorials
+    </a>
+
+    <a href="/net-tutorials/">
+        ⚙️ .NET Tutorials
+    </a>
+
+    <a href="/asp-net-core-tutorials/" class="crumb-current">
+        🌐 ASP.NET Core Tutorials
+    </a>
+
+    <a href="/blazor-tutorials/">
+        ⚡ Blazor Tutorials
+    </a>
+
+    <a href="/sql-server-tutorials/">
+        🗄️ SQL Server Tutorials
+    </a>
+
+    <a href="/visual-studio-tutorials/">
+        🖥️ Visual Studio Tutorials
+    </a>
+
+    <a href="/net-maui-tutorials/">
+        📱 .NET MAUI Tutorials
+    </a>
+
+</div>
+
+
+<!-- ==========================================
+     ASP.NET CORE DROPDOWN
+     Article #2 is highlighted
+     ========================================== -->
+
+<div class="crumb-teleport-menu" id="menu-aspnetcore">
+
+    <!-- Pillar -->
+    <a href="/aspnet-core-dependency-injection-explained/">
+        🏛️ ASP.NET Core Dependency Injection Explained with Examples
+    </a>
+
+    <!-- Article #1 -->
+    <a href="/what-is-dependency-injection-asp-net-core/">
+        💉 What Is Dependency Injection in ASP.NET Core? A Beginner's Guide
+    </a>
+
+    <!-- Article #2 -->
+    <a href="/register-services-asp-net-core-dependency-injection/"
+       class="crumb-current">
+        ⚙️ How to Register Services in ASP.NET Core Dependency Injection
+    </a>
+
+    <!-- Article #3 -->
+    <a href="/singleton-scoped-transient-asp-net-core/">
+        🔄 Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
+    </a>
+
+    <!-- Article #4 -->
+    <a href="/constructor-injection-asp-net-core/">
+        🧩 How to Use Constructor Injection in ASP.NET Core
+    </a>
+
+    <!-- Article #5 -->
+    <a href="/inject-services-controllers-razor-pages-blazor/">
+        💉 How to Inject Services into Controllers, Razor Pages, and Blazor
+    </a>
+
+    <!-- Article #6 -->
+    <a href="/common-dependency-injection-errors-asp-net-core/">
+        🚨 Common Dependency Injection Errors in ASP.NET Core and How to Fix Them
+    </a>
+
+    <!-- Article #7 -->
+    <a href="/advanced-dependency-injection-asp-net-core/">
+        🚀 Advanced Dependency Injection in ASP.NET Core: Factory, Keyed Services, and Service Lifetimes
+    </a>
+
+</div>
+
+
+<!-- ==========================================
+     ARTICLE CONTENT
+     ========================================== -->
+
+<div class="article-content">
+
+<h1>How to Register Services in ASP.NET Core Dependency Injection</h1>
+
+<p>
+    Dependency Injection is a core feature of ASP.NET Core applications.
+    Before ASP.NET Core can provide a service to a controller, Razor Page,
+    Blazor component, or another class, the service normally needs to be
+    registered with the Dependency Injection container.
+</p>
+
+<p>
+    In this tutorial, you will learn how to register services in ASP.NET Core,
+    how interface-to-implementation registration works, and when to use
+    <code>AddTransient</code>, <code>AddScoped</code>, and
+    <code>AddSingleton</code>.
+</p>
+
+<div class="article-note">
+    <strong>💡 The basic pattern is simple:</strong>
+    create a service, register it in <code>Program.cs</code>, and then inject
+    it wherever your application needs it.
+</div>
+
+
+<h2>📌 What Does Service Registration Mean?</h2>
+
+<p>
+    Service registration tells the ASP.NET Core Dependency Injection container
+    how to create a particular service when the application requests it.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;MessageService&gt;();</code></pre>
+
+<p>
+    This tells ASP.NET Core that <code>MessageService</code> is a service that
+    can be requested through Dependency Injection.
+</p>
+
+<p>
+    Once registered, a class can request the service through its constructor.
+</p>
+
+<pre><code>public class HomeController : Controller
+{
+    private readonly MessageService _messageService;
+
+    public HomeController(MessageService messageService)
+    {
+        _messageService = messageService;
+    }
+}</code></pre>
+
+
+<h2>🏗️ Where Do You Register Services?</h2>
+
+<p>
+    In modern ASP.NET Core applications, services are commonly registered in
+    <code>Program.cs</code>.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped&lt;MessageService&gt;();
+
+var app = builder.Build();</code></pre>
+
+<p>
+    The <code>builder.Services</code> collection is used to register services
+    before the application is built.
+</p>
+
+
+<h2>⚙️ Registering a Service Without an Interface</h2>
+
+<p>
+    The simplest registration uses the service type directly.
+</p>
+
+<p>
+    First, create a service:
+</p>
+
+<pre><code>public class MessageService
+{
+    public string GetMessage()
+    {
+        return "Hello from MessageService!";
+    }
+}</code></pre>
+
+<p>
+    Register it:
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;MessageService&gt;();</code></pre>
+
+<p>
+    The service can now be injected into another class:
+</p>
+
+<pre><code>public class HomeController : Controller
+{
+    private readonly MessageService _messageService;
+
+    public HomeController(MessageService messageService)
+    {
+        _messageService = messageService;
+    }
+
+    public IActionResult Index()
+    {
+        return Content(_messageService.GetMessage());
+    }
+}</code></pre>
+
+
+<h2>🔌 Registering an Interface and Implementation</h2>
+
+<p>
+    In real applications, you will often use an interface for your service.
+</p>
+
+<p>
+    Create an interface:
+</p>
+
+<pre><code>public interface IMessageService
+{
+    string GetMessage();
+}</code></pre>
+
+<p>
+    Create the implementation:
+</p>
+
+<pre><code>public class MessageService : IMessageService
+{
+    public string GetMessage()
+    {
+        return "Hello from IMessageService!";
+    }
+}</code></pre>
+
+<p>
+    Register the interface and implementation:
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;IMessageService, MessageService&gt;();</code></pre>
+
+<p>
+    Now a class can request <code>IMessageService</code> rather than the
+    concrete <code>MessageService</code> class.
+</p>
+
+<pre><code>public class HomeController : Controller
+{
+    private readonly IMessageService _messageService;
+
+    public HomeController(IMessageService messageService)
+    {
+        _messageService = messageService;
+    }
+
+    public IActionResult Index()
+    {
+        return Content(_messageService.GetMessage());
+    }
+}</code></pre>
+
+
+<h2>⏱️ The Three Service Lifetimes</h2>
+
+<p>
+    ASP.NET Core provides three commonly used service lifetimes:
+</p>
+
+<ul>
+    <li>
+        <strong>Transient</strong> — a new service instance is created each
+        time the service is requested.
+    </li>
+
+    <li>
+        <strong>Scoped</strong> — the service instance is generally reused
+        within the same scope.
+    </li>
+
+    <li>
+        <strong>Singleton</strong> — the same service instance is reused for
+        the lifetime of the application.
+    </li>
+</ul>
+
+<p>
+    These lifetimes are selected using the corresponding registration methods.
+</p>
+
+
+<h2>🔄 AddTransient</h2>
+
+<p>
+    Use <code>AddTransient</code> when you want a new service instance each
+    time the service is requested.
+</p>
+
+<pre><code>builder.Services.AddTransient&lt;IMessageService, MessageService&gt;();</code></pre>
+
+<p>
+    Transient services are useful for lightweight, stateless services where
+    you do not need to preserve an instance between requests.
+</p>
+
+
+<h2>📦 AddScoped</h2>
+
+<p>
+    Use <code>AddScoped</code> to register a service with a scoped lifetime.
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;IMessageService, MessageService&gt;();</code></pre>
+
+<p>
+    Scoped services are commonly used for services whose lifetime should be
+    associated with a particular request or scope.
+</p>
+
+<div class="article-tip">
+    <strong>💡 Common example:</strong>
+    Services that work with Entity Framework Core's
+    <code>DbContext</code> are commonly registered with a scoped lifetime.
+</div>
+
+
+<h2>♾️ AddSingleton</h2>
+
+<p>
+    Use <code>AddSingleton</code> when one instance should be used throughout
+    the application's lifetime.
+</p>
+
+<pre><code>builder.Services.AddSingleton&lt;IMessageService, MessageService&gt;();</code></pre>
+
+<p>
+    Because the instance can live for the entire application lifetime,
+    singleton services should be designed carefully, especially when they
+    contain mutable state.
+</p>
+
+
+<h2>📊 AddTransient vs AddScoped vs AddSingleton</h2>
+
+<table style="width:100%;border-collapse:collapse;margin:20px 0;">
+
+    <thead>
+        <tr>
+
+            <th style="border:1px solid #ddd;padding:10px;text-align:left;">
+                Lifetime
+            </th>
+
+            <th style="border:1px solid #ddd;padding:10px;text-align:left;">
+                Registration
+            </th>
+
+            <th style="border:1px solid #ddd;padding:10px;text-align:left;">
+                Typical Behavior
+            </th>
+
+        </tr>
+    </thead>
+
+    <tbody>
+
+        <tr>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                Transient
+            </td>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                AddTransient
+            </td>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                New instance when requested
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                Scoped
+            </td>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                AddScoped
+            </td>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                Instance reused within a scope
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                Singleton
+            </td>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                AddSingleton
+            </td>
+
+            <td style="border:1px solid #ddd;padding:10px;">
+                One instance for application lifetime
+            </td>
+
+        </tr>
+
+    </tbody>
+
+</table>
+
+
+<h2>🧩 Registering Multiple Services</h2>
+
+<p>
+    You can register many different services in <code>Program.cs</code>.
+</p>
+
+<pre><code>builder.Services.AddTransient&lt;IEmailService, EmailService&gt;();
+
+builder.Services.AddScoped&lt;IOrderService, OrderService&gt;();
+
+builder.Services.AddScoped&lt;IProductService, ProductService&gt;();
+
+builder.Services.AddSingleton&lt;IApplicationSettings, ApplicationSettings&gt;();</code></pre>
+
+<p>
+    Each registration tells the Dependency Injection container which
+    implementation should be supplied when the corresponding interface is
+    requested.
+</p>
+
+
+<h2>🔧 Registering a Service with Dependencies</h2>
+
+<p>
+    A service can also depend on another service.
+</p>
+
+<p>
+    For example:
+</p>
+
+<pre><code>public class OrderService
+{
+    private readonly IMessageService _messageService;
+
+    public OrderService(IMessageService messageService)
+    {
+        _messageService = messageService;
+    }
+
+    public string CreateOrder()
+    {
+        return _messageService.GetMessage();
+    }
+}</code></pre>
+
+<p>
+    Register both services:
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;IMessageService, MessageService&gt;();
+
+builder.Services.AddScoped&lt;IOrderService, OrderService&gt;();</code></pre>
+
+<p>
+    ASP.NET Core can then resolve the dependency chain automatically.
+</p>
+
+
+<h2>🏭 Registering a Service Using a Factory</h2>
+
+<p>
+    Sometimes you need more control over how a service is created.
+    ASP.NET Core allows a factory delegate to be used during registration.
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;IMessageService&gt;(serviceProvider =>
+{
+    return new MessageService();
+});</code></pre>
+
+<p>
+    The factory receives the application's service provider, allowing you to
+    resolve other registered services when creating the object.
+</p>
+
+
+<h2>📝 Registering Configuration-Based Services</h2>
+
+<p>
+    A service can also be created using application configuration.
+</p>
+
+<p>
+    For example, suppose an application contains a configuration value:
+</p>
+
+<pre><code>builder.Services.AddSingleton&lt;AppSettings&gt;(serviceProvider =>
+{
+    var configuration =
+        serviceProvider.GetRequiredService&lt;IConfiguration&gt;();
+
+    return new AppSettings
+    {
+        ApplicationName =
+            configuration["ApplicationName"]
+    };
+});</code></pre>
+
+<p>
+    This approach is useful when a service needs configuration values while
+    being registered.
+</p>
+
+
+<h2>🚨 Common Service Registration Mistakes</h2>
+
+<h3>1. Forgetting to Register a Service</h3>
+
+<p>
+    If a class requests a service that has not been registered, dependency
+    resolution can fail at runtime.
+</p>
+
+<pre><code>public HomeController(IMessageService messageService)
+{
+    _messageService = messageService;
+}</code></pre>
+
+<p>
+    Make sure the corresponding registration exists:
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;IMessageService, MessageService&gt;();</code></pre>
+
+
+<h3>2. Registering the Wrong Implementation</h3>
+
+<p>
+    Make sure the implementation matches the interface being requested.
+</p>
+
+<pre><code>builder.Services.AddScoped&lt;IMessageService, MessageService&gt;();</code></pre>
+
+
+<h3>3. Choosing the Wrong Lifetime</h3>
+
+<p>
+    Service lifetimes affect how instances are created and reused.
+    Choosing a lifetime without considering the service's dependencies and
+    state can cause problems.
+</p>
+
+<p>
+    We will cover the differences between these lifetimes in detail in the
+    next supporting article.
+</p>
+
+
+<h2>📚 Related Dependency Injection Articles</h2>
+
+<p>
+    🏛️
+    <a href="/aspnet-core-dependency-injection-explained/">
+        ASP.NET Core Dependency Injection Explained with Examples
+        (Beginner to Advanced)
+    </a>
+</p>
+
+<p>
+    💉
+    <a href="/what-is-dependency-injection-asp-net-core/">
+        What Is Dependency Injection in ASP.NET Core? A Beginner's Guide
+    </a>
+</p>
+
+<p>
+    🔄
+    <a href="/singleton-scoped-transient-asp-net-core/">
+        Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
+    </a>
+</p>
+
+<p>
+    🧩
+    <a href="/constructor-injection-asp-net-core/">
+        How to Use Constructor Injection in ASP.NET Core
+    </a>
+</p>
+
+<p>
+    💉
+    <a href="/inject-services-controllers-razor-pages-blazor/">
+        How to Inject Services into Controllers, Razor Pages, and Blazor
+    </a>
+</p>
+
+<p>
+    🚨
+    <a href="/common-dependency-injection-errors-asp-net-core/">
+        Common Dependency Injection Errors in ASP.NET Core and How to Fix Them
+    </a>
+</p>
+
+<p>
+    🚀
+    <a href="/advanced-dependency-injection-asp-net-core/">
+        Advanced Dependency Injection in ASP.NET Core: Factory, Keyed Services,
+        and Service Lifetimes
+    </a>
+</p>
+
+
+<h2>🎯 Conclusion</h2>
+
+<p>
+    Registering services is one of the first things you need to understand
+    when working with Dependency Injection in ASP.NET Core.
+</p>
+
+<p>
+    The three most common registration methods are
+    <code>AddTransient</code>, <code>AddScoped</code>, and
+    <code>AddSingleton</code>. You can also register interfaces with their
+    implementations and allow ASP.NET Core to resolve dependencies
+    automatically.
+</p>
+
+<div class="article-tip">
+
+    <strong>🚀 What's next?</strong>
+
+    <p>
+        Now that you know how to register services, the next important topic
+        is understanding their lifetimes:
+    </p>
+
+    <p style="margin-bottom:0;">
+
+        <a href="/singleton-scoped-transient-asp-net-core/">
+            🔄 Singleton vs Scoped vs Transient in ASP.NET Core:
+            What's the Difference?
+        </a>
+
+    </p>
+
+</div>
+
+</div>
+
+
+<!-- ==========================================
+     BREADCRUMB JAVASCRIPT
+     ========================================== -->
+
+<script>
+(function () {
+
+    const triggers =
+        document.querySelectorAll('.crumb-trigger');
+
+    triggers.forEach(function (trigger) {
+
+        const menuName = trigger.dataset.menu;
+
+        const menu = document.getElementById(
+            "menu-" + menuName
+        );
+
+        if (!menu) {
+            return;
+        }
+
+        document.body.appendChild(menu);
+
+        function updatePosition() {
+
+            const rect =
+                trigger.getBoundingClientRect();
+
+            menu.style.left =
+                rect.left + "px";
+
+            menu.style.top =
+                (rect.bottom + 5) + "px";
+        }
+
+        function showMenu() {
+
+            document
+                .querySelectorAll(".crumb-teleport-menu")
+                .forEach(function (m) {
+
+                    m.style.display = "none";
+
+                });
+
+            updatePosition();
+
+            menu.style.display = "block";
+        }
+
+        function hideMenu() {
+
+            setTimeout(function () {
+
+                if (
+                    !trigger.matches(":hover") &&
+                    !menu.matches(":hover")
+                ) {
+
+                    menu.style.display = "none";
+
+                }
+
+            }, 100);
+        }
+
+        trigger.addEventListener(
+            "mouseenter",
+            showMenu
+        );
+
+        trigger.addEventListener(
+            "mouseleave",
+            hideMenu
+        );
+
+        menu.addEventListener(
+            "mouseenter",
+            showMenu
+        );
+
+        menu.addEventListener(
+            "mouseleave",
+            hideMenu
+        );
+
+        window.addEventListener(
+            "resize",
+            updatePosition
+        );
+
+        window.addEventListener(
+            "scroll",
+            updatePosition,
+            true
+        );
+
+    });
+
+})();
+</script>
+
+  </div>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

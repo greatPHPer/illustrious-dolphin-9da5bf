@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🖱️ SikuliX 2.0.5 – Detect Mouse Pointer Idle or Busy State (Solved) | Algolassi</title>
+  <meta name="description" content="If you’ve ever automated a desktop app with SikuliX , you know how useful it is for visual-based scripting. But sometimes, you need to go one level deeper — ...">
+  <meta name="generator" content="Eleventy">
+  <link rel="icon" href="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="canonical" href="https://algolassi.online/2025/10/09/%f0%9f%96%b1%ef%b8%8f-sikulix-2-0-5-detect-mouse-pointer-idle-or-busy-state-solved/">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="/">
+      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
+      <span>Algolassi</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="/tutorials/">Tutorials</a>
+      <a href="/csharp-tutorials/">C#</a>
+      <a href="/net-tutorials/">.NET</a>
+      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
+      <a href="/blazor-tutorials/">Blazor</a>
+      <a href="/sql-server-tutorials/">SQL Server</a>
+      <a href="/about-algolassi/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  
+  <div class="breadcrumbs"><a href="/">🏠 Home</a><span>›</span><a href="/tutorials/">📚 Tutorials</a><span>›</span><span>🖱️ SikuliX 2.0.5 – Detect Mouse Pointer Idle or Busy State (Solved)</span></div>
+  <article class="article">
+    <header class="article-header">
+      <p class="eyebrow">ARTICLE</p>
+      <h1>🖱️ SikuliX 2.0.5 – Detect Mouse Pointer Idle or Busy State (Solved)</h1>
+      <time datetime="2025-10-09T12:14:57">October 09, 2025</time>
+    </header>
+    <div class="article-content">
+<p>If you’ve ever automated a desktop app with <strong>SikuliX</strong>, you know how useful it is for visual-based scripting. But sometimes, you need to go one level deeper — for instance, <strong>detecting whether the mouse pointer is currently busy (spinning wheel) or idle</strong>.</p>
+
+
+
+<p>In SikuliX 2.0.5, this isn’t directly supported through the Python-like API, but it’s possible with a small trick involving <strong>Java Native Access (JNA)</strong>.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">⚙️ The Problem</h2>
+
+
+
+<p>When running scripts that interact with Windows UI, SikuliX can sometimes click while the system is still “busy” (like during a loading spinner).</p>
+
+
+
+<p>I wanted to check the <strong>cursor’s state</strong> (idle or busy) before the next automation step — but the built-in Sikuli functions couldn’t detect that.</p>
+
+
+
+<p>So I built a lightweight Java helper that works perfectly with SikuliX 2.0.5.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">🧰 The Working Solution</h2>
+
+
+
+<p>The approach involves:</p>
+
+
+
+<ol class="wp-block-list">
+<li>Using <strong>JNA (Java Native Access)</strong> to talk to the Windows API.</li>
+
+
+
+<li>Packaging it properly into a <strong>JAR</strong> file.</li>
+
+
+
+<li>Making sure the <strong>manifest file</strong> is valid (Sikuli is very sensitive to this!).</li>
+</ol>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🪶 Step 1. Create a Manifest File</h3>
+
+
+
+<p>Your <code>MANIFEST.MF</code> file should look exactly like this — with an <strong>empty line at the end</strong>:</p>
+
+
+
+<pre class="wp-block-code"><code>Manifest-Version: 1.0
+Main-Class: newmain
+Class-Path: lib/jna.jar lib/jna-platform.jar
+</code></pre>
+
+
+
+<p>If that last blank line is missing, Sikuli will refuse to load your dependencies.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">⚙️ Step 2. Compile and Package</h3>
+
+
+
+<p>Use <strong>JDK 1.8</strong> (older JDKs are best for SikuliX compatibility) to create your JAR file:</p>
+
+
+
+<pre class="wp-block-code"><code>E:\jdk1_8_0_202\bin\jar cfm Jar.jar MANIFEST.MF *.class
+</code></pre>
+
+
+
+<p>This packages your compiled <code>.class</code> files and manifest into a single JAR.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h3 class="wp-block-heading">🧩 Step 3. Load the JAR in SikuliX</h3>
+
+
+
+<p>Once compiled, you can import and use it inside Sikuli’s Jython environment:</p>
+
+
+
+<pre class="wp-block-code"><code>sys.path.append("E:\\Downloads\\jarf\\withdependency\\newmain.jar")
+import newmain
+
+ct = newmain.cursor_type()
+print(ct.getCode())           # Displays the cursor code
+print(ct.getCode() == 32514)  # True if the pointer is "busy"
+</code></pre>
+
+
+
+<p>The <strong>cursor code</strong> represents the Windows system cursor type:</p>
+
+
+
+<ul class="wp-block-list">
+<li><code>32512</code> → Normal arrow</li>
+
+
+
+<li><code>32514</code> → Busy (spinning circle)</li>
+</ul>
+
+
+
+<p>You can use this logic to pause your Sikuli automation until the mouse pointer returns to idle.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">✅ Tips and Notes</h2>
+
+
+
+<ul class="wp-block-list">
+<li>Always end your <code>MANIFEST.MF</code> file with a <strong>newline</strong>.</li>
+
+
+
+<li>Stick to <strong>JDK 1.8</strong>, since SikuliX 2.0.5’s Jython runtime can behave unpredictably with newer JDKs.</li>
+
+
+
+<li>JNA JARs must be referenced with <strong>relative paths</strong> inside the manifest.</li>
+</ul>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">💡 Use Case Example</h2>
+
+
+
+<p>In a UI automation flow, you could write:</p>
+
+
+
+<pre class="wp-block-code"><code>while newmain.cursor_type().getCode() == 32514:
+    wait(0.5)
+</code></pre>
+
+
+
+<p>This ensures Sikuli waits until the mouse pointer becomes idle before continuing.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<h2 class="wp-block-heading">🧭 Final Thoughts</h2>
+
+
+
+<p>Detecting the <strong>mouse pointer’s busy state</strong> in SikuliX might not seem straightforward, but with a small helper class and proper JNA setup, it’s completely doable.</p>
+
+
+
+<p>This approach gives you fine-grained control in automation scripts — perfect for handling slow-loading apps, modal popups, or background tasks.</p>
+
+
+
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+
+
+
+<p><strong>Author:</strong> Algolassi<br><strong>Published on:</strong> October 9, 2025<br><strong>Category:</strong> Automation, Java, SikuliX<br><strong>Tags:</strong> <code>sikulix</code>, <code>jna</code>, <code>java</code>, <code>manifest</code>, <code>ui-automation</code>, <code>algolassi</code></p>
+</div>
+  </article>
+  
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
+    <nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav>
+  </div>
+  <p class="copyright">© 2026 Algolassi. All rights reserved.</p>
+</footer>
+</body>
+</html>

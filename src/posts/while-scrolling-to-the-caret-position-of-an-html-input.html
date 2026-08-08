@@ -1,0 +1,75 @@
+---
+title: "While scrolling to the caret position of an html input"
+layout: layouts/base.njk
+permalink: "/2025/09/11/while-scrolling-to-the-caret-position-of-an-html-input/"
+legacyId: 9
+contentType: "post"
+date: "2025-09-11T13:24:46"
+description: "The html input of type “text” can be focused at any position of the text inside it. When the focus is set to the input and selection range is set through jav..."
+categories:
+  - "While"
+---
+
+<p>The html input of type “text” can be focused at any position of the text inside it.</p>
+
+
+
+<p>When the focus is set to the input and selection range is set through javascirpt, it doesn’t work as expected.</p>
+
+
+
+<pre class="wp-block-code"><code>&lt;script type="text/javascript"&gt;
+function select_at_j() {
+  document.getElementById('testid').focus();
+  document.getElementById('testid').setSelectionRange(10, 10);
+}
+&lt;/script&gt;
+&lt;input style="width:50px" id="testid" value="abcdefghijklmnopqrstuvwxyz"&gt;
+&lt;button onclick="select_at_j()"&gt;select 10,10&lt;/button&gt;
+</code></pre>
+
+
+
+<script type="text/javascript">
+function select_at_j() {
+  document.getElementById('testid').focus();
+  document.getElementById('testid').setSelectionRange(10, 10);
+}
+</script>
+<input style="width:50px" id="testid" value="abcdefghijklmnopqrstuvwxyz">
+<button onclick="select_at_j()">select 10,10</button>
+
+
+
+<p>If we check this out, the 10th alphabet is focused on second click only.</p>
+
+
+
+<p>But there is a work around which is too easy. Just swap the two lines of code as,</p>
+
+
+
+<pre class="wp-block-code"><code>&lt;script type="text/javascript"&gt;
+function select_at_j() {
+       document.getElementById('testid').setSelectionRange(10, 10);
+    document.getElementById('testid').focus();
+}
+&lt;/script&gt;
+&lt;input style="width:50px" id="testid" value="abcdefghijklmnopqrstuvwxyz"&gt;
+&lt;button onclick="select_at_j()"&gt;select 10,10&lt;/button&gt;
+</code></pre>
+
+
+
+<script type="text/javascript">
+function select_at_j2() {
+       document.getElementById('testid2').setSelectionRange(10, 10);
+    document.getElementById('testid2').focus();
+}
+</script>
+<input style="width:50px" id="testid2" value="abcdefghijklmnopqrstuvwxyz">
+<button onclick="select_at_j2()">select 10,10</button>
+
+
+
+<p>Warm regards</p>
