@@ -7,8 +7,8 @@
  * - For India, state/region language beats an en-US browser locale.
  * - Radio Browser is always queried with the detected country code.
  * - A US station is never intentionally selected when the detected country is IN.
- * - Radio controls live in their own high-z-index host so later assistant/news
- *   toasts never cover or destroy the Stop button.
+ * - Radio controls live in their own host and dynamically move around the
+ *   currently visible assistant toast instead of permanently covering it.
  */
 (function () {
   "use strict";
@@ -18,6 +18,8 @@
   var state = load();
   var audio = null;
   var stations = [];
+  var radioPositionObserver = null;
+  var radioResizeObserver = null;
 
   var countryLanguages = {
     IN: ["tamil", "hindi", "english"],
@@ -136,9 +138,87 @@
     return h;
   }
 
+  /*
+   * Keep the radio as a separate toast, but stack it around the assistant
+   * toast. We deliberately calculate the real rendered assistant height so
+   * this also works when the assistant toast contains a news thumbnail,
+   * buttons, or wraps differently on mobile.
+   */
+  function repositionRadio() {
+    var radio = document.getElementById("algolassi-radio-host");
+    if (!radio) return;
+
+    var assistant = document.getElementById("algolassi-assistant-host");
+    var assistantToast = null;
+
+    if (assistant) {
+      var candidates = assistant.querySelectorAll(".algolassi-assistant-toast");
+      for (var i = candidates.length - 1; i >= 0; i--) {
+        var candidate = candidates[i];
+        var style = window.getComputedStyle(candidate);
+        var rect = candidate.getBoundingClientRect();
+        if (style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0) {
+          assistantToast = candidate;
+          break;
+        }
+      }
+    }
+
+    var gap = 10;
+    var normalBottom = window.innerWidth <= 600 ? 10 : 18;
+
+    if (assistantToast) {
+      var rect = assistantToast.getBoundingClientRect();
+      /* The assistant toast is bottom-anchored. Put radio immediately above it. */
+      var bottomOffset = Math.max(normalBottom, window.innerHeight - rect.top + gap);
+      radio.style.bottom = bottomOffset + "px";
+    } else {
+      radio.style.bottom = normalBottom + "px";
+    }
+  }
+
+  function startRadioPositionObserver() {
+    if (radioPositionObserver || !window.MutationObserver) {
+      repositionRadio();
+      return;
+    }
+
+    var start = function () {
+      var assistant = document.getElementById("algolassi-assistant-host");
+      if (!assistant) return;
+
+      radioPositionObserver = new MutationObserver(function () {
+        window.requestAnimationFrame(repositionRadio);
+      });
+
+      radioPositionObserver.observe(assistant, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class", "style"]
+      });
+
+      if (window.ResizeObserver) {
+        radioResizeObserver = new ResizeObserver(function () {
+          window.requestAnimationFrame(repositionRadio);
+        });
+        radioResizeObserver.observe(assistant);
+      }
+
+      window.addEventListener("resize", repositionRadio, { passive: true });
+      repositionRadio();
+    };
+
+    if (document.getElementById("algolassi-assistant-host")) start();
+    else window.setTimeout(start, 500);
+  }
+
   function removeRadioToast() {
     var h = document.getElementById("algolassi-radio-host");
-    if (h) h.innerHTML = "";
+    if (h) {
+      h.innerHTML = "";
+      h.style.bottom = (window.innerWidth <= 600 ? 10 : 18) + "px";
+    }
     audio = null;
   }
 
@@ -193,6 +273,9 @@
         t.querySelector("#algolassi-radio-play").textContent = "▶ Play";
       }
     };
+
+    /* The toast was just inserted; calculate its position immediately. */
+    repositionRadio();
   }
 
   function search(lang, fallback) {
@@ -235,6 +318,7 @@
   function init() {
     if (sleeping()) return;
     syncLocation();
+    startRadioPositionObserver();
     if (state.shownAt && Date.now() - state.shownAt < 24 * 60 * 60 * 1000) return;
     state.shownAt = Date.now();
     save();
