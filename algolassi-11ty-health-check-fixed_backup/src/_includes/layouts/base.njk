@@ -78,100 +78,74 @@
 <script src="/assets/js/algolassi-assistant-radio.js" defer></script>
 <script src="/assets/js/algolassi-assistant-phase5.js" defer></script>
 
-<!-- Lightweight Eleventy SPA-style navigation.
-     Only .site-main is replaced, so the assistant and radio audio element stay alive. -->
+<!-- Lightweight Eleventy navigation: keep assistant/radio alive without popup windows. -->
 <script>
 (function () {
   "use strict";
-
   if (window.__algolassiSpaRouter) return;
   window.__algolassiSpaRouter = true;
-
   var mainSelector = ".site-main";
   var navigating = false;
 
   function shouldHandle(link, event) {
-    if (!link || !link.href) return false;
-    if (event && (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) return false;
+    if (!link || !link.href || !event || event.defaultPrevented || event.button !== 0) return false;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
     if (link.target && link.target !== "_self") return false;
-    if (link.hasAttribute("download")) return false;
-    if (link.hasAttribute("data-no-spa")) return false;
+    if (link.hasAttribute("download") || link.hasAttribute("data-no-spa")) return false;
     if (link.protocol !== window.location.protocol || link.host !== window.location.host) return false;
-    if (link.pathname === window.location.pathname && link.search === window.location.search) return false;
+    if (link.hash && link.pathname === window.location.pathname && link.search === window.location.search) return false;
     return true;
   }
 
-  function updateDocumentMeta(doc) {
+  function updateMeta(doc) {
     if (doc.title) document.title = doc.title;
-
-    var oldDescription = document.querySelector('meta[name="description"]');
-    var newDescription = doc.querySelector('meta[name="description"]');
-    if (oldDescription && newDescription) oldDescription.setAttribute("content", newDescription.getAttribute("content") || "");
-    else if (oldDescription && !newDescription) oldDescription.remove();
-    else if (!oldDescription && newDescription) document.head.appendChild(newDescription.cloneNode(true));
+    var oldDesc = document.querySelector('meta[name="description"]');
+    var newDesc = doc.querySelector('meta[name="description"]');
+    if (oldDesc && newDesc) oldDesc.setAttribute("content", newDesc.getAttribute("content") || "");
+    else if (!oldDesc && newDesc) document.head.appendChild(newDesc.cloneNode(true));
+    else if (oldDesc && !newDesc) oldDesc.remove();
 
     var oldCanonical = document.querySelector('link[rel="canonical"]');
     var newCanonical = doc.querySelector('link[rel="canonical"]');
     if (oldCanonical && newCanonical) oldCanonical.setAttribute("href", newCanonical.getAttribute("href") || "");
-    else if (oldCanonical && !newCanonical) oldCanonical.remove();
     else if (!oldCanonical && newCanonical) document.head.appendChild(newCanonical.cloneNode(true));
+    else if (oldCanonical && !newCanonical) oldCanonical.remove();
   }
 
-  function replaceMain(doc, url, addHistory) {
-    var currentMain = document.querySelector(mainSelector);
-    var nextMain = doc.querySelector(mainSelector);
-    if (!currentMain || !nextMain) return false;
-
-    currentMain.innerHTML = nextMain.innerHTML;
-    updateDocumentMeta(doc);
-
-    if (addHistory) window.history.pushState({ algolassiSpa: true }, "", url.href);
-    window.scrollTo({ top: 0, behavior: "auto" });
-
-    /* The assistant/radio DOM was deliberately left outside .site-main.
-       Give the radio position observer a chance to recalculate around any
-       assistant toast after the new article has been inserted. */
-    window.dispatchEvent(new Event("algolassi:spa-navigation"));
-    if (window.AlgolassiRadio && typeof window.AlgolassiRadio.refreshLocation === "function") {
-      try { window.AlgolassiRadio.refreshLocation(); } catch (e) {}
-    }
-    return true;
-  }
-
-  function navigate(url, addHistory) {
+  function loadPage(url, push) {
     if (navigating) return;
     navigating = true;
-
-    fetch(url.href, {
-      credentials: "same-origin",
-      headers: { "X-Algolassi-SPA": "1" }
-    })
+    fetch(url.href, { credentials: "same-origin" })
       .then(function (response) {
-        if (!response.ok) throw new Error("Navigation failed: " + response.status);
+        if (!response.ok) throw new Error("HTTP " + response.status);
         return response.text();
       })
       .then(function (html) {
         var doc = new DOMParser().parseFromString(html, "text/html");
-        if (!replaceMain(doc, url, addHistory)) throw new Error("site-main not found");
+        var currentMain = document.querySelector(mainSelector);
+        var nextMain = doc.querySelector(mainSelector);
+        if (!currentMain || !nextMain) throw new Error("site-main not found");
+        currentMain.innerHTML = nextMain.innerHTML;
+        updateMeta(doc);
+        if (push) history.pushState({ algolassiSpa: true }, "", url.href);
+        window.scrollTo(0, 0);
+        window.dispatchEvent(new Event("algolassi:spa-navigation"));
       })
       .catch(function () {
-        /* Never trap the visitor on a broken SPA transition. */
-        if (addHistory) window.location.href = url.href;
+        window.location.href = url.href;
       })
-      .finally(function () {
-        navigating = false;
-      });
+      .finally(function () { navigating = false; });
   }
 
   document.addEventListener("click", function (event) {
     var link = event.target.closest ? event.target.closest("a") : null;
     if (!shouldHandle(link, event)) return;
     event.preventDefault();
-    navigate(new URL(link.href), true);
-  });
+    loadPage(new URL(link.href), true);
+  }, true);
 
   window.addEventListener("popstate", function () {
-    navigate(new URL(window.location.href), false);
+    loadPage(new URL(window.location.href), false);
   });
 })();
 </script>
