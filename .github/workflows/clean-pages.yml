@@ -1,0 +1,112 @@
+name: Clean Algolassi pages
+
+on:
+  push:
+    branches:
+      - pages-cleaned
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  clean-pages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout pages-cleaned
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clean old breadcrumbs and normalize internal links
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          root = Path("algolassi-11ty-health-check-fixed_backup/src/pages")
+
+          for path in root.glob("*.html"):
+              text = path.read_text(encoding="utf-8")
+              original = text
+
+              # Remove the old inline breadcrumb CSS while preserving other page CSS.
+              text = re.sub(
+                  r"\n/\* Breadcrumb \*/.*?(?=</style>)",
+                  "",
+                  text,
+                  flags=re.S | re.I,
+              )
+
+              # Remove the old breadcrumb trail.
+              text = re.sub(
+                  r"\s*<div\s+class=[\"']breadcrumb[\"'][^>]*>.*?</div>\s*",
+                  "\n\n",
+                  text,
+                  flags=re.S | re.I,
+              )
+
+              # Remove old teleported breadcrumb dropdown menus.
+              text = re.sub(
+                  r"\s*(?:<!--[^>]*Menu[^>]*-->\s*)?<div\s+class=[\"']crumb-teleport-menu[\"'][^>]*>.*?</div>\s*",
+                  "\n\n",
+                  text,
+                  flags=re.S | re.I,
+              )
+
+              # Remove scripts whose purpose is the old breadcrumb dropdown.
+              def remove_old_breadcrumb_script(m):
+                  block = m.group(0)
+                  if re.search(r"crumb-(?:trigger|teleport-menu)|menu-(?:home|tutorials|csharp|net)", block, re.I):
+                      return "\n\n"
+                  return block
+
+              text = re.sub(
+                  r"<script\b[^>]*>.*?</script>",
+                  remove_old_breadcrumb_script,
+                  text,
+                  flags=re.S | re.I,
+              )
+
+              # Normalize local page links that accidentally omit the trailing slash.
+              text = re.sub(
+                  r'href=("/[^"#?]+?)(?<!/)(")',
+                  lambda m: 'href=' + m.group(1) + '/' + m.group(2)
+                  if not re.search(r'\.(?:html|xml|css|js|png|jpg|jpeg|gif|webp|svg|pdf)$', m.group(1), re.I)
+                  else m.group(0),
+                  text,
+              )
+
+              # Keep generated pages free of leftover old breadcrumb-only class references.
+              text = re.sub(r'\n\s*\.crumb-(?:trigger|current|last)\b[^}]*\}\s*', '\n', text, flags=re.S | re.I)
+
+              if text != original:
+                  path.write_text(text, encoding="utf-8")
+
+      - name: Commit cleaned pages
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add algolassi-11ty-health-check-fixed_backup/src/pages
+          if git diff --cached --quiet; then
+            echo "No page changes required."
+          else
+            git commit -m "Clean old page breadcrumbs and normalize internal links"
+            git push
+          fi
+
+      - name: Create cleaned pages ZIP
+        shell: bash
+        run: |
+          mkdir -p /tmp/pages-cleaned
+          cp algolassi-11ty-health-check-fixed_backup/src/pages/*.html /tmp/pages-cleaned/
+          cd /tmp/pages-cleaned
+          zip -r "$GITHUB_WORKSPACE/pages-cleaned.zip" .
+
+      - name: Upload cleaned pages ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-cleaned
+          path: pages-cleaned.zip
+          retention-days: 30
