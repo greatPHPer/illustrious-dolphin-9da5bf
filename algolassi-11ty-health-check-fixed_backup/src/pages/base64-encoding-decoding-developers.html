@@ -1,0 +1,23 @@
+---
+title: "Base64 Encoding and Decoding for Developers"
+layout: layouts/base.njk
+permalink: "/base64-encoding-decoding-developers/"
+contentType: "page"
+date: "2026-08-09T10:37:00"
+description: "Understand Base64 encoding and decoding, where it is useful, and why Base64 is not encryption."
+---
+<h1>Base64 Encoding and Decoding for Developers</h1>
+<p>Base64 converts binary data into text characters that can be transported through systems designed primarily for text. It is commonly seen in API payloads, email data, tokens, and data URLs.</p>
+<h2>Base64 Is Not Encryption</h2>
+<p>Anyone who receives Base64 text can decode it. Never use Base64 as a mechanism for protecting passwords, API keys, or confidential information.</p>
+<h2>C# Example</h2>
+<pre><code>var bytes = Encoding.UTF8.GetBytes("Hello Algolassi");
+var encoded = Convert.ToBase64String(bytes);
+
+var decoded = Encoding.UTF8.GetString(
+    Convert.FromBase64String(encoded));</code></pre>
+<h2>Common Problems</h2>
+<ul><li>Confusing Base64 with encryption</li><li>Decoding text using the wrong character encoding</li><li>Copying incomplete Base64 strings</li><li>Ignoring transport or URL-safe Base64 variants</li></ul>
+<h2>When to Use It</h2>
+<p>Use Base64 when a protocol needs binary data represented as text. Use proper encryption or hashing when confidentiality or integrity is required.</p>
+<p><a href="/developer-tools/">Back to Developer Tools</a></p>
