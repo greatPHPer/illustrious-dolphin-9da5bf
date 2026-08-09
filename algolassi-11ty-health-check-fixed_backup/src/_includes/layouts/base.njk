@@ -39,10 +39,12 @@
       {% if date %}<time datetime="{{ date }}">{{ date | date("dd LLLL yyyy") }}</time>{% endif %}
     </header>
     <div class="article-content">{{ content | safe }}</div>
+    {% include "comments.njk" %}
   </article>
   {% else %}
   <div class="page-content">
     {{ content | safe }}
+    {% include "comments.njk" %}
   </div>
   {% endif %}
 </main>
