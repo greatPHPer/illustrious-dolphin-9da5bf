@@ -112,6 +112,12 @@
     else if (oldCanonical && !newCanonical) oldCanonical.remove();
   }
 
+  function initializePageComponents() {
+    if (typeof window.AlgolassiCommentsInit === "function") {
+      window.AlgolassiCommentsInit();
+    }
+  }
+
   function loadPage(url, push) {
     if (navigating) return;
     navigating = true;
@@ -129,6 +135,7 @@
         updateMeta(doc);
         if (push) history.pushState({ algolassiSpa: true }, "", url.href);
         window.scrollTo(0, 0);
+        initializePageComponents();
         window.dispatchEvent(new Event("algolassi:spa-navigation"));
       })
       .catch(function () {
