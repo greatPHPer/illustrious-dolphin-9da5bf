@@ -34,13 +34,6 @@ html, body {
     font-size: 15px;
     line-height: 1.5;
 }
-
-.crumb-trigger {
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-}
-
 .crumb-teleport-menu {
     display: none;
     position: fixed;
@@ -78,166 +71,21 @@ html, body {
     text-decoration: underline;
 }
 /* Current page in dropdown */
-.crumb-current{
-    background:#e8f3ff;
-    color:#0d6efd !important;
-    font-weight:600;
-    pointer-events:none;
-    cursor:default;
-}
-
 .crumb-current:hover{
     background:#e8f3ff !important;
 }
-.crumb-current{
-    background:#e8f3ff;
-    color:#0d6efd !important;
-    font-weight:600;
-}
-
 .crumb-current:hover{
     background:#d8ebff !important;
 }
 </style>
 
-<div class="breadcrumb">
-
-    <!-- Home -->
-    <span class="crumb-trigger" data-menu="home">
-        <a href="/">🏠 Home ▼</a>
-    </span>
-
-    &gt;
-
-    <!-- Tutorials -->
-    <span class="crumb-trigger" data-menu="tutorials">
-        <a href="/tutorials/">📚 Tutorials ▼</a>
-    </span>
-
-    &gt;
-
-    <!-- Category -->
-    <!-- ASP.NET Core -->
-<span class="crumb-trigger" data-menu="csharp">
-    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials ▼</a>
-</span>
-
-    &gt;
-
-     <a href="/aspnet-core-dependency-injection-explained/">
-        💉 ASP.NET Core Dependency Injection Explained with Examples
-    </a>
-
-</div>
 
 
-<!-- Home Menu -->
-<div class="crumb-teleport-menu" id="menu-home">
-    <a href="/tutorials/">📚 Tutorials</a>
-    <a href="/about-algolassi/">🌟 About Algolassi</a>
-    <a href="/197-2/">💼 Portfolio</a>
-    <a href="/contact-algolassi/">📧 Contact</a>
-</div>
 
 
-<!-- Tutorials Menu -->
-<div class="crumb-teleport-menu" id="menu-tutorials">
-
-    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
-
-    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
-
-    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
-
-    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
-
-    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
-
-    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
-
-    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
-
-</div>
 
 
-<!-- C# Menu -->
-<div class="crumb-teleport-menu" id="menu-csharp">
 
-    <a href="/aspnet-core-dependency-injection-explained/" class="crumb-current">
-        💉 ASP.NET Core Dependency Injection Explained with Examples
-    </a>
-
-    
-
-    <a href="/async-await-csharp-best-practices/">
-        ⚡ Async and Await in C#
-    </a>
-
-</div>
-
-<script>
-(function () {
-
-    const triggers = document.querySelectorAll('.crumb-trigger');
-
-    triggers.forEach(trigger => {
-
-        const menuName = trigger.dataset.menu;
-        const menu = document.getElementById("menu-" + menuName);
-
-        if (!menu) return;
-
-        document.body.appendChild(menu);
-
-        function updatePosition() {
-
-            const rect = trigger.getBoundingClientRect();
-
-            menu.style.left = rect.left + "px";
-            menu.style.top = (rect.bottom + 5) + "px";
-
-        }
-
-        function showMenu() {
-
-            updatePosition();
-
-            document
-                .querySelectorAll(".crumb-teleport-menu")
-                .forEach(m => m.style.display = "none");
-
-            menu.style.display = "block";
-
-        }
-
-        function hideMenu() {
-
-            setTimeout(() => {
-
-                if (!trigger.matches(":hover") &&
-                    !menu.matches(":hover")) {
-
-                    menu.style.display = "none";
-
-                }
-
-            },100);
-
-        }
-
-        trigger.addEventListener("mouseenter",showMenu);
-        trigger.addEventListener("mouseleave",hideMenu);
-
-        menu.addEventListener("mouseenter",showMenu);
-        menu.addEventListener("mouseleave",hideMenu);
-
-        window.addEventListener("resize",updatePosition);
-        window.addEventListener("scroll",updatePosition,true);
-
-    });
-
-})();
-</script>
 
 
 

@@ -39,19 +39,7 @@ body {
     font-size: 15px;
     line-height: 1.5;
 }
-
-.crumb-trigger {
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-}
-
 .crumb-trigger > a,
-.crumb-trigger > a:visited {
-    color: inherit;
-    text-decoration: none;
-}
-
 .breadcrumb > a:last-child,
 .breadcrumb > a:last-child:visited {
     color: #0d6efd !important;
@@ -99,13 +87,6 @@ body {
 /* ==========================================
    CURRENT / ACTIVE ITEM
    ========================================== */
-
-.crumb-current {
-    background: #e8f3ff !important;
-    color: #0d6efd !important;
-    font-weight: 600 !important;
-}
-
 .crumb-current:hover {
     background: #d8ebff !important;
     color: #0d6efd !important;
@@ -117,251 +98,28 @@ body {
      BREADCRUMB
      ========================================== -->
 
-<div class="breadcrumb">
-
-    <!-- Home -->
-    <span class="crumb-trigger" data-menu="home">
-        <a href="/">🏠 Home ▼</a>
-    </span>
-
-    &gt;
-
-    <!-- Tutorials -->
-    <span class="crumb-trigger" data-menu="tutorials">
-        <a href="/tutorials/">📚 Tutorials ▼</a>
-    </span>
-
-    &gt;
-
-    <!-- ASP.NET Core Tutorials -->
-    <span class="crumb-trigger" data-menu="aspnetcore">
-        <a href="/asp-net-core-tutorials/">
-            🌐 ASP.NET Core Tutorials ▼
-        </a>
-    </span>
-
-    &gt;
-
-    <!-- Current Article -->
-    <a href="/singleton-scoped-transient-asp-net-core/">
-        🔄 Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
-    </a>
-
-</div>
-
-
 <!-- ==========================================
      HOME DROPDOWN
      Tutorials highlighted
      ========================================== -->
-
-<div class="crumb-teleport-menu" id="menu-home">
-
-    <a href="/tutorials/" class="crumb-current">
-        📚 Tutorials
-    </a>
-
-    <a href="/about-algolassi/">
-        🌟 About Algolassi
-    </a>
-
-    <a href="/197-2/">
-        💼 Portfolio
-    </a>
-
-    <a href="/contact-algolassi/">
-        📧 Contact
-    </a>
-
-</div>
-
 
 <!-- ==========================================
      TUTORIALS DROPDOWN
      ASP.NET Core Tutorials highlighted
      ========================================== -->
 
-<div class="crumb-teleport-menu" id="menu-tutorials">
-
-    <a href="/csharp-tutorials/">
-        💻 C# Tutorials
-    </a>
-
-    <a href="/net-tutorials/">
-        ⚙️ .NET Tutorials
-    </a>
-
-    <a href="/asp-net-core-tutorials/" class="crumb-current">
-        🌐 ASP.NET Core Tutorials
-    </a>
-
-    <a href="/blazor-tutorials/">
-        ⚡ Blazor Tutorials
-    </a>
-
-    <a href="/sql-server-tutorials/">
-        🗄️ SQL Server Tutorials
-    </a>
-
-    <a href="/visual-studio-tutorials/">
-        🖥️ Visual Studio Tutorials
-    </a>
-
-    <a href="/net-maui-tutorials/">
-        📱 .NET MAUI Tutorials
-    </a>
-
-</div>
-
-
 <!-- ==========================================
      ASP.NET CORE DROPDOWN
      Article #3 highlighted
      ========================================== -->
 
-<div class="crumb-teleport-menu" id="menu-aspnetcore">
-
-    <!-- Pillar -->
-    <a href="/aspnet-core-dependency-injection-explained/">
-        🏛️ ASP.NET Core Dependency Injection Explained with Examples
-    </a>
-
-    <!-- Article #1 -->
-    <a href="/what-is-dependency-injection-asp-net-core/">
-        💉 What Is Dependency Injection in ASP.NET Core? A Beginner's Guide
-    </a>
-
-    <!-- Article #2 -->
-    <a href="/register-services-asp-net-core-dependency-injection/">
-        ⚙️ How to Register Services in ASP.NET Core Dependency Injection
-    </a>
-
-    <!-- Article #3 -->
-    <a href="/singleton-scoped-transient-asp-net-core/" class="crumb-current">
-        🔄 Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?
-    </a>
-
-    <!-- Article #4 -->
-    <a href="/constructor-injection-asp-net-core/">
-        🧩 How to Use Constructor Injection in ASP.NET Core
-    </a>
-
-    <!-- Article #5 -->
-    <a href="/inject-services-controllers-razor-pages-blazor/">
-        💉 How to Inject Services into Controllers, Razor Pages, and Blazor
-    </a>
-
-    <!-- Article #6 -->
-    <a href="/common-dependency-injection-errors-asp-net-core/">
-        🚨 Common Dependency Injection Errors in ASP.NET Core and How to Fix Them
-    </a>
-
-    <!-- Article #7 -->
-    <a href="/advanced-dependency-injection-asp-net-core/">
-        🚀 Advanced Dependency Injection in ASP.NET Core: Factory, Keyed Services, and Service Lifetimes
-    </a>
-
-</div>
-
-
 <!-- ==========================================
      BREADCRUMB JAVASCRIPT
      ========================================== -->
 
-<script>
-(function () {
 
-    const triggers =
-        document.querySelectorAll('.crumb-trigger');
 
-    triggers.forEach(function (trigger) {
 
-        const menuName = trigger.dataset.menu;
-
-        const menu = document.getElementById(
-            "menu-" + menuName
-        );
-
-        if (!menu) {
-            return;
-        }
-
-        document.body.appendChild(menu);
-
-        function updatePosition() {
-
-            const rect =
-                trigger.getBoundingClientRect();
-
-            menu.style.left =
-                rect.left + "px";
-
-            menu.style.top =
-                (rect.bottom + 5) + "px";
-        }
-
-        function showMenu() {
-
-            document
-                .querySelectorAll(".crumb-teleport-menu")
-                .forEach(function (m) {
-                    m.style.display = "none";
-                });
-
-            updatePosition();
-
-            menu.style.display = "block";
-        }
-
-        function hideMenu() {
-
-            setTimeout(function () {
-
-                if (
-                    !trigger.matches(":hover") &&
-                    !menu.matches(":hover")
-                ) {
-                    menu.style.display = "none";
-                }
-
-            }, 100);
-        }
-
-        trigger.addEventListener(
-            "mouseenter",
-            showMenu
-        );
-
-        trigger.addEventListener(
-            "mouseleave",
-            hideMenu
-        );
-
-        menu.addEventListener(
-            "mouseenter",
-            showMenu
-        );
-
-        menu.addEventListener(
-            "mouseleave",
-            hideMenu
-        );
-
-        window.addEventListener(
-            "resize",
-            updatePosition
-        );
-
-        window.addEventListener(
-            "scroll",
-            updatePosition,
-            true
-        );
-
-    });
-
-})();
-</script>
 
 <!-- ============================= -->
 <!-- ARTICLE CONTENT STARTS HERE -->

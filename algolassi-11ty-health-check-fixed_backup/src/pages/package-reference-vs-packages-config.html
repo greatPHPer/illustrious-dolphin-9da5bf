@@ -34,13 +34,6 @@ html, body {
     font-size: 15px;
     line-height: 1.5;
 }
-
-.crumb-trigger {
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-}
-
 .crumb-trigger a {
     color: inherit;
     text-decoration: none;
@@ -77,226 +70,27 @@ html, body {
     font-weight: 600 !important;
     background: #eef5ff !important;
 }
-
-.crumb-last {
-    color: #0d6efd !important;
-    font-weight: 600;
-    text-decoration: none;
-}
-
 .crumb-last:hover {
     color: #0b5ed7 !important;
     text-decoration: underline;
 }
 </style>
 
-
-<div class="breadcrumb">
-
-    <!-- Home -->
-    <span class="crumb-trigger" data-menu="home">
-        <a href="/">🏠 Home ▼</a>
-    </span>
-
-    &gt;
-
-    <!-- Tutorials -->
-    <span class="crumb-trigger" data-menu="tutorials">
-        <a href="/tutorials/">📚 Tutorials ▼</a>
-    </span>
-
-    &gt;
-
-    <!-- C# Tutorials -->
-    <span class="crumb-trigger" data-menu="csharp">
-        <a href="/csharp-tutorials/">💻 C# Tutorials ▼</a>
-    </span>
-
-    &gt;
-
-    <!-- Article #6 -->
-    <a href="/package-reference-vs-packages-config/"
-       class="crumb-last">
-        📦 PackageReference vs packages.config: Which Should You Use?
-    </a>
-
-</div>
-
-
 <!-- ========================= -->
 <!-- Home Dropdown -->
 <!-- ========================= -->
-
-<div class="crumb-teleport-menu" id="menu-home">
-
-    <!-- Active parent -->
-    <a href="/tutorials/" class="crumb-active">
-        📚 Tutorials
-    </a>
-
-    <a href="/about-algolassi/">
-        🌟 About Algolassi
-    </a>
-
-    <a href="/197-2/">
-        💼 Portfolio
-    </a>
-
-    <a href="/contact-algolassi/">
-        📧 Contact
-    </a>
-
-</div>
-
 
 <!-- ========================= -->
 <!-- Tutorials Dropdown -->
 <!-- ========================= -->
 
-<div class="crumb-teleport-menu" id="menu-tutorials">
-
-    <!-- Active parent -->
-    <a href="/csharp-tutorials/" class="crumb-active">
-        💻 C# Tutorials
-    </a>
-
-    <a href="/net-tutorials/">
-        ⚙️ .NET Tutorials
-    </a>
-
-    <a href="/asp-net-core-tutorials/">
-        🌐 ASP.NET Core Tutorials
-    </a>
-
-    <a href="/blazor-tutorials/">
-        ⚡ Blazor Tutorials
-    </a>
-
-    <a href="/sql-server-tutorials/">
-        🗄️ SQL Server Tutorials
-    </a>
-
-    <a href="/visual-studio-tutorials/">
-        🖥️ Visual Studio Tutorials
-    </a>
-
-    <a href="/net-maui-tutorials/">
-        📱 .NET MAUI Tutorials
-    </a>
-
-</div>
-
-
 <!-- ========================= -->
 <!-- C# Tutorials Dropdown -->
 <!-- ========================= -->
 
-<div class="crumb-teleport-menu" id="menu-csharp">
-
-    <!-- Article #1 -->
-    <a href="/fix-nuget-package-version-conflicts-visual-studio/">
-        📦 How to Fix NuGet Package Version Conflicts in Visual Studio
-    </a>
-
-    <!-- Article #2 -->
-    <a href="/fix-nu1107-version-conflict-nuget-package/">
-        🔧 How to Fix NU1107: Version Conflict Detected for NuGet Package
-    </a>
-
-    <!-- Article #3 -->
-    <a href="/how-to-find-nuget-package-causing-dependency-conflict/">
-        🔍 How to Check Which NuGet Package Is Causing a Dependency Conflict
-    </a>
-
-    <!-- Article #4 -->
-    <a href="/direct-vs-transitive-nuget-dependencies/">
-        📦 Direct vs Transitive NuGet Dependencies: What's the Difference?
-    </a>
-
-    <!-- Article #5 -->
-    <a href="/update-nuget-packages-safely/">
-        🔄 How to Update NuGet Packages Safely Without Breaking Your Project
-    </a>
-
-    <!-- Article #6 - Current -->
-    <a href="/package-reference-vs-packages-config/"
-       class="crumb-active">
-        📦 PackageReference vs packages.config: Which Should You Use?
-    </a>
-
-</div>
 
 
-<script>
-(function () {
 
-    const triggers = document.querySelectorAll('.crumb-trigger');
-
-    triggers.forEach(function (trigger) {
-
-        const menuName = trigger.dataset.menu;
-        const menu = document.getElementById('menu-' + menuName);
-
-        if (!menu) return;
-
-        /*
-         * Move dropdown outside the WordPress
-         * content container so it isn't clipped.
-         */
-        document.body.appendChild(menu);
-
-        function updatePosition() {
-
-            const rect = trigger.getBoundingClientRect();
-
-            menu.style.left = rect.left + 'px';
-            menu.style.top = (rect.bottom + 5) + 'px';
-
-        }
-
-        function showMenu() {
-
-            document
-                .querySelectorAll('.crumb-teleport-menu')
-                .forEach(function (m) {
-                    m.style.display = 'none';
-                });
-
-            updatePosition();
-
-            menu.style.display = 'block';
-
-        }
-
-        function hideMenu() {
-
-            setTimeout(function () {
-
-                if (!trigger.matches(':hover') &&
-                    !menu.matches(':hover')) {
-
-                    menu.style.display = 'none';
-
-                }
-
-            }, 100);
-
-        }
-
-        trigger.addEventListener('mouseenter', showMenu);
-        trigger.addEventListener('mouseleave', hideMenu);
-
-        menu.addEventListener('mouseenter', showMenu);
-        menu.addEventListener('mouseleave', hideMenu);
-
-        window.addEventListener('resize', updatePosition);
-
-        window.addEventListener('scroll', updatePosition, true);
-
-    });
-
-})();
-</script>
 
 <p>
     If you have worked with different versions of .NET and Visual Studio,
