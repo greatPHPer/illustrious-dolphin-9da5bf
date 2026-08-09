@@ -1,0 +1,51 @@
+---
+title: "C# Collections Explained: List, Dictionary, HashSet and When to Use Each"
+layout: layouts/base.njk
+permalink: "/csharp-collections-list-dictionary-hashset-guide/"
+contentType: "page"
+description: "Understand the most useful C# collections and choose between List, Dictionary, HashSet and related types."
+---
+
+# C# Collections Explained: List, Dictionary, HashSet and When to Use Each
+
+Choosing the right collection can make C# code simpler and faster. The most common choices are `List<T>`, `Dictionary<TKey,TValue>`, and `HashSet<T>`.
+
+## List<T>
+
+Use `List<T>` when you need an ordered sequence and frequently access items by position.
+
+```csharp
+var names = new List<string> { "John", "Mary", "Alex" };
+Console.WriteLine(names[0]);
+```
+
+## Dictionary<TKey,TValue>
+
+Use a dictionary when you need to find a value by a key.
+
+```csharp
+var employees = new Dictionary<int, string>
+{
+    [101] = "John",
+    [102] = "Mary"
+};
+
+Console.WriteLine(employees[101]);
+```
+
+## HashSet<T>
+
+Use a hash set when uniqueness matters and you mainly need fast membership checks.
+
+```csharp
+var codes = new HashSet<string> { "A", "B", "A" };
+Console.WriteLine(codes.Count); // 2
+```
+
+## Which should you choose?
+
+Choose `List<T>` for ordered data, `Dictionary<TKey,TValue>` for key-based lookup, and `HashSet<T>` for unique values and membership tests.
+
+## Summary
+
+The best collection is the one that matches the operation your application performs most often. Avoid choosing a collection only because it is familiar.
