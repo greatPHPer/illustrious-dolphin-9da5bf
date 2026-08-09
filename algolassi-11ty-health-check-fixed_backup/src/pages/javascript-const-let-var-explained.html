@@ -1,0 +1,60 @@
+---
+title: "JavaScript const vs let vs var: Which Should You Use?"
+layout: layouts/base.njk
+permalink: "/javascript-const-let-var-explained/"
+contentType: "page"
+description: "A practical guide to const, let, and var in modern JavaScript, including scope, reassignment, hoisting, and common mistakes."
+date: "2026-08-09T10:00:00"
+---
+
+<h1>JavaScript const vs let vs var: Which Should You Use?</h1>
+<p>Modern JavaScript gives developers three ways to declare variables: <code>const</code>, <code>let</code>, and the older <code>var</code>. Understanding their differences prevents subtle bugs, especially when code uses loops, callbacks, modules, or asynchronous operations.</p>
+
+<h2>const</h2>
+<p>Use <code>const</code> when the variable binding should not be reassigned.</p>
+<pre><code>const apiUrl = "/api/products";
+const pageSize = 20;</code></pre>
+<p>A <code>const</code> variable cannot be assigned a new value, but objects and arrays declared with <code>const</code> can still be modified.</p>
+<pre><code>const user = { name: "Dhilip" };
+user.name = "Developer"; // valid
+// user = {};             // invalid</code></pre>
+
+<h2>let</h2>
+<p>Use <code>let</code> when the binding must change later.</p>
+<pre><code>let page = 1;
+page++;
+page = 2;</code></pre>
+<p>Unlike <code>var</code>, <code>let</code> is block scoped, which makes it safer inside loops and conditional blocks.</p>
+
+<h2>var</h2>
+<p><code>var</code> is function scoped and follows older JavaScript declaration rules. New application code should normally prefer <code>const</code> or <code>let</code>.</p>
+<pre><code>if (true) {
+    var message = "hello";
+}
+
+console.log(message); // still accessible</code></pre>
+
+<h2>Block Scope</h2>
+<p><code>let</code> and <code>const</code> exist only inside the block where they are declared.</p>
+<pre><code>if (true) {
+    let count = 10;
+    const name = "Algolassi";
+}
+
+// count and name are not available here</code></pre>
+
+<h2>Hoisting and the Temporal Dead Zone</h2>
+<p>Declarations are processed before execution, but <code>let</code> and <code>const</code> cannot be accessed before their declaration. Accessing them early results in a temporal dead zone error.</p>
+<pre><code>console.log(value); // ReferenceError
+let value = 10;</code></pre>
+
+<h2>Practical Rule</h2>
+<ul><li>Start with <code>const</code>.</li><li>Change to <code>let</code> only when reassignment is required.</li><li>Avoid <code>var</code> in new code unless you have a specific legacy-compatibility reason.</li></ul>
+
+<h2>Common Mistake</h2>
+<p>Do not choose <code>let</code> simply because the value might conceptually change. Choose it only when the variable binding is actually reassigned. This makes code easier to reason about and safer to refactor.</p>
+
+<h2>Conclusion</h2>
+<p>For modern JavaScript, <code>const</code> should be the default, <code>let</code> should be used for intentional reassignment, and <code>var</code> should generally remain in legacy code. This simple rule eliminates many scope-related surprises.</p>
+
+<p><a href="/tutorials/">Back to Algolassi Tutorials</a></p>
