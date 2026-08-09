@@ -1,0 +1,119 @@
+---
+title: "NuGet Central Package Management Explained"
+layout: layouts/base.njk
+permalink: "/nuget-central-package-management-explained/"
+legacyId: 503
+contentType: "page"
+date: "2026-08-09T06:17:00"
+description: "Learn how NuGet Central Package Management works with Directory.Packages.props and how it simplifies package version management across .NET projects."
+---
+
+<h1>NuGet Central Package Management Explained</h1>
+
+<p>When a solution contains many .NET projects, maintaining the same NuGet package version in every <code>.csproj</code> file quickly becomes repetitive. NuGet Central Package Management provides a way to manage package versions from one central file.</p>
+
+<hr>
+
+<h2>📦 What Is Central Package Management?</h2>
+
+<p>NuGet Central Package Management, often abbreviated as CPM, moves package version declarations into a central MSBuild file named <code>Directory.Packages.props</code>.</p>
+
+<p>Instead of repeating versions throughout multiple projects, a solution can define them centrally.</p>
+
+<hr>
+
+<h2>🏗️ Without Central Package Management</h2>
+
+<pre><code>&lt;PackageReference Include="Newtonsoft.Json" Version="13.0.3" /&gt;</code></pre>
+
+<p>If five projects use the same package, the version may be repeated five times.</p>
+
+<p>That creates maintenance work and makes accidental version drift easier.</p>
+
+<hr>
+
+<h2>🎯 With Directory.Packages.props</h2>
+
+<p>A central file can contain:</p>
+
+<pre><code>&lt;Project&gt;
+  &lt;PropertyGroup&gt;
+    &lt;ManagePackageVersionsCentrally&gt;true&lt;/ManagePackageVersionsCentrally&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageVersion Include="Newtonsoft.Json" Version="13.0.3" /&gt;
+  &lt;/ItemGroup&gt;
+&lt;/Project&gt;</code></pre>
+
+<p>Projects can then reference the package without repeating its version:</p>
+
+<pre><code>&lt;PackageReference Include="Newtonsoft.Json" /&gt;</code></pre>
+
+<hr>
+
+<h2>📁 Where Does the File Go?</h2>
+
+<p>For a typical solution, the structure might be:</p>
+
+<pre><code>MySolution/
+│
+├── Directory.Packages.props
+├── MyApp/
+│   └── MyApp.csproj
+├── MyLibrary/
+│   └── MyLibrary.csproj
+└── MyTests/
+    └── MyTests.csproj</code></pre>
+
+<p>The central file can apply to projects beneath its directory according to NuGet and MSBuild package-management rules.</p>
+
+<hr>
+
+<h2>🔄 Updating a Package Version</h2>
+
+<p>One major advantage is that a package version can be updated centrally.</p>
+
+<pre><code>&lt;PackageVersion Include="Newtonsoft.Json" Version="13.0.3" /&gt;</code></pre>
+
+<p>Change the version in the central file and the projects using that centrally managed package can consume the new version.</p>
+
+<hr>
+
+<h2>⚠️ Important: Don't Mix Patterns Carelessly</h2>
+
+<p>When adopting central package management, keep the solution consistent. A project that still specifies a version directly can create confusion about where package versions are controlled.</p>
+
+<p>Review existing <code>PackageReference</code> entries before migrating a large solution.</p>
+
+<hr>
+
+<h2>🧩 Central Management and Transitive Dependencies</h2>
+
+<p>Central Package Management primarily controls package versions that your projects reference. It does not mean that every transitive dependency suddenly becomes a direct package reference.</p>
+
+<p>NuGet still resolves the dependency graph normally.</p>
+
+<p>If you need to understand the difference between direct and transitive dependencies, see <a href="/direct-vs-transitive-nuget-dependencies/">📦 Direct vs Transitive NuGet Dependencies</a>.</p>
+
+<hr>
+
+<h2>🛠️ Why Teams Use It</h2>
+
+<ul>
+<li>One place to review package versions.</li>
+<li>Less duplication across project files.</li>
+<li>Easier package upgrades across a solution.</li>
+<li>Lower risk of accidental version drift.</li>
+<li>Cleaner project files.</li>
+</ul>
+
+<hr>
+
+<h2>🧠 Key Takeaway</h2>
+
+<p><strong>Central Package Management lets a .NET solution manage NuGet package versions centrally instead of repeating versions in every project.</strong></p>
+
+<p>For a multi-project solution, a well-maintained <code>Directory.Packages.props</code> file can make dependency maintenance considerably easier.</p>
+
+<p>Continue with <a href="/nuget-packages-lock-file-explained/">🔒 NuGet packages.lock.json Explained</a>.</p>
