@@ -1,17 +1,17 @@
 /* Algolassi Assistant - Phase 4: local-language internet radio
- * Uses the free Radio Browser API. Audio starts only after the visitor clicks Play.
- * No MP3 files are bundled and no autoplay is attempted.
+ * Location-safe radio selection.
  *
- * Location fix:
- * - Prefer the Phase 3 country/state/city detector when it is available.
- * - Never use en-US by itself as evidence that the visitor is in the US.
- * - For India, prefer the detected regional language (for example Tamil in Tamil Nadu)
- *   and search Radio Browser with countrycode=IN.
+ * Important rules:
+ * - Timezone is preferred for country when it is available.
+ * - Phase 3 country/state/city information is used when available.
+ * - For India, state/region language beats an en-US browser locale.
+ * - Radio Browser is always queried with the detected country code.
+ * - A US station is never intentionally selected when the detected country is IN.
  */
 (function () {
   "use strict";
 
-  var KEY = "algolassi_assistant_radio_v2";
+  var KEY = "algolassi_assistant_radio_v3";
   var API = "https://de1.api.radio-browser.info/json/stations/search";
   var state = load();
   var audio = null;
@@ -36,6 +36,7 @@
     "west bengal": "bengali",
     "punjab": "punjabi",
     "odisha": "odia",
+    "orissa": "odia",
     "assam": "assamese",
     "bihar": "hindi",
     "uttar pradesh": "hindi",
@@ -47,8 +48,8 @@
 
   function load() {
     try {
-      return Object.assign({ country: "", region: "", city: "", language: "", station: "", shownAt: 0 },
-        JSON.parse(localStorage.getItem(KEY) || "{}"));
+      var saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+      return Object.assign({ country: "", region: "", city: "", language: "", station: "", shownAt: 0 }, saved);
     } catch (e) {
       return { country: "", region: "", city: "", language: "", station: "", shownAt: 0 };
     }
@@ -74,6 +75,8 @@
       if (/Asia\/Seoul/i.test(tz)) return "KR";
       if (/Europe\/Berlin/i.test(tz)) return "DE";
       if (/Europe\/Paris/i.test(tz)) return "FR";
+      if (/Europe\/Madrid/i.test(tz)) return "ES";
+      if (/Europe\/Rome/i.test(tz)) return "IT";
       if (/Europe\/London/i.test(tz)) return "GB";
       if (/Australia\//i.test(tz)) return "AU";
       if (/Asia\/Singapore/i.test(tz)) return "SG";
@@ -86,22 +89,26 @@
   }
 
   function getLocation() {
-    // Phase 3 detector is the authoritative source when available.
+    var tzCountry = countryFromTimezone();
+
+    // Phase 3 is preferred for state/city, but a known timezone country wins
+    // over stale localStorage or an en-US browser locale.
     if (window.AlgolassiAssistantCountry && window.AlgolassiAssistantCountry.code) {
+      var detected = window.AlgolassiAssistantCountry;
       return {
-        country: String(window.AlgolassiAssistantCountry.code).toUpperCase(),
-        region: window.AlgolassiAssistantCountry.region || "",
-        city: window.AlgolassiAssistantCountry.city || "",
-        language: window.AlgolassiAssistantCountry.language || ""
+        country: tzCountry || String(detected.code).toUpperCase(),
+        region: detected.region || "",
+        city: detected.city || "",
+        language: detected.language || ""
       };
     }
 
     try {
       var raw = localStorage.getItem("algolassi_assistant_v1");
       var saved = raw ? JSON.parse(raw) : {};
-      if (saved.detectedCountry) {
+      if (saved.detectedCountry || tzCountry) {
         return {
-          country: String(saved.detectedCountry).toUpperCase(),
+          country: tzCountry || String(saved.detectedCountry || "").toUpperCase(),
           region: saved.detectedRegion || "",
           city: saved.detectedCity || "",
           language: saved.detectedLanguage || ""
@@ -109,31 +116,27 @@
       }
     } catch (e) {}
 
-    // Timezone is a better location fallback than navigator.language.
-    return {
-      country: countryFromTimezone(),
-      region: "",
-      city: "",
-      language: ""
-    };
+    return { country: tzCountry, region: "", city: "", language: "" };
   }
 
   function languageFor(location) {
-    var country = location.country;
+    var country = String(location.country || "").toUpperCase();
+    var region = String(location.region || "").trim().toLowerCase();
     var detectedLanguage = String(location.language || "").toLowerCase();
 
-    if (detectedLanguage) {
-      var known = ["tamil", "hindi", "telugu", "malayalam", "kannada", "bengali", "marathi", "gujarati", "punjabi", "odia", "assamese", "english", "french", "german", "spanish", "italian", "portuguese", "japanese", "korean", "arabic"];
-      if (known.indexOf(detectedLanguage) !== -1) return detectedLanguage;
-    }
-
+    // For India, state/region is the strongest language signal. This prevents
+    // Chrome's en-US locale from overriding Tamil Nadu -> Tamil, etc.
     if (country === "IN") {
-      var region = String(location.region || "").trim().toLowerCase();
       if (indiaRegionLanguages[region]) return indiaRegionLanguages[region];
 
-      // Do not use en-US to infer location. For India, English is the safe fallback.
+      var indianLanguages = ["tamil", "hindi", "telugu", "malayalam", "kannada", "bengali", "marathi", "gujarati", "punjabi", "odia", "assamese"];
+      if (indianLanguages.indexOf(detectedLanguage) !== -1) return detectedLanguage;
+
       return "english";
     }
+
+    var known = ["english", "french", "german", "spanish", "italian", "portuguese", "japanese", "korean", "arabic"];
+    if (known.indexOf(detectedLanguage) !== -1) return detectedLanguage;
 
     return (countryLanguages[country] || ["english"])[0];
   }
@@ -156,7 +159,7 @@
   }
 
   function toast() {
-    if (sleeping()) return;
+    if (sleeping() || !state.country) return;
 
     var h = host();
     h.innerHTML = "";
@@ -186,6 +189,15 @@
     t.querySelector("#algolassi-radio-play").onclick = function () {
       var s = stations[Number(select.value)];
       if (!s || !s.url_resolved) return;
+
+      // Final safety check: do not play a station whose Radio Browser country
+      // contradicts the detected country.
+      var stationCountry = String(s.countrycode || "").toUpperCase();
+      if (state.country && stationCountry && stationCountry !== state.country) {
+        console.warn("Algolassi Radio: rejected station from " + stationCountry + "; expected " + state.country);
+        return;
+      }
+
       state.station = s.stationuuid || s.name;
       save();
       audio.src = s.url_resolved;
@@ -212,9 +224,10 @@
   }
 
   function search(lang, fallback) {
-    var c = state.country;
+    var c = String(state.country || "").toUpperCase();
     if (!c) return;
 
+    // Country is mandatory. Language is a preference, never a replacement for country.
     var url = API +
       "?countrycode=" + encodeURIComponent(c) +
       "&language=" + encodeURIComponent(lang) +
@@ -223,7 +236,12 @@
     fetch(url, { credentials: "omit" })
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (data) {
-        stations = (data || []).filter(function (s) { return s.url_resolved; });
+        stations = (data || []).filter(function (s) {
+          if (!s.url_resolved) return false;
+          var stationCountry = String(s.countrycode || "").toUpperCase();
+          return !c || !stationCountry || stationCountry === c;
+        });
+
         if (!stations.length && fallback && fallback !== lang) return search(fallback, "");
         if (stations.length) toast();
       })
@@ -232,11 +250,17 @@
 
   function syncLocation() {
     var location = getLocation();
-    state.country = location.country;
-    state.region = location.region;
-    state.city = location.city;
+    state.country = String(location.country || "").toUpperCase();
+    state.region = location.region || "";
+    state.city = location.city || "";
     state.language = languageFor(location);
     save();
+  }
+
+  function refreshAndSearch() {
+    syncLocation();
+    if (!state.country) return;
+    search(state.language, state.country === "IN" ? "english" : "english");
   }
 
   function init() {
@@ -248,15 +272,18 @@
     state.shownAt = Date.now();
     save();
 
-    setTimeout(function () {
-      search(state.language, state.country === "IN" ? "english" : "english");
-    }, 18000);
+    // Phase 3 country detection is asynchronous. Re-sync after it has had time
+    // to finish, so the radio cannot remain stuck with an old US selection.
+    setTimeout(refreshAndSearch, 18000);
+    setTimeout(refreshAndSearch, 22000);
   }
+
+  // Phase 3 can announce that its async location detection has completed.
+  window.addEventListener("algolassi:location-ready", refreshAndSearch);
 
   window.AlgolassiRadio = {
     show: function () {
-      syncLocation();
-      search(state.language, "english");
+      refreshAndSearch();
     },
     stop: function () {
       if (audio) {

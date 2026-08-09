@@ -11,7 +11,6 @@
   "use strict";
 
   var KEY = "algolassi_assistant_v1";
-  var NEWS_COOLDOWN = 6 * 60 * 60 * 1000;
   var COUNTRY = {
     IN: { name: "India", flag: "🇮🇳", hl: "en-IN", gl: "IN", ceid: "IN:en" },
     US: { name: "United States", flag: "🇺🇸", hl: "en-US", gl: "US", ceid: "US:en" },
@@ -81,6 +80,12 @@
     return language;
   }
 
+  function notifyLocationReady() {
+    try {
+      window.dispatchEvent(new CustomEvent("algolassi:location-ready"));
+    } catch (e) {}
+  }
+
   function apply(country, source, region, city) {
     if (!country || !COUNTRY[country]) return false;
     var state = readState();
@@ -88,11 +93,9 @@
     state.detectedCountrySource = source;
     state.detectedLanguage = preferredLanguage(country);
 
-    // Store only coarse location labels, never latitude/longitude.
     if (region) state.detectedRegion = String(region);
     if (city) state.detectedCity = String(city);
 
-    // Prevent the old Phase 3 detector from producing a second wrong-country toast.
     state.newsShownAt = Date.now();
     writeState(state);
 
@@ -104,6 +107,8 @@
       region: state.detectedRegion || "",
       city: state.detectedCity || ""
     };
+
+    notifyLocationReady();
     return true;
   }
 
@@ -119,7 +124,6 @@
     var config = COUNTRY[country];
     if (!config) return "";
 
-    // Prefer local/state news. Fall back to national Google News if no region exists.
     var query = city || region || "";
     var base = "https://news.google.com/rss?hl=" + encodeURIComponent(config.hl) +
       "&gl=" + encodeURIComponent(config.gl) + "&ceid=" + encodeURIComponent(config.ceid);
@@ -171,14 +175,16 @@
     var existing = readState();
     var tzCountry = timezoneCountry();
 
-    // Timezone gives us a reliable country for many visitors, but not a state/city.
-    // Fetch approximate IP metadata so state/city news can still be selected.
     requestApproximateLocation()
       .then(function (location) {
-        var country = (location && location.country) || tzCountry || existing.detectedCountry || "";
+        // If timezone and IP disagree, prefer the timezone for country. This
+        // prevents a VPN/ISP geolocation mismatch from turning India into US.
+        var country = tzCountry || (location && location.country) || existing.detectedCountry || "";
         if (!country) return;
 
-        var source = location && location.country ? (tzCountry ? "timezone+ip" : "ip") : "timezone";
+        var source = location && location.country
+          ? (tzCountry ? "timezone+ip" : "ip")
+          : "timezone";
         var region = location && location.region ? location.region : (existing.detectedRegion || "");
         var city = location && location.city ? location.city : (existing.detectedCity || "");
 
