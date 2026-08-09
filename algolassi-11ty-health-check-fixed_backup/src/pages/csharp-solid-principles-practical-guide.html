@@ -1,0 +1,74 @@
+---
+title: "SOLID Principles in C#: A Practical Guide with Examples"
+layout: layouts/base.njk
+permalink: "/csharp-solid-principles-practical-guide/"
+contentType: "page"
+description: "Learn the five SOLID principles in C# with practical examples and refactoring guidance."
+---
+
+# SOLID Principles in C#: A Practical Guide with Examples
+
+SOLID is a group of five design principles that can make object-oriented C# applications easier to change, test, and maintain. They are guidelines rather than rigid rules.
+
+## 1. Single Responsibility Principle
+
+A class should have one clear responsibility. If a class validates orders, saves them, sends emails, and creates reports, it has several reasons to change.
+
+Split unrelated responsibilities into focused services:
+
+```csharp
+public class OrderValidator { }
+public class OrderRepository { }
+public class OrderNotificationService { }
+```
+
+## 2. Open/Closed Principle
+
+Software should generally be open for extension but closed for unnecessary modification. Interfaces and polymorphism can help add behavior without repeatedly changing a large conditional block.
+
+```csharp
+public interface IPaymentProcessor
+{
+    Task PayAsync(decimal amount);
+}
+```
+
+Different payment implementations can then provide the behavior independently.
+
+## 3. Liskov Substitution Principle
+
+A derived implementation should be usable wherever its abstraction is expected without breaking the caller's assumptions.
+
+If a subtype cannot correctly support the contract of its base abstraction, the abstraction may need redesigning.
+
+## 4. Interface Segregation Principle
+
+Prefer small, focused interfaces over large interfaces that force every implementation to support unrelated methods.
+
+For example, separate read and write responsibilities when consumers only need one of them.
+
+## 5. Dependency Inversion Principle
+
+High-level application logic should depend on abstractions rather than concrete infrastructure details.
+
+```csharp
+public class OrderService
+{
+    private readonly IOrderRepository _repository;
+
+    public OrderService(IOrderRepository repository)
+    {
+        _repository = repository;
+    }
+}
+```
+
+Dependency injection can then provide the concrete repository.
+
+## Do not over-engineer
+
+SOLID does not mean creating an interface, factory, and service for every class. Introduce abstractions where they solve a real maintenance, testing, or extensibility problem.
+
+## Summary
+
+The five principles are **Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion**. Applied thoughtfully, they help keep C# code modular without turning simple applications into unnecessary layers of abstraction.
