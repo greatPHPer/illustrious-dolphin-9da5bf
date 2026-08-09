@@ -9,6 +9,23 @@
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* Radio has its own host so normal assistant/news toasts cannot replace it.
+   Keep it above the assistant host so Play/Stop remain reachable. */
+#algolassi-radio-host {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2147483001;
+  width: min(360px, calc(100vw - 36px));
+  pointer-events: none;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+#algolassi-radio-host .algolassi-radio-toast {
+  pointer-events: auto;
+  margin-top: 0;
+}
+
 .algolassi-assistant-toast {
   pointer-events: auto;
   border: 1px solid rgba(0, 0, 0, .12);
@@ -109,7 +126,8 @@
 }
 
 @media (max-width: 600px) {
-  #algolassi-assistant-host {
+  #algolassi-assistant-host,
+  #algolassi-radio-host {
     right: 10px;
     bottom: 10px;
     width: calc(100vw - 20px);
