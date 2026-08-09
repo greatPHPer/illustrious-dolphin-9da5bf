@@ -1,0 +1,67 @@
+---
+title: "JavaScript DOM querySelector and Events: Practical Patterns"
+layout: layouts/base.njk
+permalink: "/javascript-dom-queryselector-events-guide/"
+contentType: "page"
+description: "A practical JavaScript guide to selecting DOM elements, handling events, updating the page, and avoiding common event-handling mistakes."
+date: "2026-08-09T10:10:00"
+---
+
+<h1>JavaScript DOM querySelector and Events: Practical Patterns</h1>
+<p>Even when a project uses a framework, understanding the browser DOM remains useful. JavaScript's <code>querySelector</code>, <code>querySelectorAll</code>, and event APIs provide a simple foundation for interactive pages.</p>
+
+<h2>Selecting an Element</h2>
+<pre><code>const button = document.querySelector("#saveButton");</code></pre>
+<p>CSS selector syntax can be used, so classes, attributes, and nested elements are also supported.</p>
+
+<h2>Selecting Multiple Elements</h2>
+<pre><code>const rows = document.querySelectorAll(".product-row");
+
+rows.forEach(row =&gt; {
+    console.log(row.textContent);
+});</code></pre>
+
+<h2>Handling Click Events</h2>
+<pre><code>const button = document.querySelector("#saveButton");
+
+button.addEventListener("click", () =&gt; {
+    console.log("Saved");
+});</code></pre>
+<p>Using <code>addEventListener</code> keeps event behavior separate from markup and allows multiple listeners when needed.</p>
+
+<h2>Reading Form Values</h2>
+<pre><code>const input = document.querySelector("#name");
+const value = input.value.trim();
+
+if (!value) {
+    alert("Name is required.");
+}</code></pre>
+
+<h2>Updating the DOM</h2>
+<pre><code>const message = document.querySelector("#message");
+message.textContent = "Saved successfully.";</code></pre>
+<p>Prefer <code>textContent</code> for plain text. It avoids interpreting the value as HTML.</p>
+
+<h2>Event Delegation</h2>
+<p>When a list contains many dynamic buttons, attach one listener to the parent rather than creating a separate listener for every item.</p>
+<pre><code>document.querySelector("#products").addEventListener("click", event =&gt; {
+    const button = event.target.closest("button[data-id]");
+    if (!button) return;
+
+    console.log(button.dataset.id);
+});</code></pre>
+
+<h2>DOMContentLoaded</h2>
+<p>If a script executes before the required markup exists, query selectors can return <code>null</code>. A script loaded in the document head can wait for DOM creation.</p>
+<pre><code>document.addEventListener("DOMContentLoaded", () =&gt; {
+    const button = document.querySelector("#saveButton");
+    // safe to use the page elements here
+});</code></pre>
+
+<h2>Common Mistakes</h2>
+<ul><li>Calling methods on a selector that returned <code>null</code>.</li><li>Using <code>innerHTML</code> when plain text is enough.</li><li>Registering the same event listener repeatedly.</li><li>Attaching individual handlers to large dynamic lists.</li><li>Forgetting that dynamically created elements may need event delegation.</li></ul>
+
+<h2>Conclusion</h2>
+<p>These DOM patterns cover a large portion of everyday browser scripting. Once selectors, events, forms, and event delegation are understood, it becomes much easier to build small interactive features without unnecessary complexity.</p>
+
+<p><a href="/tutorials/">Back to Algolassi Tutorials</a></p>
