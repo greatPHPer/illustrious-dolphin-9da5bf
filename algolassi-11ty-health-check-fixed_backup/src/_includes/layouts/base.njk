@@ -24,6 +24,9 @@
   <link rel="stylesheet"
         href="/assets/css/site.css">
 
+  <link rel="stylesheet"
+        href="/assets/css/algolassi-assistant.css">
+
   {% if permalink %}
     <link rel="canonical"
           href="https://algolassi.online{{ permalink }}">
@@ -184,7 +187,13 @@
 
 </footer>
 
+<script>
+  // Optional: set this to a serverless news endpoint when one is available.
+  // It is intentionally empty for now so the assistant never exposes an API key.
+  window.ALGOLASSI_ASSISTANT_NEWS_ENDPOINT = "";
+</script>
+<script src="/assets/js/algolassi-assistant.js" defer></script>
+
 </body>
 
 </html>
-
