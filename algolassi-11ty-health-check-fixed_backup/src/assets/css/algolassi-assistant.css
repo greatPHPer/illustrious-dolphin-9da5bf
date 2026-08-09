@@ -9,6 +9,25 @@
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* Radio has its own host. Its vertical position is adjusted by the assistant
+   so it behaves like the next toast in the stack instead of permanently
+   sitting above the assistant message. */
+#algolassi-radio-host {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2147483001;
+  width: min(360px, calc(100vw - 36px));
+  pointer-events: none;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  transition: bottom .25s ease;
+}
+
+#algolassi-radio-host .algolassi-radio-toast {
+  pointer-events: auto;
+  margin-top: 0;
+}
+
 .algolassi-assistant-toast {
   pointer-events: auto;
   border: 1px solid rgba(0, 0, 0, .12);
@@ -106,10 +125,14 @@
   .algolassi-assistant-toast-hide {
     animation: none;
   }
+  #algolassi-radio-host {
+    transition: none;
+  }
 }
 
 @media (max-width: 600px) {
-  #algolassi-assistant-host {
+  #algolassi-assistant-host,
+  #algolassi-radio-host {
     right: 10px;
     bottom: 10px;
     width: calc(100vw - 20px);

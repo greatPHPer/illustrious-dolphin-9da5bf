@@ -7,6 +7,8 @@
  * - For India, state/region language beats an en-US browser locale.
  * - Radio Browser is always queried with the detected country code.
  * - A US station is never intentionally selected when the detected country is IN.
+ * - Radio controls live in their own host and dynamically move around the
+ *   currently visible assistant toast instead of permanently covering it.
  */
 (function () {
   "use strict";
@@ -16,6 +18,8 @@
   var state = load();
   var audio = null;
   var stations = [];
+  var radioPositionObserver = null;
+  var radioResizeObserver = null;
 
   var countryLanguages = {
     IN: ["tamil", "hindi", "english"],
@@ -25,25 +29,11 @@
   };
 
   var indiaRegionLanguages = {
-    "tamil nadu": "tamil",
-    "tamilnadu": "tamil",
-    "andhra pradesh": "telugu",
-    "telangana": "telugu",
-    "kerala": "malayalam",
-    "karnataka": "kannada",
-    "maharashtra": "marathi",
-    "gujarat": "gujarati",
-    "west bengal": "bengali",
-    "punjab": "punjabi",
-    "odisha": "odia",
-    "orissa": "odia",
-    "assam": "assamese",
-    "bihar": "hindi",
-    "uttar pradesh": "hindi",
-    "madhya pradesh": "hindi",
-    "rajasthan": "hindi",
-    "haryana": "hindi",
-    "delhi": "hindi"
+    "tamil nadu": "tamil", "tamilnadu": "tamil", "andhra pradesh": "telugu", "telangana": "telugu",
+    "kerala": "malayalam", "karnataka": "kannada", "maharashtra": "marathi", "gujarat": "gujarati",
+    "west bengal": "bengali", "punjab": "punjabi", "odisha": "odia", "orissa": "odia",
+    "assam": "assamese", "bihar": "hindi", "uttar pradesh": "hindi", "madhya pradesh": "hindi",
+    "rajasthan": "hindi", "haryana": "hindi", "delhi": "hindi"
   };
 
   function load() {
@@ -61,9 +51,7 @@
 
   function esc(v) {
     return String(v || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
   }
 
@@ -90,9 +78,6 @@
 
   function getLocation() {
     var tzCountry = countryFromTimezone();
-
-    // Phase 3 is preferred for state/city, but a known timezone country wins
-    // over stale localStorage or an en-US browser locale.
     if (window.AlgolassiAssistantCountry && window.AlgolassiAssistantCountry.code) {
       var detected = window.AlgolassiAssistantCountry;
       return {
@@ -123,21 +108,14 @@
     var country = String(location.country || "").toUpperCase();
     var region = String(location.region || "").trim().toLowerCase();
     var detectedLanguage = String(location.language || "").toLowerCase();
-
-    // For India, state/region is the strongest language signal. This prevents
-    // Chrome's en-US locale from overriding Tamil Nadu -> Tamil, etc.
     if (country === "IN") {
       if (indiaRegionLanguages[region]) return indiaRegionLanguages[region];
-
       var indianLanguages = ["tamil", "hindi", "telugu", "malayalam", "kannada", "bengali", "marathi", "gujarati", "punjabi", "odia", "assamese"];
       if (indianLanguages.indexOf(detectedLanguage) !== -1) return detectedLanguage;
-
       return "english";
     }
-
     var known = ["english", "french", "german", "spanish", "italian", "portuguese", "japanese", "korean", "arabic"];
     if (known.indexOf(detectedLanguage) !== -1) return detectedLanguage;
-
     return (countryLanguages[country] || ["english"])[0];
   }
 
@@ -148,20 +126,106 @@
     } catch (e) { return false; }
   }
 
-  function host() {
-    var h = document.getElementById("algolassi-assistant-host");
+  function radioHost() {
+    var h = document.getElementById("algolassi-radio-host");
     if (!h) {
       h = document.createElement("div");
-      h.id = "algolassi-assistant-host";
+      h.id = "algolassi-radio-host";
+      h.setAttribute("aria-live", "polite");
+      h.setAttribute("aria-label", "Algolassi local radio");
       document.body.appendChild(h);
     }
     return h;
   }
 
+  /*
+   * Keep the radio as a separate toast, but stack it around the assistant
+   * toast. We deliberately calculate the real rendered assistant height so
+   * this also works when the assistant toast contains a news thumbnail,
+   * buttons, or wraps differently on mobile.
+   */
+  function repositionRadio() {
+    var radio = document.getElementById("algolassi-radio-host");
+    if (!radio) return;
+
+    var assistant = document.getElementById("algolassi-assistant-host");
+    var assistantToast = null;
+
+    if (assistant) {
+      var candidates = assistant.querySelectorAll(".algolassi-assistant-toast");
+      for (var i = candidates.length - 1; i >= 0; i--) {
+        var candidate = candidates[i];
+        var style = window.getComputedStyle(candidate);
+        var rect = candidate.getBoundingClientRect();
+        if (style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0) {
+          assistantToast = candidate;
+          break;
+        }
+      }
+    }
+
+    var gap = 10;
+    var normalBottom = window.innerWidth <= 600 ? 10 : 18;
+
+    if (assistantToast) {
+      var rect = assistantToast.getBoundingClientRect();
+      /* The assistant toast is bottom-anchored. Put radio immediately above it. */
+      var bottomOffset = Math.max(normalBottom, window.innerHeight - rect.top + gap);
+      radio.style.bottom = bottomOffset + "px";
+    } else {
+      radio.style.bottom = normalBottom + "px";
+    }
+  }
+
+  function startRadioPositionObserver() {
+    if (radioPositionObserver || !window.MutationObserver) {
+      repositionRadio();
+      return;
+    }
+
+    var start = function () {
+      var assistant = document.getElementById("algolassi-assistant-host");
+      if (!assistant) return;
+
+      radioPositionObserver = new MutationObserver(function () {
+        window.requestAnimationFrame(repositionRadio);
+      });
+
+      radioPositionObserver.observe(assistant, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class", "style"]
+      });
+
+      if (window.ResizeObserver) {
+        radioResizeObserver = new ResizeObserver(function () {
+          window.requestAnimationFrame(repositionRadio);
+        });
+        radioResizeObserver.observe(assistant);
+      }
+
+      window.addEventListener("resize", repositionRadio, { passive: true });
+      repositionRadio();
+    };
+
+    if (document.getElementById("algolassi-assistant-host")) start();
+    else window.setTimeout(start, 500);
+  }
+
+  function removeRadioToast() {
+    var h = document.getElementById("algolassi-radio-host");
+    if (h) {
+      h.innerHTML = "";
+      h.style.bottom = (window.innerWidth <= 600 ? 10 : 18) + "px";
+    }
+    audio = null;
+  }
+
   function toast() {
     if (sleeping() || !state.country) return;
 
-    var h = host();
+    var h = radioHost();
     h.innerHTML = "";
 
     var t = document.createElement("section");
@@ -189,15 +253,11 @@
     t.querySelector("#algolassi-radio-play").onclick = function () {
       var s = stations[Number(select.value)];
       if (!s || !s.url_resolved) return;
-
-      // Final safety check: do not play a station whose Radio Browser country
-      // contradicts the detected country.
       var stationCountry = String(s.countrycode || "").toUpperCase();
       if (state.country && stationCountry && stationCountry !== state.country) {
         console.warn("Algolassi Radio: rejected station from " + stationCountry + "; expected " + state.country);
         return;
       }
-
       state.station = s.stationuuid || s.name;
       save();
       audio.src = s.url_resolved;
@@ -210,24 +270,17 @@
         audio.pause();
         audio.removeAttribute("src");
         audio.load();
+        t.querySelector("#algolassi-radio-play").textContent = "▶ Play";
       }
     };
 
-    setTimeout(function () {
-      if (h.contains(t)) {
-        t.classList.add("algolassi-assistant-toast-hide");
-        setTimeout(function () {
-          if (h.contains(t)) h.removeChild(t);
-        }, 350);
-      }
-    }, 20000);
+    /* The toast was just inserted; calculate its position immediately. */
+    repositionRadio();
   }
 
   function search(lang, fallback) {
     var c = String(state.country || "").toUpperCase();
     if (!c) return;
-
-    // Country is mandatory. Language is a preference, never a replacement for country.
     var url = API +
       "?countrycode=" + encodeURIComponent(c) +
       "&language=" + encodeURIComponent(lang) +
@@ -241,7 +294,6 @@
           var stationCountry = String(s.countrycode || "").toUpperCase();
           return !c || !stationCountry || stationCountry === c;
         });
-
         if (!stations.length && fallback && fallback !== lang) return search(fallback, "");
         if (stations.length) toast();
       })
@@ -265,26 +317,19 @@
 
   function init() {
     if (sleeping()) return;
-
     syncLocation();
-
+    startRadioPositionObserver();
     if (state.shownAt && Date.now() - state.shownAt < 24 * 60 * 60 * 1000) return;
     state.shownAt = Date.now();
     save();
-
-    // Phase 3 country detection is asynchronous. Re-sync after it has had time
-    // to finish, so the radio cannot remain stuck with an old US selection.
     setTimeout(refreshAndSearch, 18000);
     setTimeout(refreshAndSearch, 22000);
   }
 
-  // Phase 3 can announce that its async location detection has completed.
   window.addEventListener("algolassi:location-ready", refreshAndSearch);
 
   window.AlgolassiRadio = {
-    show: function () {
-      refreshAndSearch();
-    },
+    show: function () { refreshAndSearch(); },
     stop: function () {
       if (audio) {
         audio.pause();
@@ -292,10 +337,8 @@
         audio.load();
       }
     },
-    refreshLocation: function () {
-      syncLocation();
-      return state;
-    },
+    close: function () { removeRadioToast(); },
+    refreshLocation: function () { syncLocation(); return state; },
     state: state
   };
 
