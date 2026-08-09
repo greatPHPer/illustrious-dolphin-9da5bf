@@ -8,6 +8,18 @@ date: "2025-11-22T08:26:50"
 description: "Selected Algolassi projects and articles recovered from the original WordPress Portfolio Query Loop."
 ---
 
+<style>
+.portfolio-grid{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px 20px}
+.portfolio-card{min-width:0}
+.portfolio-card>a{display:block;color:inherit;text-decoration:none}
+.portfolio-card img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;margin:0 0 18px;border-radius:4px}
+.portfolio-card h2{font-size:clamp(1.2rem,2vw,1.65rem);line-height:1.25;margin:0 0 8px;color:var(--text)}
+.portfolio-card>a:hover h2{text-decoration:underline}
+.portfolio-category{margin:0;color:var(--muted);font-size:14px;font-weight:300}
+@media(max-width:800px){.portfolio-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 16px}}
+@media(max-width:520px){.portfolio-grid{grid-template-columns:1fr}}
+</style>
+
 <div class="wp-block-group alignfull">
   <div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
     <div class="wp-block-columns alignwide" style="padding-top:var(--wp--preset--spacing--80);padding-bottom:var(--wp--preset--spacing--50)">
@@ -98,7 +110,5 @@ description: "Selected Algolassi projects and articles recovered from the origin
 </div>
 
 <div class="wp-block-spacer" style="height:var(--wp--preset--spacing--70)" aria-hidden="true"></div>
-
 <hr class="wp-block-separator alignfull has-alpha-channel-opacity"/>
-
 <div class="wp-block-spacer" style="height:var(--wp--preset--spacing--30)" aria-hidden="true"></div>
