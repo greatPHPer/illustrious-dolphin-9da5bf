@@ -1,0 +1,69 @@
+---
+title: "SQL Server Index Maintenance: Rebuild vs Reorganize"
+layout: layouts/base.njk
+permalink: "/sql-server-index-maintenance-basics/"
+contentType: "page"
+description: "Understand SQL Server index fragmentation and when to reorganize or rebuild indexes."
+---
+
+# SQL Server Index Maintenance: Rebuild vs Reorganize
+
+Indexes can make SQL Server queries dramatically faster, but indexes also require maintenance as data changes. Two commonly discussed operations are **reorganize** and **rebuild**.
+
+## What is fragmentation?
+
+When rows and index pages change over time, the logical order of index pages can become less efficient. Fragmentation is one factor that may affect workloads that depend heavily on ordered index scans.
+
+Do not treat fragmentation percentage as an automatic command to rebuild every index. Query workload, index size, storage, and SQL Server version all matter.
+
+## Reorganize
+
+Reorganizing an index is an incremental operation and is generally less disruptive than a rebuild. A typical command is:
+
+```sql
+ALTER INDEX IX_Orders_OrderDate
+ON dbo.Orders
+REORGANIZE;
+```
+
+## Rebuild
+
+A rebuild recreates the index:
+
+```sql
+ALTER INDEX IX_Orders_OrderDate
+ON dbo.Orders
+REBUILD;
+```
+
+A rebuild can consume more CPU, memory, I/O, and transaction-log resources, so schedule maintenance appropriately.
+
+## Check fragmentation
+
+You can inspect index statistics with `sys.dm_db_index_physical_stats`:
+
+```sql
+SELECT
+    OBJECT_NAME(object_id) AS TableName,
+    index_id,
+    avg_fragmentation_in_percent,
+    page_count
+FROM sys.dm_db_index_physical_stats(
+    DB_ID(), NULL, NULL, NULL, 'LIMITED');
+```
+
+Use the results as one input into a maintenance strategy rather than blindly applying a fixed fragmentation threshold to every index.
+
+## Practical approach
+
+For a production database, consider:
+
+1. Identify large, frequently used indexes.
+2. Measure fragmentation and page counts.
+3. Check query performance before changing maintenance.
+4. Reorganize or rebuild based on the workload and operational requirements.
+5. Monitor duration, blocking, CPU, I/O, and log growth.
+
+## Summary
+
+Index maintenance should be workload-driven. Reorganize is generally an incremental operation, while rebuild recreates the index and can be more resource-intensive. Measure first, then choose the operation that makes sense for the database.
