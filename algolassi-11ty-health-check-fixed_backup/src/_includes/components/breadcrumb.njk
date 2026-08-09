@@ -1,0 +1,801 @@
+{# =====================================================
+   ALGOLASSI BREADCRUMB
+   Full article → pillar mapping
+   ===================================================== #}
+
+
+{# =====================================================
+   ARTICLE → PILLAR MAPPING
+   ===================================================== #}
+
+{% set csharpArticleUrls = [
+  "/async-await-csharp-best-practices/",
+  "/central-package-management-dotnet/",
+  "/clean-restore-nuget-packages-visual-studio/",
+  "/direct-vs-transitive-nuget-dependencies/",
+  "/fix-nu1107-version-conflict-nuget-package/",
+  "/fix-nu1605-nuget-package-downgrade/",
+  "/fix-nuget-package-version-conflicts-visual-studio/",
+  "/how-to-find-nuget-package-causing-dependency-conflict/",
+  "/package-reference-vs-packages-config/",
+  "/update-nuget-packages-safely/"
+] %}
+
+
+{% set netArticleUrls = [
+  "/entity-framework-core-vs-adonet/",
+  "/visual-studio-tutorials/"
+] %}
+
+
+{% set aspNetCoreArticleUrls = [
+  "/aspnet-core-dependency-injection-explained/",
+  "/common-rdlc-errors-fixes-asp-net-ssrs/",
+  "/fix-iis-http-error-500-19-aspnet-core/",
+  "/register-services-asp-net-core-dependency-injection/",
+  "/singleton-scoped-transient-asp-net-core/",
+  "/what-is-dependency-injection-asp-net-core/"
+] %}
+
+
+{% set blazorArticleUrls = [
+  "/blazor-javascript-interop-a-practical-guide/",
+  "/blazor-server-vs-webassembly/",
+  "/signalr-aspnet-core-blazor-guide/"
+] %}
+
+
+{% set sqlArticleUrls = [
+  "/sql-server-cte-vs-temporary-tables/",
+  "/sql-server-indexing-explained/"
+] %}
+
+
+{% set mauiArticleUrls = [
+  "/net-maui-tutorials/"
+] %}
+
+
+{# =====================================================
+   DETERMINE CURRENT ARTICLE PILLAR
+   ===================================================== #}
+
+{% set isCSharpArticle =
+  csharpArticleUrls.indexOf(page.url) >= 0
+%}
+
+{% set isNetArticle =
+  netArticleUrls.indexOf(page.url) >= 0
+%}
+
+{% set isAspNetCoreArticle =
+  aspNetCoreArticleUrls.indexOf(page.url) >= 0
+%}
+
+{% set isBlazorArticle =
+  blazorArticleUrls.indexOf(page.url) >= 0
+%}
+
+{% set isSqlArticle =
+  sqlArticleUrls.indexOf(page.url) >= 0
+%}
+
+{% set isMauiArticle =
+  mauiArticleUrls.indexOf(page.url) >= 0
+%}
+
+
+{# =====================================================
+   HOME DROPDOWN
+   ===================================================== #}
+
+<div class="breadcrumb-dropdown">
+
+  <a href="/"
+     class="breadcrumb-trigger crumb-trigger"
+     data-menu="home">
+
+    🏠 Home
+    <span class="breadcrumb-arrow">▼</span>
+
+  </a>
+
+
+  <div class="breadcrumb-menu"
+       data-menu="home">
+
+    {% set homeDropdownItems = [
+
+      {
+        title: "📚 Tutorials",
+        url: "/tutorials/"
+      },
+
+      {
+        title: "ℹ️ About",
+        url: "/about-algolassi/"
+      }
+
+    ] %}
+
+
+    {% for item in homeDropdownItems %}
+
+      {% set isActive = false %}
+
+
+      {# -------------------------------------------------
+         HOME → TUTORIALS
+         ------------------------------------------------- #}
+
+      {% if item.url == "/tutorials/" %}
+
+        {% if page.url == "/tutorials/"
+           or page.url == "/csharp-tutorials/"
+           or page.url == "/net-tutorials/"
+           or page.url == "/asp-net-core-tutorials/"
+           or page.url == "/blazor-tutorials/"
+           or page.url == "/sql-server-tutorials/"
+           or page.url == "/net-maui-tutorials/"
+           or isCSharpArticle
+           or isNetArticle
+           or isAspNetCoreArticle
+           or isBlazorArticle
+           or isSqlArticle
+           or isMauiArticle %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+
+      {# -------------------------------------------------
+         HOME → ABOUT
+         ------------------------------------------------- #}
+
+      {% elif item.url == "/about-algolassi/" %}
+
+        {% if page.url == "/about-algolassi/" %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+      {% endif %}
+
+
+      <a href="{{ item.url }}"
+         class="{% if isActive %}breadcrumb-dropdown-current{% endif %}">
+
+        {{ item.title }}
+
+      </a>
+
+    {% endfor %}
+
+  </div>
+
+</div>
+
+
+<span class="breadcrumb-separator">/</span>
+
+
+
+{# =====================================================
+   TUTORIALS DROPDOWN
+   ===================================================== #}
+
+<div class="breadcrumb-dropdown">
+
+  <a href="/tutorials/"
+     class="breadcrumb-trigger crumb-trigger"
+     data-menu="tutorials">
+
+    📚 Tutorials
+    <span class="breadcrumb-arrow">▼</span>
+
+  </a>
+
+
+  <div class="breadcrumb-menu"
+       data-menu="tutorials">
+
+
+    {% set tutorialDropdownItems = [
+
+      {
+        title: "💻 C# Tutorials",
+        url: "/csharp-tutorials/"
+      },
+
+      {
+        title: "🌐 .NET Tutorials",
+        url: "/net-tutorials/"
+      },
+
+      {
+        title: "⚡ ASP.NET Core Tutorials",
+        url: "/asp-net-core-tutorials/"
+      },
+
+      {
+        title: "🔥 Blazor Tutorials",
+        url: "/blazor-tutorials/"
+      },
+
+      {
+        title: "🛢️ SQL Server Tutorials",
+        url: "/sql-server-tutorials/"
+      },
+
+      {
+        title: "📱 .NET MAUI Tutorials",
+        url: "/net-maui-tutorials/"
+      }
+
+    ] %}
+
+
+    {% for item in tutorialDropdownItems %}
+
+      {% set isActive = false %}
+
+
+      {# =================================================
+         C# PILLAR
+         ================================================= #}
+
+      {% if item.url == "/csharp-tutorials/" %}
+
+        {% if page.url == "/csharp-tutorials/"
+           or isCSharpArticle %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+
+      {# =================================================
+         .NET PILLAR
+         ================================================= #}
+
+      {% elif item.url == "/net-tutorials/" %}
+
+        {% if page.url == "/net-tutorials/"
+           or isNetArticle %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+
+      {# =================================================
+         ASP.NET CORE PILLAR
+         ================================================= #}
+
+      {% elif item.url == "/asp-net-core-tutorials/" %}
+
+        {% if page.url == "/asp-net-core-tutorials/"
+           or isAspNetCoreArticle %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+
+      {# =================================================
+         BLAZOR PILLAR
+         ================================================= #}
+
+      {% elif item.url == "/blazor-tutorials/" %}
+
+        {% if page.url == "/blazor-tutorials/"
+           or isBlazorArticle %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+
+      {# =================================================
+         SQL SERVER PILLAR
+         ================================================= #}
+
+      {% elif item.url == "/sql-server-tutorials/" %}
+
+        {% if page.url == "/sql-server-tutorials/"
+           or isSqlArticle %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+
+      {# =================================================
+         .NET MAUI PILLAR
+         ================================================= #}
+
+      {% elif item.url == "/net-maui-tutorials/" %}
+
+        {% if page.url == "/net-maui-tutorials/"
+           or isMauiArticle %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+      {% endif %}
+
+
+      <a href="{{ item.url }}"
+         class="{% if isActive %}breadcrumb-dropdown-current{% endif %}">
+
+        {{ item.title }}
+
+      </a>
+
+    {% endfor %}
+
+  </div>
+
+</div>
+
+
+<span class="breadcrumb-separator">/</span>
+
+
+
+{# =====================================================
+   C# → ARTICLE DROPDOWN
+   ===================================================== #}
+
+{% if isCSharpArticle %}
+
+  <div class="breadcrumb-dropdown">
+
+    <a href="/csharp-tutorials/"
+       class="breadcrumb-trigger crumb-trigger"
+       data-menu="csharp">
+
+      💻 C# Tutorials
+      <span class="breadcrumb-arrow">▼</span>
+
+    </a>
+
+
+    <div class="breadcrumb-menu"
+         data-menu="csharp">
+
+
+      {% set csharpArticles = [
+
+        {
+          title: "📦 How to Fix NuGet Package Version Conflicts in Visual Studio",
+          url: "/fix-nuget-package-version-conflicts-visual-studio/"
+        },
+
+        {
+          title: "⚠️ How to Fix NU1605 NuGet Package Downgrade",
+          url: "/fix-nu1605-nuget-package-downgrade/"
+        },
+
+        {
+          title: "🚨 How to Fix NU1107 Version Conflict in NuGet Package",
+          url: "/fix-nu1107-version-conflict-nuget-package/"
+        },
+
+        {
+          title: "🔗 Direct vs Transitive NuGet Dependencies: What's the Difference?",
+          url: "/direct-vs-transitive-nuget-dependencies/"
+        },
+
+        {
+          title: "🔎 How to Find the NuGet Package Causing a Dependency Conflict",
+          url: "/how-to-find-nuget-package-causing-dependency-conflict/"
+        },
+
+        {
+          title: "🧹 How to Clean and Restore NuGet Packages in Visual Studio",
+          url: "/clean-restore-nuget-packages-visual-studio/"
+        },
+
+        {
+          title: "📋 PackageReference vs packages.config",
+          url: "/package-reference-vs-packages-config/"
+        },
+
+        {
+          title: "🔄 How to Update NuGet Packages Safely",
+          url: "/update-nuget-packages-safely/"
+        },
+
+        {
+          title: "📦 Central Package Management in .NET",
+          url: "/central-package-management-dotnet/"
+        },
+
+        {
+          title: "⚡ Async/Await in C# Best Practices",
+          url: "/async-await-csharp-best-practices/"
+        }
+
+      ] %}
+
+
+      {% for item in csharpArticles %}
+
+        {% set isActive = false %}
+
+        {% if page.url == item.url %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+
+        <a href="{{ item.url }}"
+           class="{% if isActive %}breadcrumb-dropdown-current{% endif %}">
+
+          {{ item.title }}
+
+        </a>
+
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+
+  <span class="breadcrumb-separator">/</span>
+
+{% endif %}
+
+
+
+{# =====================================================
+   .NET → ARTICLE DROPDOWN
+   ===================================================== #}
+
+{% if isNetArticle %}
+
+  <div class="breadcrumb-dropdown">
+
+    <a href="/net-tutorials/"
+       class="breadcrumb-trigger crumb-trigger"
+       data-menu="net">
+
+      🌐 .NET Tutorials
+      <span class="breadcrumb-arrow">▼</span>
+
+    </a>
+
+
+    <div class="breadcrumb-menu"
+         data-menu="net">
+
+
+      {% set netArticles = [
+
+        {
+          title: "⚡ Entity Framework Core vs ADO.NET",
+          url: "/entity-framework-core-vs-adonet/"
+        },
+
+        {
+          title: "🎯 Visual Studio Tutorials",
+          url: "/visual-studio-tutorials/"
+        }
+
+      ] %}
+
+
+      {% for item in netArticles %}
+
+        {% set isActive = false %}
+
+        {% if page.url == item.url %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+
+        <a href="{{ item.url }}"
+           class="{% if isActive %}breadcrumb-dropdown-current{% endif %}">
+
+          {{ item.title }}
+
+        </a>
+
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+
+  <span class="breadcrumb-separator">/</span>
+
+{% endif %}
+
+
+
+{# =====================================================
+   ASP.NET CORE → ARTICLE DROPDOWN
+   ===================================================== #}
+
+{% if isAspNetCoreArticle %}
+
+  <div class="breadcrumb-dropdown">
+
+    <a href="/asp-net-core-tutorials/"
+       class="breadcrumb-trigger crumb-trigger"
+       data-menu="aspnetcore">
+
+      ⚡ ASP.NET Core Tutorials
+      <span class="breadcrumb-arrow">▼</span>
+
+    </a>
+
+
+    <div class="breadcrumb-menu"
+         data-menu="aspnetcore">
+
+
+      {% set aspNetCoreArticles = [
+
+        {
+          title: "💉 ASP.NET Core Dependency Injection Explained",
+          url: "/aspnet-core-dependency-injection-explained/"
+        },
+
+        {
+          title: "🧩 Register Services in ASP.NET Core Dependency Injection",
+          url: "/register-services-asp-net-core-dependency-injection/"
+        },
+
+        {
+          title: "🔄 Singleton vs Scoped vs Transient in ASP.NET Core",
+          url: "/singleton-scoped-transient-asp-net-core/"
+        },
+
+        {
+          title: "❓ What Is Dependency Injection in ASP.NET Core?",
+          url: "/what-is-dependency-injection-asp-net-core/"
+        },
+
+        {
+          title: "🌐 Fix IIS HTTP Error 500.19 in ASP.NET Core",
+          url: "/fix-iis-http-error-500-19-aspnet-core/"
+        },
+
+        {
+          title: "📊 Common RDLC Errors and Fixes in ASP.NET / SSRS",
+          url: "/common-rdlc-errors-fixes-asp-net-ssrs/"
+        }
+
+      ] %}
+
+
+      {% for item in aspNetCoreArticles %}
+
+        {% set isActive = false %}
+
+        {% if page.url == item.url %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+
+        <a href="{{ item.url }}"
+           class="{% if isActive %}breadcrumb-dropdown-current{% endif %}">
+
+          {{ item.title }}
+
+        </a>
+
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+
+  <span class="breadcrumb-separator">/</span>
+
+{% endif %}
+
+
+
+{# =====================================================
+   BLAZOR → ARTICLE DROPDOWN
+   ===================================================== #}
+
+{% if isBlazorArticle %}
+
+  <div class="breadcrumb-dropdown">
+
+    <a href="/blazor-tutorials/"
+       class="breadcrumb-trigger crumb-trigger"
+       data-menu="blazor">
+
+      🔥 Blazor Tutorials
+      <span class="breadcrumb-arrow">▼</span>
+
+    </a>
+
+
+    <div class="breadcrumb-menu"
+         data-menu="blazor">
+
+
+      {% set blazorArticles = [
+
+        {
+          title: "🔌 Blazor JavaScript Interop: A Practical Guide",
+          url: "/blazor-javascript-interop-a-practical-guide/"
+        },
+
+        {
+          title: "⚖️ Blazor Server vs Blazor WebAssembly",
+          url: "/blazor-server-vs-webassembly/"
+        },
+
+        {
+          title: "📡 SignalR ASP.NET Core Blazor Guide",
+          url: "/signalr-aspnet-core-blazor-guide/"
+        }
+
+      ] %}
+
+
+      {% for item in blazorArticles %}
+
+        {% set isActive = false %}
+
+        {% if page.url == item.url %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+
+        <a href="{{ item.url }}"
+           class="{% if isActive %}breadcrumb-dropdown-current{% endif %}">
+
+          {{ item.title }}
+
+        </a>
+
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+
+  <span class="breadcrumb-separator">/</span>
+
+{% endif %}
+
+
+
+{# =====================================================
+   SQL SERVER → ARTICLE DROPDOWN
+   ===================================================== #}
+
+{% if isSqlArticle %}
+
+  <div class="breadcrumb-dropdown">
+
+    <a href="/sql-server-tutorials/"
+       class="breadcrumb-trigger crumb-trigger"
+       data-menu="sql">
+
+      🛢️ SQL Server Tutorials
+      <span class="breadcrumb-arrow">▼</span>
+
+    </a>
+
+
+    <div class="breadcrumb-menu"
+         data-menu="sql">
+
+
+      {% set sqlArticles = [
+
+        {
+          title: "🧱 SQL Server CTE vs Temporary Tables",
+          url: "/sql-server-cte-vs-temporary-tables/"
+        },
+
+        {
+          title: "📇 SQL Server Indexing Explained",
+          url: "/sql-server-indexing-explained/"
+        }
+
+      ] %}
+
+
+      {% for item in sqlArticles %}
+
+        {% set isActive = false %}
+
+        {% if page.url == item.url %}
+
+          {% set isActive = true %}
+
+        {% endif %}
+
+
+        <a href="{{ item.url }}"
+           class="{% if isActive %}breadcrumb-dropdown-current{% endif %}">
+
+          {{ item.title }}
+
+        </a>
+
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+
+  <span class="breadcrumb-separator">/</span>
+
+{% endif %}
+
+
+
+{# =====================================================
+   .NET MAUI → ARTICLE/PILLAR DROPDOWN
+   ===================================================== #}
+
+{% if isMauiArticle %}
+
+  <div class="breadcrumb-dropdown">
+
+    <a href="/net-maui-tutorials/"
+       class="breadcrumb-trigger crumb-trigger"
+       data-menu="maui">
+
+      📱 .NET MAUI Tutorials
+      <span class="breadcrumb-arrow">▼</span>
+
+    </a>
+
+
+    <div class="breadcrumb-menu"
+         data-menu="maui">
+
+      <a href="/net-maui-tutorials/"
+         class="breadcrumb-dropdown-current">
+
+        📱 .NET MAUI Tutorials
+
+      </a>
+
+    </div>
+
+  </div>
+
+
+  <span class="breadcrumb-separator">/</span>
+
+{% endif %}
+
+
+
+{# =====================================================
+   CURRENT PAGE
+   ===================================================== #}
+
+<span class="breadcrumb-current-page">
+
+  📄 {{ title }}
+
+</span>
