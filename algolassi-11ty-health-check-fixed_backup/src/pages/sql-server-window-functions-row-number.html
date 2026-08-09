@@ -1,0 +1,54 @@
+---
+title: "SQL Server ROW_NUMBER(): Practical Examples"
+layout: layouts/base.njk
+permalink: "/sql-server-row-number-window-function/"
+date: "2026-08-09T06:48:00"
+description: "Learn how SQL Server ROW_NUMBER works and how to use it for ranking, duplicate detection, and selecting the latest row per group."
+---
+
+<h1>SQL Server ROW_NUMBER(): Practical Examples</h1>
+<p><code>ROW_NUMBER()</code> is a SQL Server window function that assigns a sequential number to rows according to an ordering rule.</p>
+<hr>
+<h2>🔢 Basic Example</h2>
+<pre><code>SELECT
+    EmployeeId,
+    EmployeeName,
+    ROW_NUMBER() OVER (ORDER BY EmployeeName) AS RowNum
+FROM Employees;</code></pre>
+<p>The numbering starts at 1 and follows the specified ordering.</p>
+<hr>
+<h2>📂 Partition Rows into Groups</h2>
+<pre><code>SELECT
+    DepartmentId,
+    EmployeeName,
+    ROW_NUMBER() OVER (
+        PARTITION BY DepartmentId
+        ORDER BY EmployeeName
+    ) AS RowNum
+FROM Employees;</code></pre>
+<p>With <code>PARTITION BY</code>, numbering restarts for each department.</p>
+<hr>
+<h2>⭐ Get the Latest Row per Group</h2>
+<pre><code>WITH Ranked AS
+(
+    SELECT *,
+           ROW_NUMBER() OVER (
+               PARTITION BY CustomerId
+               ORDER BY CreatedDate DESC
+           ) AS rn
+    FROM Orders
+)
+SELECT *
+FROM Ranked
+WHERE rn = 1;</code></pre>
+<p>This is one of the most useful real-world patterns: rank rows within each group and keep the first row.</p>
+<hr>
+<h2>🧹 Find Duplicates</h2>
+<p>You can also partition by the columns that define a duplicate and inspect rows where the generated number is greater than one.</p>
+<hr>
+<h2>⚠️ ROW_NUMBER vs RANK</h2>
+<p><code>ROW_NUMBER()</code> always produces unique sequential numbers. <code>RANK()</code> gives tied rows the same rank and leaves gaps after ties.</p>
+<hr>
+<h2>🧠 Key Takeaway</h2>
+<p><strong>ROW_NUMBER is especially useful when you need deterministic ordering inside groups and want to select, filter, or inspect a specific row from each group.</strong></p>
+<p>Continue with <a href="/sql-server-tutorials/">🛢️ SQL Server Tutorials</a>.</p>
