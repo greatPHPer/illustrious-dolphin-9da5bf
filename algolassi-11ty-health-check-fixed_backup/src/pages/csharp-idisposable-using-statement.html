@@ -1,0 +1,94 @@
+---
+title: "C# IDisposable and using: A Practical Guide"
+layout: layouts/base.njk
+permalink: "/csharp-idisposable-using-statement/"
+date: "2026-08-09T06:31:00"
+description: "Understand IDisposable, the using statement, using declarations, and why deterministic resource cleanup matters in C#."
+---
+
+<h1>C# IDisposable and using: A Practical Guide</h1>
+
+<p>Some .NET objects own resources that should be released promptly, such as file handles, database connections, streams, and other unmanaged or disposable resources. C# provides <code>IDisposable</code> and <code>using</code> to make that cleanup predictable.</p>
+
+<hr>
+
+<h2>🧹 What Is IDisposable?</h2>
+
+<p><code>IDisposable</code> defines a <code>Dispose()</code> method:</p>
+
+<pre><code>public interface IDisposable
+{
+    void Dispose();
+}</code></pre>
+
+<p>A disposable object can release resources when it is no longer needed.</p>
+
+<hr>
+
+<h2>📁 The Traditional using Statement</h2>
+
+<pre><code>using (var stream = File.OpenRead("data.txt"))
+{
+    // Use the stream here
+}</code></pre>
+
+<p>When execution leaves the <code>using</code> block, the compiler-generated cleanup calls <code>Dispose()</code>, including when an exception occurs.</p>
+
+<hr>
+
+<h2>✨ Using Declarations</h2>
+
+<p>Modern C# also supports a shorter form:</p>
+
+<pre><code>using var stream = File.OpenRead("data.txt");
+
+// Use the stream
+
+// Dispose happens when the enclosing scope ends.</code></pre>
+
+<p>This can make methods involving several disposable objects much easier to read.</p>
+
+<hr>
+
+<h2>⚠️ Why Not Just Wait for Garbage Collection?</h2>
+
+<p>Garbage collection manages managed memory, but many objects also hold external resources. Waiting for finalization can keep those resources occupied longer than necessary.</p>
+
+<p>For example, a database connection should normally be closed promptly instead of relying on eventual garbage collection.</p>
+
+<hr>
+
+<h2>🗄️ Common IDisposable Examples</h2>
+
+<ul>
+<li><code>FileStream</code></li>
+<li><code>StreamReader</code></li>
+<li><code>StreamWriter</code></li>
+<li><code>SqlConnection</code></li>
+<li>Many HTTP, database, and framework resource types</li>
+</ul>
+
+<hr>
+
+<h2>🧩 Creating Your Own Disposable Type</h2>
+
+<pre><code>public sealed class ReportExporter : IDisposable
+{
+    public void Dispose()
+    {
+        // Release resources here.
+    }
+}</code></pre>
+
+<p>Consumers can then use:</p>
+
+<pre><code>using var exporter = new ReportExporter();
+</code></pre>
+
+<hr>
+
+<h2>🧠 The Practical Rule</h2>
+
+<p><strong>If an object implements IDisposable and you own its lifetime, make sure its disposal is handled correctly.</strong></p>
+
+<p>For more C# topics, continue to <a href="/csharp-tutorials/">💻 C# Tutorials</a>.</p>
