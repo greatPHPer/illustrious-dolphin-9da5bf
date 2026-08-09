@@ -1,0 +1,37 @@
+---
+title: "Embeddings and Vector Search Explained for Developers"
+layout: layouts/base.njk
+permalink: "/ai-embeddings-vector-search-explained/"
+contentType: "page"
+description: "Understand AI embeddings, vector similarity, chunking, metadata filters, and how they are used in practical knowledge-base applications."
+date: "2026-08-09T10:25:00"
+---
+
+<h1>Embeddings and Vector Search Explained for Developers</h1>
+<p>Embeddings turn text into numerical vectors that represent semantic meaning. Applications can compare those vectors to find content that is conceptually similar even when the exact words are different.</p>
+
+<h2>What Is an Embedding?</h2>
+<p>An embedding model converts text into a list of numbers. Similar pieces of text generally produce vectors that are closer together according to a chosen similarity metric.</p>
+
+<h2>Why Use Vector Search?</h2>
+<p>Traditional keyword search is excellent when the exact terms matter. Vector search is useful when users ask questions using different words from the source documents.</p>
+
+<h2>Typical Pipeline</h2>
+<ol><li>Collect documents.</li><li>Split large documents into useful chunks.</li><li>Generate an embedding for each chunk.</li><li>Store vectors with metadata.</li><li>Embed the user's query.</li><li>Search for the nearest vectors.</li><li>Use the selected chunks as context for the application.</li></ol>
+
+<h2>Chunking Matters</h2>
+<p>Very large chunks can contain too much unrelated information, while tiny chunks can lose context. A useful chunk usually represents a coherent section such as a paragraph, procedure, FAQ answer, or documentation section.</p>
+
+<h2>Metadata Filters</h2>
+<p>Semantic similarity alone is not authorization. Store metadata such as document type, project, tenant, language, or access scope and apply appropriate filters before returning protected content.</p>
+
+<h2>Similarity Search</h2>
+<p>Common approaches include cosine similarity, dot product, and Euclidean distance. The right choice depends on the embedding model and vector database.</p>
+
+<h2>Quality Checks</h2>
+<ul><li>Test queries with known expected documents.</li><li>Measure retrieval relevance before tuning prompts.</li><li>Keep source identifiers with every chunk.</li><li>Remove duplicate or obsolete documents.</li><li>Monitor retrieval failures separately from model failures.</li></ul>
+
+<h2>Conclusion</h2>
+<p>Embeddings are a retrieval technique, not a replacement for application logic. A reliable AI knowledge system combines good chunking, vector search, metadata filtering, authorization, and clear source tracking.</p>
+
+<p><a href="/tutorials/">Back to Algolassi Tutorials</a></p>
