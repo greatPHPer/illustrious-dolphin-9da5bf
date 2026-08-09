@@ -1,0 +1,24 @@
+---
+title: "SQL SELECT, WHERE, and ORDER BY for Beginners"
+layout: layouts/base.njk
+permalink: "/sql-select-where-order-by-beginners/"
+contentType: "page"
+---
+<h1>SQL SELECT, WHERE, and ORDER BY for Beginners</h1>
+<p>SQL lets you retrieve and work with data stored in relational databases.</p>
+<h2>SELECT</h2>
+<pre><code>SELECT Name, Department
+FROM Employees;</code></pre>
+<p>This returns the selected columns from the Employees table.</p>
+<h2>WHERE</h2>
+<pre><code>SELECT Name, Department
+FROM Employees
+WHERE Department = 'IT';</code></pre>
+<p><code>WHERE</code> filters rows so you only get records matching a condition.</p>
+<h2>ORDER BY</h2>
+<pre><code>SELECT Name, Salary
+FROM Employees
+ORDER BY Salary DESC;</code></pre>
+<p><code>DESC</code> sorts from high to low; <code>ASC</code> sorts from low to high.</p>
+<h2>Learning path</h2>
+<p>Once these basics are comfortable, continue with the <a href="/sql-server-tutorials/">SQL Server Tutorials pillar</a> for joins, CTEs, indexes, window functions, and performance.</p>
