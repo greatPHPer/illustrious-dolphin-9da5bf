@@ -45,3 +45,152 @@ a:hover{text-decoration:underline}
 .footer-inner nav{display:flex;gap:14px;flex-wrap:wrap}
 .copyright{max-width:var(--max);margin:25px auto 0;color:var(--muted);font-size:13px}
 @media(max-width:800px){.site-header-inner{align-items:flex-start;flex-direction:column;gap:10px}.site-nav{gap:10px}.site-main{padding-left:15px;padding-right:15px}.footer-inner{flex-direction:column}.article-content,.page-content{font-size:16px}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================================================
+   ALGOLASSI BREADCRUMB
+   ========================================================= */
+
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 24px 0;
+    padding: 12px 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.breadcrumb-item {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.breadcrumb-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.breadcrumbs a {
+    text-decoration: none;
+}
+
+.breadcrumb-arrow {
+    font-size: 10px;
+    margin-left: 3px;
+}
+
+.breadcrumb-separator {
+    color: #777;
+    margin: 0 2px;
+}
+
+.breadcrumb-current {
+    font-weight: 500;
+}
+
+.breadcrumb-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 280px;
+    max-width: 420px;
+    padding: 8px 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+}
+
+.breadcrumb-item:hover > .breadcrumb-menu,
+.breadcrumb-item:focus-within > .breadcrumb-menu {
+    display: block;
+}
+
+.breadcrumb-menu a {
+    display: block;
+    padding: 8px 14px;
+    white-space: normal;
+    line-height: 1.4;
+
+display: block;
+    padding: 7px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.3;
+
+}
+.breadcrumb-dropdown-current{
+    background: #e8f3ff;
+    color: #0d6efd !important;
+    font-weight: 600;
+}
+.breadcrumb-menu a:hover {
+    background: #f5f5f5;
+}
+
+.breadcrumb-menu a.breadcrumb-dropdown-current {
+    font-weight: 700;
+    color: #1a73e8;
+    background: #f5f9ff;
+    
+    border-radius: 4px;
+    margin: 4px 8px;
+    padding: 8px 10px;
+    box-sizing: border-box;
+
+color: #0d6efd !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+.breadcrumb-menu a:hover {
+    background: #f1f3f4;
+}
+
+.breadcrumb-menu a.breadcrumb-dropdown-current:hover {
+    background: #dbe8ff;
+    color: #1558b0;
+border: 1px solid #1a73e8;
+}
+
+/* Keep dropdowns usable on smaller screens */
+
+@media (max-width: 700px) {
+
+    .breadcrumbs {
+        font-size: 13px;
+        gap: 5px;
+    }
+
+    .breadcrumb-menu {
+        min-width: 240px;
+        max-width: 90vw;
+    }
+}
+.breadcrumb-menu a:hover {
+    background: #f1f3f4;
+}
+
+.breadcrumb-menu a.breadcrumb-dropdown-current:hover {
+    background: #eef5ff;
+    border-color: #1a73e8;
+}
