@@ -1,0 +1,25 @@
+---
+title: "JSON Formatting and Validation: A Developer Guide"
+layout: layouts/base.njk
+permalink: "/developer-json-formatting-guide/"
+contentType: "page"
+date: "2026-08-09T10:36:00"
+description: "Learn what JSON formatting and validation do, how to troubleshoot malformed JSON, and how to safely inspect API payloads."
+---
+<h1>JSON Formatting and Validation: A Developer Guide</h1>
+<p>JSON is commonly used for configuration files and API requests and responses. Formatting makes JSON readable, while validation confirms that the document follows JSON syntax.</p>
+<h2>Formatted JSON</h2>
+<pre><code>{
+  "name": "Algolassi",
+  "active": true,
+  "tags": ["dotnet", "csharp"]
+}</code></pre>
+<h2>Common JSON Errors</h2>
+<ul><li>Missing commas between properties</li><li>Using single quotes instead of double quotes</li><li>Missing closing braces or brackets</li><li>Trailing commas in strict JSON</li><li>Unescaped characters inside strings</li></ul>
+<h2>Debugging an API Payload</h2>
+<p>When an API reports invalid JSON, first capture the exact request body in a safe development environment. Then validate the payload before investigating server-side model binding.</p>
+<h2>Security Reminder</h2>
+<p>Never send production passwords, access tokens, private keys, or confidential customer data to a public formatting service.</p>
+<h2>Conclusion</h2>
+<p>A formatter improves readability; a validator catches syntax errors. Both are useful during API and configuration troubleshooting.</p>
+<p><a href="/developer-tools/">Back to Developer Tools</a></p>
