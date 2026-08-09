@@ -29,13 +29,10 @@ tags:
 <p>When building Windows Forms applications, it’s often important to <strong>ensure that only one instance of the app runs at a time</strong>. Many developers use a <code>Mutex</code> to achieve this, but this approach can sometimes interfere with system shutdowns—especially on older operating systems like Windows XP. ⚠️</p>
 
 
-
 <h2 class="wp-block-heading">🛡️ Using Mutex to Prevent Duplicate Instances</h2>
 
 
-
 <p>Here’s a typical example of using a <code>Mutex</code> in <code>Program.cs</code>:</p>
-
 
 
 <pre class="wp-block-code"><code>&#91;STAThread]
@@ -58,17 +55,13 @@ static void Main()
 </code></pre>
 
 
-
 <p>While this works fine in most modern Windows versions, it can <strong>cause shutdown issues on Windows XP</strong>. Holding a mutex may prevent the system from closing the application properly during shutdown. 🛑</p>
-
 
 
 <h2 class="wp-block-heading">❌ Why Overriding Shutdown Messages Doesn’t Always Work</h2>
 
 
-
 <p>Some developers try handling shutdown messages manually by overriding <code>WndProc</code> like this:</p>
-
 
 
 <pre class="wp-block-code"><code>private const int WM_QUERYENDSESSION = 0x11;
@@ -97,17 +90,13 @@ protected override void WndProc(ref System.Windows.Forms.Message m)
 </code></pre>
 
 
-
 <p>Unfortunately, this <strong>doesn’t reliably solve the shutdown problem</strong> on XP. ❌</p>
-
 
 
 <h2 class="wp-block-heading">✅ A Cleaner Solution: Check Running Processes</h2>
 
 
-
 <p>A more robust method is to <strong>look for processes with the same name</strong>. This avoids mutex issues entirely and works across all Windows versions:</p>
-
 
 
 <pre class="wp-block-code"><code>using System.Diagnostics;
@@ -133,27 +122,21 @@ static void Main()
 </code></pre>
 
 
-
 <h3 class="wp-block-heading">💡 How It Works</h3>
-
 
 
 <ul class="wp-block-list">
 <li><code>Process.GetProcessesByName()</code> returns all running processes with the same name. 🔎</li>
 
 
-
 <li>If more than one instance exists, the program simply shows a message and exits. 🏃‍♂️</li>
-
 
 
 <li>No mutex is used, so <strong>system shutdown works smoothly</strong>, even on Windows XP. 🖥️</li>
 </ul>
 
 
-
 <h2 class="wp-block-heading">🎯 Conclusion</h2>
-
 
 
 <p>While <code>Mutex</code> is a common way to prevent multiple instances of an application, it may cause <strong>shutdown conflicts on older Windows versions</strong>. Checking for existing processes is a <strong>simple, reliable, and cross-compatible alternative</strong> that ensures your application behaves correctly on all systems. 🚀</p>

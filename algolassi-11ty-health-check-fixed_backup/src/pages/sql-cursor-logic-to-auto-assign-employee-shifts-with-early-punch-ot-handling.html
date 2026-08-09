@@ -21,39 +21,30 @@ tags:
 <h3 class="wp-block-heading">💡 Overview</h3>
 
 
-
 <p>In real-world manufacturing or plant attendance systems, employees often <strong>punch in early or work across multiple shifts</strong> (for overtime).<br>This SQL Server script automatically maps swipe entries to the correct shift (A/B/C) by analyzing punch times — even if they occur <strong>hours before or after</strong> their scheduled shift.</p>
 
 
-
 <p>It does this using a <strong>multi-stage validation</strong>:</p>
-
 
 
 <ol class="wp-block-list">
 <li>First determines a probable shift.</li>
 
 
-
 <li>Then rechecks against <code>Pay_tra_shiftnote</code>.</li>
-
 
 
 <li>If no match found, it cascades to earlier shifts — handling <strong>early arrivals</strong> and <strong>OT overlaps</strong>.</li>
 </ol>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h3 class="wp-block-heading">🧩 Shift Pattern Reference</h3>
 
 
-
 <figure class="wp-block-table"><table class="has-fixed-layout"><thead><tr><th>Shift</th><th>Time Range</th><th>Punch Consideration Window</th></tr></thead><tbody><tr><td><strong>A</strong></td><td>08:00 – 16:30</td><td>Checks from 05:00 – 13:30</td></tr><tr><td><strong>B</strong></td><td>16:30 – 02:00</td><td>Checks from 13:30 – 23:00</td></tr><tr><td><strong>C</strong></td><td>00:00 – 08:00</td><td>Checks from 23:00 – 05:00</td></tr></tbody></table></figure>
-
 
 
 <blockquote class="wp-block-quote">
@@ -61,43 +52,33 @@ tags:
 </blockquote>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h3 class="wp-block-heading">⚙️ How It Works</h3>
-
 
 
 <ol class="wp-block-list">
 <li><strong>Fetch unassigned swipes</strong> from <code>Pay_tra_swipedata</code>.</li>
 
 
-
 <li><strong>Calculate punch time (<code>@Ptime</code>)</strong> and tentatively assign shift (A/B/C).</li>
-
 
 
 <li><strong>First IF block:</strong> Checks if this shift exists for the employee/date. If not → tries previous shift.</li>
 
 
-
 <li><strong>Second IF block:</strong> Performs one more backtrack to catch rare overlaps (OT or double-shift).</li>
-
 
 
 <li><strong>Update</strong> both tables (<code>Pay_tra_shiftnote</code>, <code>Pay_tra_swipedata</code>) with correct shift/date.</li>
 </ol>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h3 class="wp-block-heading">💻 Full SQL Script (Final Production Version)</h3>
-
 
 
 <pre class="wp-block-code"><code>set @sqlstatement = '
@@ -218,47 +199,36 @@ DEALLOCATE users_cursor
 </code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h3 class="wp-block-heading">🧮 Why Two “IF” Checks?</h3>
 
 
-
 <p>This dual-check pattern ensures:</p>
-
 
 
 <ul class="wp-block-list">
 <li><strong>First IF:</strong> Captures early or slightly misaligned punches.</li>
 
 
-
 <li><strong>Second IF:</strong> Backtracks one more shift if employee clocked extra hours or performed OT.</li>
 </ul>
-
 
 
 <p>This makes your logic <strong>robust against shift overlaps and day boundary crossings</strong> — something real swipe systems struggle with.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h3 class="wp-block-heading">🏁 Summary</h3>
 
 
-
 <p>✅ Handles early punches (3 hours before shift)<br>✅ Correctly aligns OT and multi-shift scenarios<br>✅ Automatically updates both swipe and shift master tables<br>✅ Fully dynamic and SQL-only — no manual mapping needed</p>
 
 
-
 <p><a href="https://sqlfiddle.com/sql-server/online-compiler?id=0aaa33a8-a444-4cbf-b896-17612dfe993c">You can experiment with this shift assignment logic live on SQL Fiddle:<br>👉 <a href="https://sqlfiddle.com/sql-server/online-compiler?id=0aaa33a8-a444-4cbf-b896-17612dfe993c"><strong>Run the SQL Script Here</strong></a></a></p>
-
 
 
 <p></p>

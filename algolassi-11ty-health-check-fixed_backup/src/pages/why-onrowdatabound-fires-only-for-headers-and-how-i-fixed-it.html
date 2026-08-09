@@ -17,21 +17,16 @@ tags:
 <p>When working with <strong>ASP.NET GridView</strong>, you might sometimes notice a weird behavior — the <code>OnRowDataBound</code> event fires for the header rows, but not for the actual <strong>data rows</strong>. Everything looks fine visually, yet your event logic never runs for the records.</p>
 
 
-
 <p>I faced this problem recently and learned a few valuable lessons along the way. Here’s what happened and how I solved it.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h3 class="wp-block-heading">🧩 The Situation</h3>
 
 
-
 <p>I had a GridView with a few fields defined manually like this:</p>
-
 
 
 <pre class="wp-block-code"><code>&lt;asp:GridView ID="MyGridView"
@@ -44,9 +39,7 @@ tags:
 </code></pre>
 
 
-
 <p>And the event handler looked simple enough:</p>
-
 
 
 <pre class="wp-block-code"><code>protected void MyGridView_RowDataBound(object sender, GridViewRowEventArgs e)
@@ -59,100 +52,76 @@ tags:
 </code></pre>
 
 
-
 <p>But when I ran the page — the event fired <strong>only for the header</strong>, not for any of the data rows. No errors, no visible clues.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h3 class="wp-block-heading">🧠 The Root Cause</h3>
 
 
-
 <p>After investigating, it turned out that <strong>an internal binding exception</strong> was being thrown and swallowed during the GridView’s data-binding phase.</p>
-
 
 
 <p>That silent exception prevented the control from finishing its normal binding cycle, so the <code>RowDataBound</code> event never triggered for data rows.</p>
 
 
-
 <p>Once the exception was fixed, the event worked perfectly for every row as expected.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h3 class="wp-block-heading">💡 My Simple Fix</h3>
-
 
 
 <p>In my own case, the issue appeared when I was using a <strong>HyperLinkField</strong>.</p>
 
 
-
 <p>Surprisingly, switching to a <strong>ButtonField</strong> immediately solved it:</p>
-
 
 
 <pre class="wp-block-code"><code>&lt;asp:ButtonField Text="Click" CommandName="Action" /&gt;
 </code></pre>
 
 
-
 <p>After replacing the <code>HyperLinkField</code>, the <code>OnRowDataBound</code> event started firing for all rows again.</p>
-
 
 
 <p>Sometimes GridView columns can behave slightly differently internally, so this swap can bypass certain binding quirks.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h3 class="wp-block-heading">🪄 Quick Tips</h3>
-
 
 
 <ol class="wp-block-list">
 <li>Always wrap your data-binding code in <code>try-catch</code> and check for hidden exceptions.</li>
 
 
-
 <li>Avoid overusing <code>HyperLinkField</code> when a <code>ButtonField</code> or <code>TemplateField</code> gives more control.</li>
-
 
 
 <li>If <code>OnRowDataBound</code> runs only for headers, check your data source and ensure that <code>DataBind()</code> completes without silent failures.</li>
 </ol>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h3 class="wp-block-heading">✅ Final Thoughts</h3>
 
 
-
 <p>The <code>OnRowDataBound</code> event is extremely useful for formatting rows, injecting controls, or running per-row logic. But when it only triggers for headers, it’s usually a <strong>binding problem</strong> or a <strong>field type issue</strong>.</p>
-
 
 
 <p>In my experience, using a <code>ButtonField</code> instead of a <code>HyperLinkField</code> solved the issue completely — a quick, practical workaround that might save you hours of debugging.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <p><strong>Author:</strong> <em>AlgoLassi Tech Blog</em><br><strong>Topic:</strong> ASP.NET Tips<br><strong>Tags:</strong> <code>asp.net</code>, <code>gridview</code>, <code>rowdatabound</code>, <code>csharp</code></p>
