@@ -1,0 +1,63 @@
+---
+title: "C# async and await: Common Mistakes and Best Practices"
+layout: layouts/base.njk
+permalink: "/dotnet-async-await-common-mistakes/"
+contentType: "page"
+description: "Learn practical async and await patterns in C#, including common mistakes involving blocking, cancellation and exception handling."
+---
+
+# C# async and await: Common Mistakes and Best Practices
+
+`async` and `await` make asynchronous C# code easier to read, but they do not make every operation asynchronous automatically. Good async code depends on understanding what the awaited operation actually does.
+
+## Prefer async all the way
+
+If an API is asynchronous, keep the calling path asynchronous instead of blocking it with `.Result` or `.Wait()`.
+
+```csharp
+var result = await service.GetDataAsync();
+```
+
+Blocking an asynchronous operation can waste threads and, in some environments, contribute to deadlocks.
+
+## Do not use async void for ordinary methods
+
+Except for event handlers, prefer `Task` or `Task<T>` so callers can await completion and observe exceptions.
+
+```csharp
+public async Task SaveAsync()
+{
+    await repository.SaveAsync();
+}
+```
+
+## Handle cancellation
+
+Long-running operations should often accept a `CancellationToken` so the caller can stop work that is no longer needed.
+
+```csharp
+await service.ProcessAsync(cancellationToken);
+```
+
+## Exceptions
+
+Exceptions from an awaited task can be caught normally with `try`/`catch` around the await.
+
+Avoid creating broad catch blocks that silently discard failures.
+
+## Parallel work
+
+When operations are independent, tasks can sometimes be started first and awaited together:
+
+```csharp
+var firstTask = GetFirstAsync();
+var secondTask = GetSecondAsync();
+
+await Task.WhenAll(firstTask, secondTask);
+```
+
+Use this only when the operations are genuinely independent and the added concurrency is appropriate for the downstream system.
+
+## Summary
+
+Use asynchronous APIs without unnecessary blocking, return `Task` from asynchronous methods, support cancellation where appropriate, handle exceptions intentionally, and use concurrency only when the workload benefits from it.
