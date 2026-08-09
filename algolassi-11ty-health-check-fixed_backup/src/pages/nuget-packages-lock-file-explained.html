@@ -1,0 +1,142 @@
+---
+title: "NuGet packages.lock.json Explained: When and Why to Use It"
+layout: layouts/base.njk
+permalink: "/nuget-packages-lock-file-explained/"
+legacyId: 502
+contentType: "page"
+date: "2026-08-09T06:16:00"
+description: "Understand NuGet packages.lock.json, how package locking works, when to enable it, and why it can make repeatable .NET restores easier."
+---
+
+<h1>NuGet packages.lock.json Explained: When and Why to Use It</h1>
+
+<p>NuGet normally resolves a project's dependency graph during restore. For applications and libraries that need highly repeatable restores, NuGet also supports a lock file named <code>packages.lock.json</code>.</p>
+
+<p>The lock file records the resolved package graph so future restores can use the same dependency resolution more predictably.</p>
+
+<hr>
+
+<h2>📦 What Is packages.lock.json?</h2>
+
+<p><code>packages.lock.json</code> is a generated file that records resolved NuGet dependencies for a project.</p>
+
+<p>A simplified example looks like:</p>
+
+<pre><code>{
+  "version": 1,
+  "dependencies": {
+    "net8.0": {
+      "Newtonsoft.Json": {
+        "type": "Direct",
+        "requested": "13.0.3",
+        "resolved": "13.0.3"
+      }
+    }
+  }
+}</code></pre>
+
+<p>The real file contains more information than this simplified example, but the important idea is that it records the resolved graph.</p>
+
+<hr>
+
+<h2>🔒 Why Lock Dependencies?</h2>
+
+<p>Without a lock file, a future restore can potentially resolve a different version when package constraints allow it.</p>
+
+<p>A lock file is useful when you want builds to be more reproducible across development machines and CI environments.</p>
+
+<ul>
+<li>More predictable restores.</li>
+<li>Better repeatability in CI.</li>
+<li>Clearer visibility into resolved dependencies.</li>
+<li>Reduced surprises from changing dependency resolution.</li>
+</ul>
+
+<hr>
+
+<h2>⚙️ How to Enable Lock Files</h2>
+
+<p>You can enable package locking in the project file:</p>
+
+<pre><code>&lt;PropertyGroup&gt;
+    &lt;RestorePackagesWithLockFile&gt;true&lt;/RestorePackagesWithLockFile&gt;
+&lt;/PropertyGroup&gt;</code></pre>
+
+<p>After restoring, NuGet can generate <code>packages.lock.json</code> for the project.</p>
+
+<hr>
+
+<h2>🔄 Locked Mode</h2>
+
+<p>There is an important difference between generating a lock file and requiring restore to respect it.</p>
+
+<p>Locked mode can be enabled with:</p>
+
+<pre><code>&lt;PropertyGroup&gt;
+    &lt;RestoreLockedMode&gt;true&lt;/RestoreLockedMode&gt;
+&lt;/PropertyGroup&gt;</code></pre>
+
+<p>In locked mode, restore is expected to use the existing lock file rather than silently changing the resolved dependency graph.</p>
+
+<p>This can be particularly useful in CI environments where reproducibility is important.</p>
+
+<hr>
+
+<h2>🏗️ A Typical Workflow</h2>
+
+<pre><code>Developer changes PackageReference
+          ↓
+       dotnet restore
+          ↓
+ packages.lock.json updated
+          ↓
+ Commit project + lock file
+          ↓
+ CI restores using the locked graph</code></pre>
+
+<p>The lock file should be treated as part of the project's dependency state when your team has chosen to use package locking.</p>
+
+<hr>
+
+<h2>⚠️ What If the Lock File Is Out of Date?</h2>
+
+<p>If package references change but the lock file no longer represents the project's requested dependencies, restore may report that the lock file needs to be updated.</p>
+
+<p>In that situation, update the project dependencies intentionally and regenerate the lock file rather than editing resolved versions blindly.</p>
+
+<hr>
+
+<h2>🧩 Lock Files and Transitive Dependencies</h2>
+
+<p>Lock files are especially useful when a project has a large dependency graph containing many transitive packages.</p>
+
+<p>For example:</p>
+
+<pre><code>YourProject
+├── PackageA
+│   ├── PackageB
+│   └── PackageC
+└── PackageD
+    └── PackageE</code></pre>
+
+<p>Even though only Package A and Package D may be direct references, the resolved graph contains the indirect packages as well.</p>
+
+<p>To understand this distinction first, read <a href="/direct-vs-transitive-nuget-dependencies/">📦 Direct vs Transitive NuGet Dependencies</a>.</p>
+
+<hr>
+
+<h2>🛠️ When Should You Use It?</h2>
+
+<p>Package locking is worth considering for projects where repeatable dependency resolution matters, especially applications built in CI/CD pipelines or projects with a large and frequently changing dependency graph.</p>
+
+<p>It is not something you need to enable automatically for every small project. Choose it when the reproducibility benefits justify managing the lock file.</p>
+
+<hr>
+
+<h2>🧠 Key Takeaway</h2>
+
+<p><strong><code>packages.lock.json</code> records the resolved NuGet dependency graph and can make restores more predictable.</strong></p>
+
+<p>Use it deliberately, keep it synchronized with intentional dependency changes, and consider locked mode when CI builds must reject unexpected dependency changes.</p>
+
+<p>Continue with <a href="/update-nuget-packages-safely/">📦 How to Update NuGet Packages Safely</a>.</p>
