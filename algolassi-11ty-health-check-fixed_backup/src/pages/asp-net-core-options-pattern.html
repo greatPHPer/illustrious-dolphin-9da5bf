@@ -1,0 +1,99 @@
+---
+title: "ASP.NET Core Options Pattern: Configuration Done Right"
+layout: layouts/base.njk
+permalink: "/asp-net-core-options-pattern/"
+date: "2026-08-09T06:32:00"
+description: "Learn how to use the ASP.NET Core Options pattern to bind appsettings configuration to strongly typed C# classes."
+---
+
+<h1>ASP.NET Core Options Pattern: Configuration Done Right</h1>
+
+<p>ASP.NET Core applications often read settings from <code>appsettings.json</code>, environment variables, and other configuration providers. The Options pattern provides a clean way to bind those settings to strongly typed C# classes.</p>
+
+<hr>
+
+<h2>📄 Example Configuration</h2>
+
+<pre><code>{
+  "EmailSettings": {
+    "Host": "smtp.example.com",
+    "Port": 587,
+    "Sender": "noreply@example.com"
+  }
+}</code></pre>
+
+<hr>
+
+<h2>🏷️ Create a Settings Class</h2>
+
+<pre><code>public class EmailSettings
+{
+    public string Host { get; set; } = "";
+    public int Port { get; set; }
+    public string Sender { get; set; } = "";
+}</code></pre>
+
+<hr>
+
+<h2>⚙️ Register the Options</h2>
+
+<p>In modern ASP.NET Core applications, the configuration can be registered during startup:</p>
+
+<pre><code>builder.Services.Configure&lt;EmailSettings&gt;(
+    builder.Configuration.GetSection("EmailSettings"));</code></pre>
+
+<p>The configuration section is now available through dependency injection.</p>
+
+<hr>
+
+<h2>💉 Inject IOptions</h2>
+
+<pre><code>public class EmailService
+{
+    private readonly EmailSettings _settings;
+
+    public EmailService(IOptions&lt;EmailSettings&gt; options)
+    {
+        _settings = options.Value;
+    }
+}</code></pre>
+
+<p>Remember to import <code>Microsoft.Extensions.Options</code>.</p>
+
+<hr>
+
+<h2>🔄 IOptions, IOptionsSnapshot and IOptionsMonitor</h2>
+
+<p>ASP.NET Core provides several options interfaces.</p>
+
+<ul>
+<li><strong>IOptions</strong> — simple access to configured options.</li>
+<li><strong>IOptionsSnapshot</strong> — useful when values may vary between requests in scoped applications.</li>
+<li><strong>IOptionsMonitor</strong> — supports monitoring and reacting to configuration changes.</li>
+</ul>
+
+<p>The right choice depends on whether configuration needs to be evaluated once, per scope, or monitored for changes.</p>
+
+<hr>
+
+<h2>🛡️ Why Strongly Typed Configuration Helps</h2>
+
+<p>Instead of scattering string-based configuration lookups throughout your application:</p>
+
+<pre><code>var host = configuration["EmailSettings:Host"];</code></pre>
+
+<p>you can work with a typed object:</p>
+
+<pre><code>settings.Host</code></pre>
+
+<p>This improves readability and makes configuration dependencies easier to test and maintain.</p>
+
+<hr>
+
+<h2>🧠 Key Takeaway</h2>
+
+<p><strong>The Options pattern turns configuration sections into strongly typed objects that can be injected into your application services.</strong></p>
+
+<p>For dependency injection fundamentals, see <a href="/register-services-asp-net-core-dependency-injection/">💉 How to Register Services in ASP.NET Core Dependency Injection</a>.</p>
+
+<p>Continue exploring <a href="/asp-net-core-tutorials/">⚡ ASP.NET Core Tutorials</a>.</p>
