@@ -1,11 +1,19 @@
 /* Algolassi Assistant - Phase 4: local-language internet radio */
 (function () {
   "use strict";
-  var KEY="algolassi_assistant_radio_v3", API="https://de1.api.radio-browser.info/json/stations/search";
-  var state=load(), audio=null, stations=[], radioPositionObserver=null, radioResizeObserver=null, radioHideTimer=null;
-  var popup=null;
-  var countryLanguages={IN:["tamil","hindi","english"],US:["english"],GB:["english"],CA:["english","french"],AU:["english"],DE:["german"],FR:["french"],ES:["spanish"],IT:["italian"],BR:["portuguese"],JP:["japanese"],KR:["korean"],SG:["english"],AE:["arabic","english"]};
-  var indiaRegionLanguages={"tamil nadu":"tamil","tamilnadu":"tamil","andhra pradesh":"telugu","telangana":"telugu","kerala":"malayalam","karnataka":"kannada","maharashtra":"marathi","gujarat":"gujarati","west bengal":"bengali","punjab":"punjabi","odisha":"odia","orissa":"odia","assam":"assamese","bihar":"hindi","uttar pradesh":"hindi","madhya pradesh":"hindi","rajasthan":"hindi","haryana":"hindi","delhi":"hindi"};
+
+  var KEY = "algolassi_assistant_radio_v3";
+  var API = "https://de1.api.radio-browser.info/json/stations/search";
+  var state = load();
+  var audio = null;
+  var stations = [];
+  var radioPositionObserver = null;
+  var radioResizeObserver = null;
+  var radioHideTimer = null;
+
+  var countryLanguages = { IN:["tamil","hindi","english"],US:["english"],GB:["english"],CA:["english","french"],AU:["english"],DE:["german"],FR:["french"],ES:["spanish"],IT:["italian"],BR:["portuguese"],JP:["japanese"],KR:["korean"],SG:["english"],AE:["arabic","english"] };
+  var indiaRegionLanguages = {"tamil nadu":"tamil","tamilnadu":"tamil","andhra pradesh":"telugu","telangana":"telugu","kerala":"malayalam","karnataka":"kannada","maharashtra":"marathi","gujarat":"gujarati","west bengal":"bengali","punjab":"punjabi","odisha":"odia","orissa":"odia","assam":"assamese","bihar":"hindi","uttar pradesh":"hindi","madhya pradesh":"hindi","rajasthan":"hindi","haryana":"hindi","delhi":"hindi"};
+
   function load(){try{var s=JSON.parse(localStorage.getItem(KEY)||"{}");return Object.assign({country:"",region:"",city:"",language:"",station:"",shownAt:0},s);}catch(e){return {country:"",region:"",city:"",language:"",station:"",shownAt:0};}}
   function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
   function esc(v){return String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
@@ -17,30 +25,13 @@
   function normalBottom(){return window.innerWidth<=600?10:18;}
   function repositionRadio(){var radio=document.getElementById("algolassi-radio-host");if(!radio)return;var assistant=document.getElementById("algolassi-assistant-host"),toast=null;if(assistant){var cs=assistant.querySelectorAll(".algolassi-assistant-toast");for(var i=cs.length-1;i>=0;i--){var c=cs[i],st=getComputedStyle(c),r=c.getBoundingClientRect();if(st.display!=="none"&&st.visibility!=="hidden"&&r.width>0&&r.height>0){toast=c;break;}}}if(!toast){radio.style.bottom=normalBottom()+"px";return;}var rect=toast.getBoundingClientRect();radio.style.bottom=Math.max(normalBottom(),window.innerHeight-rect.top+10)+"px";}
   function startRadioPositionObserver(){var start=function(){var a=document.getElementById("algolassi-assistant-host");if(!a||radioPositionObserver||!window.MutationObserver)return;radioPositionObserver=new MutationObserver(function(){window.requestAnimationFrame(repositionRadio);});radioPositionObserver.observe(a,{childList:true,subtree:true,attributes:true,attributeFilter:["class","style"]});if(window.ResizeObserver){radioResizeObserver=new ResizeObserver(function(){window.requestAnimationFrame(repositionRadio);});radioResizeObserver.observe(a);}window.addEventListener("resize",repositionRadio,{passive:true});repositionRadio();};if(document.getElementById("algolassi-assistant-host"))start();else window.setTimeout(start,500);}
-  function closeToast(){if(radioHideTimer){clearTimeout(radioHideTimer);radioHideTimer=null;}var h=document.getElementById("algolassi-radio-host");if(h){h.innerHTML="";h.style.bottom=normalBottom()+"px";h.style.pointerEvents="none";}audio=null;}
-
-  /* A normal navigation destroys the current document and therefore destroys
-     its <audio> element. The player window is opened by the user's Play click,
-     so the browser permits it to continue independently while the main site
-     navigates. The same named window is reused on later pages. */
-  function playerUrl(streamUrl, title){
-    return "data:text/html;charset=utf-8,"+encodeURIComponent("<!doctype html><html><head><meta charset='utf-8'><title>Algolassi Radio</title><style>body{margin:0;padding:14px;font:14px system-ui;background:#111827;color:white}button{padding:8px 12px;border:0;border-radius:8px;cursor:pointer}audio{width:100%;margin-top:12px}.title{margin-bottom:8px;font-weight:600}</style></head><body><div class='title'>📻 "+esc(title||"Algolassi Radio")+"</div><audio id='a' controls autoplay></audio><script>var a=document.getElementById('a');a.src="+JSON.stringify(streamUrl)+";a.play().catch(function(){});<\/script></body></html>");
-  }
-  function openPersistentPlayer(streamUrl,title){
-    try{
-      if(popup&&!popup.closed){popup.postMessage({type:"algolassi-radio-play",url:streamUrl,title:title},"*");popup.focus();return true;}
-      popup=window.open(playerUrl(streamUrl,title),"AlgolassiRadioPlayer","width=360,height=170,resizable=yes");
-      return !!popup;
-    }catch(e){return false;}
-  }
-  function stopPersistentPlayer(){try{if(popup&&!popup.closed){popup.postMessage({type:"algolassi-radio-stop"},"*");popup.close();}}catch(e){}popup=null;}
-
-  function toast(){if(sleeping()||!state.country)return;closeToast();var h=radioHost(),t=document.createElement("section");t.className="algolassi-assistant-toast algolassi-radio-toast";var options=stations.map(function(s,i){return'<option value="'+i+'">'+esc(s.name||"Radio station")+'</option>';}).join("");var place=state.city||state.region||state.country||"your region",label=(state.language||"local")+" radio · "+place;t.innerHTML='<div class="algolassi-assistant-head"><span class="algolassi-assistant-avatar">📻</span><strong>Local radio</strong></div><div class="algolassi-assistant-body"><div class="algolassi-radio-label">'+esc(label)+'</div><select class="algolassi-radio-select" aria-label="Radio station">'+options+'</select><div class="algolassi-radio-controls"><button type="button" class="algolassi-assistant-action" id="algolassi-radio-play">▶ Play</button><button type="button" class="algolassi-assistant-action" id="algolassi-radio-stop">■ Stop</button></div></div>';h.appendChild(t);var select=t.querySelector(".algolassi-radio-select"),play=t.querySelector("#algolassi-radio-play");play.onclick=function(){var s=stations[Number(select.value)];if(!s||!s.url_resolved)return;var sc=String(s.countrycode||"").toUpperCase();if(state.country&&sc&&sc!==state.country)return;state.station=s.stationuuid||s.name;save();if(openPersistentPlayer(s.url_resolved,s.name||"Algolassi Radio")){play.textContent="⏸ Playing";}};t.querySelector("#algolassi-radio-stop").onclick=function(){stopPersistentPlayer();play.textContent="▶ Play";};repositionRadio();radioHideTimer=setTimeout(function(){var h2=document.getElementById("algolassi-radio-host");if(h2){h2.innerHTML="";h2.style.bottom=normalBottom()+"px";h2.style.pointerEvents="none";}radioHideTimer=null;},15000);}
+  function removeRadioToast(){if(radioHideTimer){clearTimeout(radioHideTimer);radioHideTimer=null;}var h=document.getElementById("algolassi-radio-host");if(h){h.innerHTML="";h.style.bottom=normalBottom()+"px";}audio=null;}
+  function toast(){if(sleeping()||!state.country)return;removeRadioToast();var h=radioHost(),t=document.createElement("section");t.className="algolassi-assistant-toast algolassi-radio-toast";var options=stations.map(function(s,i){return'<option value="'+i+'">'+esc(s.name||"Radio station")+'</option>';}).join("");var place=state.city||state.region||state.country||"your region",label=(state.language||"local")+" radio · "+place;t.innerHTML='<div class="algolassi-assistant-head"><span class="algolassi-assistant-avatar">📻</span><strong>Local radio</strong></div><div class="algolassi-assistant-body"><div class="algolassi-radio-label">'+esc(label)+'</div><select class="algolassi-radio-select" aria-label="Radio station">'+options+'</select><div class="algolassi-radio-controls"><button type="button" class="algolassi-assistant-action" id="algolassi-radio-play">▶ Play</button><button type="button" class="algolassi-assistant-action" id="algolassi-radio-stop">■ Stop</button></div><audio id="algolassi-radio-audio" preload="none"></audio></div>';h.appendChild(t);audio=t.querySelector("#algolassi-radio-audio");var select=t.querySelector(".algolassi-radio-select"),play=t.querySelector("#algolassi-radio-play");play.onclick=function(){var s=stations[Number(select.value)];if(!s||!s.url_resolved)return;var sc=String(s.countrycode||"").toUpperCase();if(state.country&&sc&&sc!==state.country)return;state.station=s.stationuuid||s.name;save();audio.src=s.url_resolved;audio.play().catch(function(){});play.textContent="⏸ Playing";};t.querySelector("#algolassi-radio-stop").onclick=function(){if(!audio)return;audio.pause();audio.removeAttribute("src");audio.load();play.textContent="▶ Play";};repositionRadio();radioHideTimer=setTimeout(function(){var a=audio,playing=a&&!a.paused&&!a.ended,h2=document.getElementById("algolassi-radio-host");if(h2){h2.innerHTML="";h2.style.bottom=normalBottom()+"px";}if(!playing)audio=null;radioHideTimer=null;},15000);}
   function search(lang,fallback){var c=String(state.country||"").toUpperCase();if(!c)return;var url=API+"?countrycode="+encodeURIComponent(c)+"&language="+encodeURIComponent(lang)+"&hidebroken=true&order=votes&reverse=true&limit=8";fetch(url,{credentials:"omit"}).then(function(r){return r.ok?r.json():[];}).then(function(data){stations=(data||[]).filter(function(s){if(!s.url_resolved)return false;var sc=String(s.countrycode||"").toUpperCase();return!c||!sc||sc===c;});if(!stations.length&&fallback&&fallback!==lang)return search(fallback,"");if(stations.length)toast();}).catch(function(){});}
   function syncLocation(){var l=getLocation();state.country=String(l.country||"").toUpperCase();state.region=l.region||"";state.city=l.city||"";state.language=languageFor(l);save();}
-  function refreshAndSearch(){syncLocation();if(!state.country)return;search(state.language,"english");}
+  function refreshAndSearch(){syncLocation();if(!state.country)return;search(state.language,state.country==="IN"?"english":"english");}
   function init(){if(sleeping())return;syncLocation();startRadioPositionObserver();if(state.shownAt&&Date.now()-state.shownAt<24*60*60*1000)return;state.shownAt=Date.now();save();setTimeout(refreshAndSearch,18000);setTimeout(refreshAndSearch,22000);}
   window.addEventListener("algolassi:location-ready",refreshAndSearch);
-  window.AlgolassiRadio={show:function(){refreshAndSearch();},stop:function(){stopPersistentPlayer();},close:function(){closeToast();},refreshLocation:function(){syncLocation();return state;},state:state};
+  window.AlgolassiRadio={show:function(){refreshAndSearch();},stop:function(){if(audio){audio.pause();audio.removeAttribute("src");audio.load();}},close:function(){removeRadioToast();},refreshLocation:function(){syncLocation();return state;},state:state};
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
