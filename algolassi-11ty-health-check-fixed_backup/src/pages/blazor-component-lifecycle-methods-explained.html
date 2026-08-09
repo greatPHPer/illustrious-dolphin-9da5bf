@@ -1,0 +1,53 @@
+---
+title: "Blazor Component Lifecycle Methods Explained"
+layout: layouts/base.njk
+permalink: "/blazor-component-lifecycle-methods-explained/"
+contentType: "page"
+description: "Understand the Blazor component lifecycle, including initialization, parameter changes, rendering and disposal."
+---
+
+# Blazor Component Lifecycle Methods Explained
+
+Blazor components have lifecycle methods that let you run code when a component is initialized, receives parameters, renders, or is disposed.
+
+## Initialization
+
+`OnInitialized` and `OnInitializedAsync` run when the component is initialized.
+
+```csharp
+protected override async Task OnInitializedAsync()
+{
+    products = await ProductService.GetProductsAsync();
+}
+```
+
+Use this stage for loading data that does not depend on parameters.
+
+## Parameter changes
+
+Use `OnParametersSet` or `OnParametersSetAsync` when behavior depends on component parameters.
+
+```csharp
+[Parameter]
+public int ProductId { get; set; }
+```
+
+If `ProductId` changes, parameter lifecycle methods provide a suitable place to react.
+
+## Rendering
+
+`OnAfterRender` and `OnAfterRenderAsync` run after rendering. They are commonly useful for JavaScript interop that requires rendered DOM elements.
+
+When using `OnAfterRenderAsync`, check `firstRender` when initialization should happen only once.
+
+## Disposal
+
+Components that subscribe to events, timers, or other resources may need to implement disposal and unsubscribe when the component is removed.
+
+## Common mistake
+
+Do not perform DOM-dependent JavaScript work too early. The element may not exist until rendering has completed.
+
+## Summary
+
+Understanding the lifecycle helps prevent unnecessary data loads, rendering loops, and JavaScript interop errors. Choose the lifecycle method according to what your code depends on: initialization, parameters, rendered DOM, or cleanup.
