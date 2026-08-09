@@ -1,0 +1,65 @@
+---
+title: "Blazor State Management: Practical Patterns for Components and Services"
+layout: layouts/base.njk
+permalink: "/blazor-state-management-practical-guide/"
+contentType: "page"
+description: "Learn practical ways to manage state in Blazor components, layouts and services without unnecessary complexity."
+---
+
+# Blazor State Management: Practical Patterns for Components and Services
+
+State management in Blazor is mainly about deciding where application data should live and who is responsible for changing it.
+
+## Component-local state
+
+If a value belongs only to one component, keep it in that component.
+
+```csharp
+private bool isLoading;
+private string searchText = "";
+```
+
+This is the simplest and often the best approach.
+
+## Parent-to-child parameters
+
+A parent can pass state to a child through `[Parameter]` properties.
+
+```razor
+<ProductCard Product="selectedProduct" />
+```
+
+This makes the ownership of the state explicit.
+
+## Event callbacks
+
+A child can notify its parent through `EventCallback` rather than directly changing parent state.
+
+```razor
+<button @onclick="NotifySelected">Select</button>
+```
+
+This keeps the direction of communication clear.
+
+## Shared state through services
+
+When several unrelated components need the same state, a dedicated service can be registered with dependency injection.
+
+Be intentional about the service lifetime. A stateful singleton is shared broadly and can cause cross-user state problems in server applications.
+
+## Persisted state
+
+If state must survive navigation or reloads, consider an appropriate persistence mechanism rather than assuming an in-memory component or service will survive every lifecycle event.
+
+## Practical rule
+
+Start with the smallest scope that works:
+
+1. Component state.
+2. Parent/child parameters and callbacks.
+3. A shared service when multiple components genuinely need the state.
+4. Persistent storage when state must survive application lifecycle events.
+
+## Summary
+
+Good Blazor state management is less about using a sophisticated framework and more about giving each piece of state a clear owner and lifecycle.
