@@ -1,0 +1,4 @@
+.algolassi-radio-toast { max-width: 360px; }
+.algolassi-radio-label { font-size: 13px; margin-bottom: 8px; }
+.algolassi-radio-select { width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: #1f2937; font: inherit; }
+.algolassi-radio-controls { display: flex; gap: 7px; margin-top: 9px; }
