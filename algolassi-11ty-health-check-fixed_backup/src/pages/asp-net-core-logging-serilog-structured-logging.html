@@ -1,0 +1,85 @@
+---
+title: "ASP.NET Core Logging: Structured Logging and Practical Best Practices"
+layout: layouts/base.njk
+permalink: "/asp-net-core-logging-structured-logging/"
+contentType: "page"
+description: "A practical guide to logging in ASP.NET Core, structured logging, log levels, and useful production practices."
+---
+
+# ASP.NET Core Logging: Structured Logging and Practical Best Practices
+
+Good logs should help you answer three questions quickly: **what happened, where did it happen, and what was the relevant context?** ASP.NET Core provides a built-in logging abstraction that works with console logging and many external providers.
+
+## Use the built-in ILogger abstraction
+
+Inject `ILogger<T>` into the class that needs to write logs:
+
+```csharp
+public class OrderService
+{
+    private readonly ILogger<OrderService> _logger;
+
+    public OrderService(ILogger<OrderService> logger)
+    {
+        _logger = logger;
+    }
+
+    public void Process(int orderId)
+    {
+        _logger.LogInformation("Processing order {OrderId}", orderId);
+    }
+}
+```
+
+The `{OrderId}` placeholder is structured data rather than string concatenation.
+
+## Choose appropriate log levels
+
+Common levels include `Trace`, `Debug`, `Information`, `Warning`, `Error`, and `Critical`.
+
+Use `Information` for useful application events, `Warning` for unexpected but recoverable situations, and `Error` when an operation fails.
+
+## Avoid logging sensitive data
+
+Never casually write passwords, access tokens, connection strings, or other sensitive values into logs. Production logs often have broader access and longer retention than application data.
+
+## Add useful context
+
+Instead of writing:
+
+```csharp
+_logger.LogInformation("Order failed");
+```
+
+prefer:
+
+```csharp
+_logger.LogWarning(
+    "Order {OrderId} could not be processed for customer {CustomerId}",
+    orderId,
+    customerId);
+```
+
+This makes filtering and searching much easier in a centralized logging system.
+
+## Keep exception details intact
+
+When logging an exception, pass the exception object to the logging method:
+
+```csharp
+try
+{
+    await service.ProcessAsync(orderId);
+}
+catch (Exception ex)
+{
+    _logger.LogError(ex, "Failed to process order {OrderId}", orderId);
+    throw;
+}
+```
+
+This preserves the exception information and stack trace for the configured logging provider.
+
+## Summary
+
+Treat logs as operational data. Use structured properties, meaningful log levels, useful identifiers, and careful handling of sensitive information. The result is a much more searchable and maintainable production system.
