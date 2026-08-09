@@ -1,0 +1,51 @@
+---
+title: "Prompt Engineering for Developers: A Practical Guide"
+layout: layouts/base.njk
+permalink: "/ai-prompt-engineering-for-developers/"
+contentType: "page"
+description: "Practical prompt engineering techniques for developers building reliable AI-assisted coding, documentation, analysis, and automation workflows."
+date: "2026-08-09T10:15:00"
+---
+
+<h1>Prompt Engineering for Developers: A Practical Guide</h1>
+<p>Good prompts are not about making instructions longer. They are about giving an AI system the context, constraints, input format, and expected output needed to produce a useful result.</p>
+
+<h2>Start With a Clear Task</h2>
+<p>Instead of asking an AI assistant to “fix this code,” describe the actual goal.</p>
+<pre><code>Review this C# method for null handling.
+Keep the public API unchanged.
+Return the corrected method and a short explanation.</code></pre>
+
+<h2>Provide Context</h2>
+<p>AI output becomes more reliable when the relevant framework, runtime, error message, and surrounding code are included.</p>
+<ul><li>Language and framework version</li><li>Expected behavior</li><li>Actual behavior</li><li>Error messages</li><li>Important constraints</li></ul>
+
+<h2>Specify the Output Format</h2>
+<p>If the result will be copied into a project, tell the model exactly what format is required.</p>
+<pre><code>Return only:
+1. The corrected SQL query.
+2. Three bullet points explaining the change.</code></pre>
+
+<h2>Use Examples</h2>
+<p>Examples make ambiguous requirements concrete. For structured output, provide one small example of the desired input and output.</p>
+
+<h2>Separate Instructions From Data</h2>
+<p>When prompts contain user-provided or retrieved text, clearly distinguish instructions from data. This is especially important for applications using retrieval-augmented generation.</p>
+
+<h2>Ask for Validation</h2>
+<p>For technical tasks, request a self-check against explicit requirements.</p>
+<pre><code>Before answering, verify that:
+- the code compiles on .NET 9
+- no deprecated API is introduced
+- the existing method signature remains unchanged</code></pre>
+
+<h2>Keep Prompts Maintainable</h2>
+<p>Application prompts should be treated like code. Use named sections, avoid contradictory rules, remove obsolete instructions, and keep reusable policies separate from task-specific input.</p>
+
+<h2>Prompting Is Not a Security Boundary</h2>
+<p>Never assume that a prompt can enforce application authorization. Permissions, data access, validation, and business rules must be implemented in the application itself.</p>
+
+<h2>Conclusion</h2>
+<p>Effective developer prompts are precise, contextual, constrained, and testable. The best prompt is usually the smallest one that provides enough information for the model to complete the task correctly.</p>
+
+<p><a href="/tutorials/">Back to Algolassi Tutorials</a></p>
