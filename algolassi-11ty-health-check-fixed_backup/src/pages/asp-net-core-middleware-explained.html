@@ -1,0 +1,67 @@
+---
+title: "ASP.NET Core Middleware Explained: Request Pipeline and Custom Middleware"
+layout: layouts/base.njk
+permalink: "/asp-net-core-middleware-explained/"
+contentType: "page"
+description: "Understand the ASP.NET Core middleware pipeline and build a simple custom middleware component."
+---
+
+# ASP.NET Core Middleware Explained: Request Pipeline and Custom Middleware
+
+Middleware components form the request pipeline in ASP.NET Core. Each component can inspect a request, perform work, call the next component, and optionally inspect the response.
+
+## The basic idea
+
+Conceptually, a pipeline looks like:
+
+```text
+Request
+  -> Middleware A
+  -> Middleware B
+  -> Endpoint
+  -> Middleware B
+  -> Middleware A
+  -> Response
+```
+
+Middleware can therefore perform work both before and after the next component runs.
+
+## A simple custom middleware
+
+```csharp
+public class RequestTimingMiddleware
+{
+    private readonly RequestDelegate _next;
+
+    public RequestTimingMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        var started = DateTime.UtcNow;
+
+        await _next(context);
+
+        var elapsed = DateTime.UtcNow - started;
+        Console.WriteLine($"Request took {elapsed.TotalMilliseconds} ms");
+    }
+}
+```
+
+Register the middleware with `app.UseMiddleware<RequestTimingMiddleware>()`.
+
+## Middleware order matters
+
+Authentication, authorization, exception handling, static files, routing, and endpoints must be placed in an order appropriate to the behavior you want. Changing the order can change the application's behavior.
+
+## Use middleware for cross-cutting concerns
+
+Middleware is a good fit for concerns such as request logging, correlation IDs, exception handling, security headers, and timing.
+
+Avoid putting endpoint-specific business rules into middleware when ordinary services or controllers are a better fit.
+
+## Summary
+
+Middleware is the mechanism that connects HTTP requests to application behavior through an ordered pipeline. Understanding that pipeline makes debugging and designing ASP.NET Core applications much easier.
