@@ -72,33 +72,18 @@ html, body {
 }
 /* Current page in dropdown */
 .crumb-current:hover{
-    background:#e8f3ff !important;
-}
-.crumb-current:hover{
     background:#d8ebff !important;
 }
 </style>
 
 
-
-
-
-
-
-
-
-
-
 <h2 class="wp-block-heading">1. Introduction</h2>
-
 
 
 <p>Explain what Dependency Injection is in simple terms.</p>
 
 
-
 <p>Example:</p>
-
 
 
 <blockquote class="wp-block-quote">
@@ -106,17 +91,13 @@ html, body {
 </blockquote>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">2. What Problem Does Dependency Injection Solve?</h2>
 
 
-
 <p>Without DI:</p>
-
 
 
 <pre class="wp-block-code"><code>public class UserService
@@ -125,39 +106,30 @@ html, body {
 }</code></pre>
 
 
-
 <p>Problems:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Tight coupling</li>
 
 
-
 <li>Difficult to test</li>
-
 
 
 <li>Hard to replace implementations</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">3. Dependency Injection with ASP.NET Core</h2>
 
 
-
 <pre class="wp-block-code"><code>builder.Services.AddScoped&lt;IEmailService, EmailService&gt;();</code></pre>
 
 
-
 <p>Then:</p>
-
 
 
 <pre class="wp-block-code"><code>public class UserService
@@ -171,111 +143,85 @@ html, body {
 }</code></pre>
 
 
-
 <p>Explain that ASP.NET Core automatically creates and injects the service.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">4. Registering Services</h2>
-
 
 
 <p>Explain the three common registrations.</p>
 
 
-
 <h3 class="wp-block-heading">Singleton</h3>
 
 
-
 <pre class="wp-block-code"><code>builder.Services.AddSingleton&lt;ISettingsService, SettingsService&gt;();</code></pre>
-
 
 
 <ul class="wp-block-list">
 <li>One instance for the entire application</li>
 
 
-
 <li>Good for configuration and caching</li>
 </ul>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h3 class="wp-block-heading">Scoped</h3>
 
 
-
 <pre class="wp-block-code"><code>builder.Services.AddScoped&lt;IUserService, UserService&gt;();</code></pre>
-
 
 
 <ul class="wp-block-list">
 <li>One instance per HTTP request</li>
 
 
-
 <li>Best choice for EF Core <code>DbContext</code></li>
 </ul>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h3 class="wp-block-heading">Transient</h3>
 
 
-
 <pre class="wp-block-code"><code>builder.Services.AddTransient&lt;IReportService, ReportService&gt;();</code></pre>
-
 
 
 <ul class="wp-block-list">
 <li>New instance every time</li>
 
 
-
 <li>Good for lightweight services</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">5. Understanding Service Lifetimes</h2>
 
 
-
 <p>Include a simple comparison table:</p>
-
 
 
 <figure class="wp-block-table"><table class="has-fixed-layout"><thead><tr><th>Lifetime</th><th>Created</th><th>Typical Use</th></tr></thead><tbody><tr><td>Singleton</td><td>Once for the application</td><td>Configuration, cache</td></tr><tr><td>Scoped</td><td>Once per request</td><td>Business services, DbContext</td></tr><tr><td>Transient</td><td>Every injection</td><td>Utility/helper services</td></tr></tbody></table></figure>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">6. Constructor Injection</h2>
 
 
-
 <p>Example:</p>
-
 
 
 <pre class="wp-block-code"><code>public class ProductController : Controller
@@ -289,50 +235,38 @@ html, body {
 }</code></pre>
 
 
-
 <p>Explain why constructor injection is preferred over creating objects manually.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">7. Dependency Injection in Blazor</h2>
 
 
-
 <p>Since you work with Blazor, this section will make the article stand out.</p>
-
 
 
 <pre class="wp-block-code"><code>@inject NavigationManager Navigation
 @inject HttpClient Http</code></pre>
 
 
-
 <p>Also show a custom service:</p>
-
 
 
 <pre class="wp-block-code"><code>@inject WeatherService WeatherService</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">8. Dependency Injection in .NET MAUI Blazor</h2>
 
 
-
 <p>Connect it to your expertise.</p>
 
 
-
 <p>Example:</p>
-
 
 
 <pre class="wp-block-code"><code>builder.Services.AddSingleton&lt;AppSessionService&gt;();
@@ -340,103 +274,79 @@ builder.Services.AddScoped&lt;AuthApiService&gt;();
 builder.Services.AddSingleton&lt;ModuleState&gt;();</code></pre>
 
 
-
 <p>Explain why:</p>
-
 
 
 <ul class="wp-block-list">
 <li><code>AppSessionService</code> may be singleton to hold app-wide session state.</li>
 
 
-
 <li><code>AuthApiService</code> can be scoped depending on your app architecture.</li>
-
 
 
 <li>Always choose lifetimes intentionally rather than by habit.</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">9. Common Mistakes</h2>
 
 
-
 <p>Cover things developers actually encounter:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Registering a service but forgetting the interface.</li>
 
 
-
 <li>Using <code>new</code> instead of DI.</li>
-
 
 
 <li>Injecting a scoped service into a singleton.</li>
 
 
-
 <li>Forgetting to register a service.</li>
-
 
 
 <li>Creating circular dependencies.</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">10. Best Practices</h2>
 
 
-
 <p>Recommend:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Depend on interfaces (<code>IEmailService</code>) instead of concrete classes.</li>
 
 
-
 <li>Keep services focused on one responsibility.</li>
-
 
 
 <li>Use constructor injection.</li>
 
 
-
 <li>Register the correct lifetime.</li>
-
 
 
 <li>Avoid service locator patterns.</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">11. Conclusion</h2>
 
 
-
 <p>Summarize why DI matters:</p>
-
 
 
 <blockquote class="wp-block-quote">
@@ -444,64 +354,49 @@ builder.Services.AddSingleton&lt;ModuleState&gt;();</code></pre>
 </blockquote>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Internal Links</h1>
 
 
-
 <p>Link this article to:</p>
-
 
 
 <ul class="wp-block-list">
 <li><strong><a href="/csharp-tutorials/" data-type="page" data-id="247">C# Tutorials</a></strong> (interfaces and object-oriented concepts)</li>
 
 
-
 <li><strong><a href="/asp-net-core-tutorials/" data-type="page" data-id="258">ASP.NET Core Tutorials</a></strong> (hub page)</li>
 
 
-
 <li><strong><a href="/blazor-tutorials/" data-type="page" data-id="262">Blazor Tutorials</a></strong></li>
-
 
 
 <li><strong><a href="/net-maui-tutorials/" data-type="page" data-id="270">.NET MAUI Tutorials</a></strong></li>
 </ul>
 
 
-
 <p><strong>Related articles</strong></p>
-
 
 
 <ul class="wp-block-list">
 <li><a href="/what-is-dependency-injection-asp-net-core/" data-type="page" data-id="460">What Is Dependency Injection in ASP.NET Core? A Beginner's Guide</a></li>
 
 
-
 <li><a href="/register-services-asp-net-core-dependency-injection/" data-type="page" data-id="463">How to Register Services in ASP.NET Core Dependency Injection</a></li>
-
 
 
 <li><a href="/singleton-scoped-transient-asp-net-core/" data-type="page" data-id="466">Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?</a></li>
 
 
-
 <li>How to Use Constructor Injection in ASP.NET Core</li>
-
 
 
 <li>How to Inject Services into Controllers, Razor Pages, and Blazor</li>
 
 
-
 <li>Common Dependency Injection Errors in ASP.NET Core and How to Fix Them</li>
-
 
 
 <li>Advanced Dependency Injection in ASP.NET Core: Factory, Keyed Services, and Service Lifetimes</li>

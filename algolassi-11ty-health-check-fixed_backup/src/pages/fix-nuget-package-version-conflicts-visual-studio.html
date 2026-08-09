@@ -27,17 +27,7 @@ html, body {
 </style>
 
 
-
-
-
-
-
-
-
-
-
 <p>When developing .NET applications, NuGet packages help us add functionality without writing everything from scratch. However, after installing or updating packages, you may encounter errors like:</p>
-
 
 
 <pre class="wp-block-code"><code>NU1605: Detected package downgrade
@@ -46,41 +36,31 @@ Package X depends on Package Y (&gt;= 8.0.0)
 but Package Y 7.0.0 was resolved</code></pre>
 
 
-
 <p>or:</p>
-
 
 
 <pre class="wp-block-code"><code>The type or namespace name could not be found</code></pre>
 
 
-
 <p>These problems occur when different libraries require different versions of the same dependency.</p>
-
 
 
 <p>This guide explains why NuGet conflicts happen and how to fix them in Visual Studio.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">What is a NuGet Package Conflict?</h1>
 
 
-
 <p>NuGet is the package manager for .NET applications.</p>
-
 
 
 <p>A NuGet package may depend on other packages.</p>
 
 
-
 <p>For example:</p>
-
 
 
 <pre class="wp-block-code"><code>Your Application
@@ -92,9 +72,7 @@ but Package Y 7.0.0 was resolved</code></pre>
  Microsoft.Extensions.Logging 8.0</code></pre>
 
 
-
 <p>Another package may require:</p>
-
 
 
 <pre class="wp-block-code"><code>Your Application
@@ -106,33 +84,25 @@ but Package Y 7.0.0 was resolved</code></pre>
  Microsoft.Extensions.Logging 7.0</code></pre>
 
 
-
 <p>Now NuGet must decide which version should be used.</p>
-
 
 
 <p>This creates a dependency conflict.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Common Causes of NuGet Version Conflicts</h1>
 
 
-
 <h2 class="wp-block-heading">1. Updating .NET Version</h2>
-
 
 
 <p>Example:</p>
 
 
-
 <p>You upgrade your project:</p>
-
 
 
 <pre class="wp-block-code"><code>.NET 7
@@ -140,13 +110,10 @@ but Package Y 7.0.0 was resolved</code></pre>
 .NET 9</code></pre>
 
 
-
 <p>but some packages still support only older versions.</p>
 
 
-
 <p>Example:</p>
-
 
 
 <pre class="wp-block-code"><code>Microsoft.AspNetCore.Components.Web 9.0.17
@@ -156,110 +123,83 @@ requires:
 Microsoft.AspNetCore.Components 9.0.x</code></pre>
 
 
-
 <p>but your project contains:</p>
-
 
 
 <pre class="wp-block-code"><code>Microsoft.AspNetCore.Components 8.0.x</code></pre>
 
 
-
 <p>Result:</p>
-
 
 
 <pre class="wp-block-code"><code>Package downgrade detected</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">2. Installing Incompatible Packages</h2>
 
 
-
 <p>Example:</p>
-
 
 
 <p>You install:</p>
 
 
-
 <pre class="wp-block-code"><code>Package A version 5.0</code></pre>
-
 
 
 <p>and later install:</p>
 
 
-
 <pre class="wp-block-code"><code>Package B version 3.0</code></pre>
-
 
 
 <p>Both depend on different versions of the same library.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">3. Mixing Framework Versions</h2>
 
 
-
 <p>Example:</p>
 
 
-
 <p>Your project:</p>
-
 
 
 <pre class="wp-block-code"><code>Target Framework:
 net9.0</code></pre>
 
 
-
 <p>but package:</p>
-
 
 
 <pre class="wp-block-code"><code>SomeLibrary 6.0</code></pre>
 
 
-
 <p>only supports:</p>
-
 
 
 <pre class="wp-block-code"><code>net6.0</code></pre>
 
 
-
 <p>This can create compatibility issues.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Method 1: Update NuGet Packages from Visual Studio</h1>
-
 
 
 <p>The easiest solution is updating all related packages.</p>
 
 
-
 <p>Open:</p>
-
 
 
 <pre class="wp-block-code"><code>Visual Studio
@@ -271,21 +211,16 @@ NuGet Package Manager
 Manage NuGet Packages for Solution</code></pre>
 
 
-
 <p>Select:</p>
-
 
 
 <pre class="wp-block-code"><code>Updates</code></pre>
 
 
-
 <p>Then update required packages.</p>
 
 
-
 <p>After updating:</p>
-
 
 
 <pre class="wp-block-code"><code>Build
@@ -297,21 +232,16 @@ Build
 Rebuild Solution</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Method 2: Update Package Versions Manually in .csproj</h1>
 
 
-
 <p>Every NuGet package is stored inside your project file.</p>
 
 
-
 <p>Example:</p>
-
 
 
 <pre class="wp-block-code"><code>&lt;ItemGroup&gt;
@@ -322,9 +252,7 @@ Rebuild Solution</code></pre>
 &lt;/ItemGroup&gt;</code></pre>
 
 
-
 <p>Change it to:</p>
-
 
 
 <pre class="wp-block-code"><code>&lt;ItemGroup&gt;
@@ -335,121 +263,91 @@ Rebuild Solution</code></pre>
 &lt;/ItemGroup&gt;</code></pre>
 
 
-
 <p>Save the file.</p>
-
 
 
 <p>Then run:</p>
 
 
-
 <pre class="wp-block-code"><code>dotnet restore</code></pre>
-
 
 
 <p>Visual Studio will download the correct package version.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Method 3: Remove and Reinstall the Problem Package</h1>
 
 
-
 <p>Sometimes package metadata becomes corrupted.</p>
-
 
 
 <p>Steps:</p>
 
 
-
 <p>Open:</p>
-
 
 
 <pre class="wp-block-code"><code>Manage NuGet Packages</code></pre>
 
 
-
 <p>Find the package.</p>
-
 
 
 <p>Click:</p>
 
 
-
 <pre class="wp-block-code"><code>Uninstall</code></pre>
-
 
 
 <p>Then:</p>
 
 
-
 <pre class="wp-block-code"><code>Install</code></pre>
-
 
 
 <p>again.</p>
 
 
-
 <p>Example:</p>
-
 
 
 <pre class="wp-block-code"><code>FluentUI.Blazor</code></pre>
 
 
-
 <p>Remove:</p>
-
 
 
 <pre class="wp-block-code"><code>Version 4.13</code></pre>
 
 
-
 <p>Install:</p>
-
 
 
 <pre class="wp-block-code"><code>Version 4.14</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Method 4: Clear NuGet Cache</h1>
 
 
-
 <p>If Visual Studio still shows old package versions, clear the cache.</p>
-
 
 
 <p>Open Developer Command Prompt:</p>
 
 
-
 <p>Run:</p>
-
 
 
 <pre class="wp-block-code"><code>dotnet nuget locals all --clear</code></pre>
 
 
-
 <p>You should see:</p>
-
 
 
 <pre class="wp-block-code"><code>Clearing NuGet HTTP cache
@@ -457,37 +355,28 @@ Clearing global packages folder
 Clearing temporary cache</code></pre>
 
 
-
 <p>Now restore:</p>
-
 
 
 <pre class="wp-block-code"><code>dotnet restore</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Method 5: Check Dependency Tree</h1>
 
 
-
 <p>You can find which package causes the conflict.</p>
-
 
 
 <p>Run:</p>
 
 
-
 <pre class="wp-block-code"><code>dotnet list package --include-transitive</code></pre>
 
 
-
 <p>Example output:</p>
-
 
 
 <pre class="wp-block-code"><code>YourApp
@@ -503,25 +392,19 @@ Package B
    Microsoft.Extensions.Logging 7.0.0</code></pre>
 
 
-
 <p>Now you know which package creates the conflict.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Real Example: ASP.NET Core Package Upgrade</h1>
-
 
 
 <p>A common situation:</p>
 
 
-
 <p>Before:</p>
-
 
 
 <pre class="wp-block-code"><code>.NET 8 Project
@@ -529,9 +412,7 @@ Package B
 Microsoft.AspNetCore.Components.Web 8.0.17</code></pre>
 
 
-
 <p>After:</p>
-
 
 
 <pre class="wp-block-code"><code>Upgrade to .NET 9
@@ -539,26 +420,20 @@ Microsoft.AspNetCore.Components.Web 8.0.17</code></pre>
 Microsoft.AspNetCore.Components.Web 9.0.17</code></pre>
 
 
-
 <p>But other packages remain:</p>
-
 
 
 <pre class="wp-block-code"><code>Microsoft.Extensions.DependencyInjection 8.0.0
 Microsoft.Extensions.Logging 8.0.0</code></pre>
 
 
-
 <p>Solution:</p>
-
 
 
 <p>Update all Microsoft packages to the same major version.</p>
 
 
-
 <p>Recommended:</p>
-
 
 
 <pre class="wp-block-code"><code>Microsoft.*
@@ -566,9 +441,7 @@ Microsoft.Extensions.Logging 8.0.0</code></pre>
 same version family</code></pre>
 
 
-
 <p>Example:</p>
-
 
 
 <pre class="wp-block-code"><code>9.0.x
@@ -576,9 +449,7 @@ same version family</code></pre>
 9.0.x</code></pre>
 
 
-
 <p>Avoid:</p>
-
 
 
 <pre class="wp-block-code"><code>9.0.x
@@ -586,21 +457,16 @@ same version family</code></pre>
 7.0.x</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Preventing NuGet Conflicts</h1>
 
 
-
 <h2 class="wp-block-heading">Keep packages updated</h2>
 
 
-
 <p>Regularly check:</p>
-
 
 
 <pre class="wp-block-code"><code>Manage NuGet Packages
@@ -608,37 +474,28 @@ same version family</code></pre>
 Updates</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">Avoid unnecessary packages</h2>
 
 
-
 <p>Every extra package increases dependency complexity.</p>
-
 
 
 <p>Install only packages your application needs.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">Use consistent versions</h2>
 
 
-
 <p>For Microsoft packages:</p>
 
 
-
 <p>Good:</p>
-
 
 
 <pre class="wp-block-code"><code>Microsoft.AspNetCore.*
@@ -648,9 +505,7 @@ Microsoft.Extensions.*
 9.0.17</code></pre>
 
 
-
 <p>Avoid mixing:</p>
-
 
 
 <pre class="wp-block-code"><code>Microsoft.AspNetCore.*
@@ -660,85 +515,65 @@ Microsoft.Extensions.*
 8.0</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Conclusion</h1>
 
 
-
 <p>NuGet package conflicts are common in .NET development, especially when upgrading projects or adding new libraries.</p>
 
 
-
 <p>The most effective solutions are:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Update related packages</li>
 
 
-
 <li>Check <code>.csproj</code> versions</li>
-
 
 
 <li>Clear NuGet cache</li>
 
 
-
 <li>Analyze dependency tree</li>
-
 
 
 <li>Keep package versions consistent</li>
 </ul>
 
 
-
 <p>Understanding NuGet dependency management will save hours of debugging in Visual Studio.</p>
 
 
-
 <h2 class="wp-block-heading"><strong>Related articles</strong></h2>
-
 
 
 <ul class="wp-block-list">
 <li><a href="/fix-nu1605-nuget-package-downgrade/" data-type="page" data-id="408">NuGet Package Downgrade Detected: How to Fix NU1605 in Visual Studio</a></li>
 
 
-
 <li><a href="/fix-nu1107-version-conflict-nuget-package/" data-type="page" data-id="418">How to Fix NU1107: Version Conflict Detected for NuGet Package</a></li>
-
 
 
 <li><a href="/how-to-find-nuget-package-causing-dependency-conflict/" data-type="link" data-id="/how-to-find-nuget-package-causing-dependency-conflict/">How to Check Which NuGet Package Is Causing a Dependency Conflict</a></li>
 
 
-
 <li><a href="/direct-vs-transitive-nuget-dependencies/" data-type="page" data-id="433">Direct vs Transitive NuGet Dependencies: What's the Difference?</a></li>
-
 
 
 <li><a href="/update-nuget-packages-safely/" data-type="page" data-id="437">How to Update NuGet Packages Safely in Visual Studio</a></li>
 
 
-
 <li><a href="/package-reference-vs-packages-config/" data-type="page" data-id="441">PackageReference vs packages.config: Which Should You Use?</a></li>
-
 
 
 <li><a href="/central-package-management-dotnet/" data-type="page" data-id="447">How to Use Central Package Management in .NET</a></li>
 
 
-
 <li><a href="/clean-restore-nuget-packages-visual-studio/" data-type="page" data-id="452">How to Clean and Restore NuGet Packages in Visual Studio</a></li>
 </ul>
-
 
 
 <p></p>

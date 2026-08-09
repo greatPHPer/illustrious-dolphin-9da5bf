@@ -27,45 +27,28 @@ html, body {
 </style>
 
 
-
-
-
-
-
-
-
-
-
 <h2 class="wp-block-heading">Introduction</h2>
-
 
 
 <p>Modern .NET applications frequently perform operations that take time, such as reading files, calling APIs, accessing databases, or downloading data. If these operations run synchronously, they can block the application and make it feel slow or unresponsive.</p>
 
 
-
 <p>The <code>async</code> and <code>await</code> keywords allow you to perform long-running operations without blocking the calling thread, resulting in more responsive desktop, web, and mobile applications.</p>
-
 
 
 <p>This guide explains how asynchronous programming works in C#, highlights common mistakes, and shares practical best practices.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">What are async and await?</h1>
 
 
-
 <p>The <code>async</code> keyword marks a method as asynchronous, while <code>await</code> pauses the method until the awaited task completes without blocking the thread.</p>
 
 
-
 <p>Example:</p>
-
 
 
 <pre class="wp-block-code"><code>public async Task LoadDataAsync()
@@ -75,17 +58,13 @@ html, body {
 }</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Why Use Asynchronous Programming?</h1>
 
 
-
 <p>Without async:</p>
-
 
 
 <pre class="wp-block-code"><code>User clicks button
@@ -97,9 +76,7 @@ UI freezes
 Operation completes</code></pre>
 
 
-
 <p>With async:</p>
-
 
 
 <pre class="wp-block-code"><code>User clicks button
@@ -113,17 +90,13 @@ Operation completes
 UI updates</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Understanding Task</h1>
 
 
-
 <p>Most asynchronous methods return a <code>Task</code>.</p>
-
 
 
 <pre class="wp-block-code"><code>public async Task SaveAsync()
@@ -132,9 +105,7 @@ UI updates</code></pre>
 }</code></pre>
 
 
-
 <p>Methods returning a value use <code>Task&lt;T&gt;</code>.</p>
-
 
 
 <pre class="wp-block-code"><code>public async Task&lt;int&gt; GetCountAsync()
@@ -144,86 +115,65 @@ UI updates</code></pre>
 }</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Using await</h1>
-
 
 
 <pre class="wp-block-code"><code>int count = await GetCountAsync();
 Console.WriteLine(count);</code></pre>
 
 
-
 <p>The code waits for the result without blocking the application.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Common Mistake #1 – Using <code>.Result</code></h1>
 
 
-
 <pre class="wp-block-code"><code>var data = GetDataAsync().Result;</code></pre>
-
 
 
 <p>This can cause deadlocks and reduce responsiveness.</p>
 
 
-
 <p>✅ Better:</p>
-
 
 
 <pre class="wp-block-code"><code>var data = await GetDataAsync();</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Common Mistake #2 – Using <code>.Wait()</code></h1>
 
 
-
 <p>Avoid:</p>
-
 
 
 <pre class="wp-block-code"><code>GetDataAsync().Wait();</code></pre>
 
 
-
 <p>Prefer:</p>
-
 
 
 <pre class="wp-block-code"><code>await GetDataAsync();</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Common Mistake #3 – <code>async void</code></h1>
 
 
-
 <p>Avoid except for event handlers.</p>
 
 
-
 <p>Wrong:</p>
-
 
 
 <pre class="wp-block-code"><code>public async void SaveData()
@@ -231,9 +181,7 @@ Console.WriteLine(count);</code></pre>
 }</code></pre>
 
 
-
 <p>Correct:</p>
-
 
 
 <pre class="wp-block-code"><code>public async Task SaveDataAsync()
@@ -241,58 +189,44 @@ Console.WriteLine(count);</code></pre>
 }</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Common Mistake #4 – Forgetting to Await</h1>
 
 
-
 <pre class="wp-block-code"><code>SaveAsync();</code></pre>
-
 
 
 <p>Better:</p>
 
 
-
 <pre class="wp-block-code"><code>await SaveAsync();</code></pre>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Running Multiple Tasks</h1>
 
 
-
 <p>Instead of waiting one after another:</p>
-
 
 
 <pre class="wp-block-code"><code>await Task1();
 await Task2();</code></pre>
 
 
-
 <p>Run them together:</p>
-
 
 
 <pre class="wp-block-code"><code>await Task.WhenAll(Task1(), Task2());</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Exception Handling</h1>
-
 
 
 <pre class="wp-block-code"><code>try
@@ -305,17 +239,13 @@ catch(Exception ex)
 }</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Cancellation Tokens</h1>
 
 
-
 <p>Support cancellation for long-running tasks.</p>
-
 
 
 <pre class="wp-block-code"><code>CancellationTokenSource cts = new();
@@ -323,17 +253,13 @@ catch(Exception ex)
 await Task.Delay(5000, cts.Token);</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Async in ASP.NET Core</h1>
 
 
-
 <p>Controller example:</p>
-
 
 
 <pre class="wp-block-code"><code>public async Task&lt;IActionResult&gt; Index()
@@ -343,13 +269,10 @@ await Task.Delay(5000, cts.Token);</code></pre>
 }</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Async in Blazor</h1>
-
 
 
 <pre class="wp-block-code"><code>protected override async Task OnInitializedAsync()
@@ -358,163 +281,124 @@ await Task.Delay(5000, cts.Token);</code></pre>
 }</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Best Practices</h1>
-
 
 
 <ul class="wp-block-list">
 <li>Return <code>Task</code> instead of <code>void</code>.</li>
 
 
-
 <li>Use <code>await</code> consistently.</li>
-
 
 
 <li>Avoid <code>.Result</code> and <code>.Wait()</code>.</li>
 
 
-
 <li>Run independent tasks in parallel with <code>Task.WhenAll()</code>.</li>
 
 
-
 <li>Support cancellation for long-running operations.</li>
-
 
 
 <li>Give async methods an <code>Async</code> suffix.</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Real-World Use Cases</h1>
 
 
-
 <p>Use asynchronous programming for:</p>
-
 
 
 <ul class="wp-block-list">
 <li>API calls</li>
 
 
-
 <li>Database queries</li>
-
 
 
 <li>File uploads</li>
 
 
-
 <li>Email sending</li>
-
 
 
 <li>Reading large files</li>
 
 
-
 <li>Downloading data</li>
-
 
 
 <li>Cloud storage operations</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Conclusion</h1>
 
 
-
 <p>Asynchronous programming is an essential part of modern C# development. Proper use of <code>async</code> and <code>await</code> keeps applications responsive, improves scalability, and helps avoid common threading issues. By following the best practices in this guide, you can build faster and more reliable .NET applications.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Frequently Asked Questions</h1>
 
 
-
 <h3 class="wp-block-heading">What is the difference between <code>async</code> and <code>await</code>?</h3>
-
 
 
 <p><code>async</code> marks a method as asynchronous, while <code>await</code> waits for a task to complete without blocking the current thread.</p>
 
 
-
 <h3 class="wp-block-heading">Should every async method end with <code>Async</code>?</h3>
-
 
 
 <p>Yes. Microsoft recommends appending the <code>Async</code> suffix to asynchronous methods for clarity.</p>
 
 
-
 <h3 class="wp-block-heading">Is <code>async void</code> ever recommended?</h3>
-
 
 
 <p>Only for event handlers. For all other asynchronous methods, return <code>Task</code> or <code>Task&lt;T&gt;</code>.</p>
 
 
-
 <h3 class="wp-block-heading">When should I use <code>Task.WhenAll()</code>?</h3>
-
 
 
 <p>Use it when multiple independent asynchronous operations can run in parallel to improve performance.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">🔗 Internal Links</h1>
-
 
 
 <ul class="wp-block-list">
 <li><a href="/fix-nuget-package-version-conflicts-visual-studio/" data-type="page" data-id="277">How to Fix NuGet Package Version Conflicts in Visual Studio</a></li>
 
 
-
 <li><a href="/aspnet-core-dependency-injection-explained/" data-type="page" data-id="300">ASP.NET Core Dependency Injection Explained with Examples</a></li>
-
 
 
 <li><a href="/blazor-javascript-interop-a-practical-guide/" data-type="page" data-id="308">Blazor JavaScript Interop: A Practical Guide</a></li>
 
 
-
 <li><a href="/signalr-aspnet-core-blazor-guide/" data-type="page" data-id="327">SignalR in ASP.NET Core and Blazor: Build Real-Time Applications</a></li>
-
 
 
 <li><a href="/csharp-tutorials/" data-type="page" data-id="247">C# Tutorials</a></li>
 </ul>
-
 
 
 <p></p>

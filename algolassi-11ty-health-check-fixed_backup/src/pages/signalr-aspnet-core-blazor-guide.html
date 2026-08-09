@@ -27,57 +27,37 @@ html, body {
 </style>
 
 
-
-
-
-
-
-
-
-
-
 <h2 class="wp-block-heading">Introduction</h2>
-
 
 
 <p>Modern web applications often need to update information instantly without requiring users to refresh the page. Examples include chat systems, live dashboards, stock prices, order tracking, notifications, and collaborative editing.</p>
 
 
-
 <p>ASP.NET Core SignalR makes this possible by providing real-time communication between the server and connected clients.</p>
-
 
 
 <p>In this guide, you'll learn how SignalR works, how to create hubs, connect Blazor clients, and implement real-time features.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">What is SignalR?</h1>
 
 
-
 <p>SignalR is a real-time communication library for ASP.NET Core.</p>
-
 
 
 <p>It enables the server to send updates to connected clients immediately.</p>
 
 
-
 <p>Instead of repeatedly asking the server for new information (polling), clients receive updates as soon as they happen.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">How SignalR Works</h1>
-
 
 
 <pre class="wp-block-code"><code>Blazor Client
@@ -92,79 +72,60 @@ ASP.NET Core Server
 Database / Services</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">When Should You Use SignalR?</h1>
 
 
-
 <p>SignalR is ideal for:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Live chat applications</li>
 
 
-
 <li>Real-time dashboards</li>
-
 
 
 <li>Notifications</li>
 
 
-
 <li>Progress bars</li>
-
 
 
 <li>Order tracking</li>
 
 
-
 <li>Live reports</li>
 
 
-
 <li>Collaborative editing</li>
-
 
 
 <li>IoT monitoring</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Installing SignalR</h1>
 
 
-
 <p>Install the required package:</p>
-
 
 
 <pre class="wp-block-code"><code>dotnet add package Microsoft.AspNetCore.SignalR</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Creating a SignalR Hub</h1>
 
 
-
 <p>Example:</p>
-
 
 
 <pre class="wp-block-code"><code>using Microsoft.AspNetCore.SignalR;
@@ -178,21 +139,16 @@ public class ChatHub : Hub
 }</code></pre>
 
 
-
 <p>The hub acts as the communication endpoint between the server and clients.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Registering SignalR</h1>
 
 
-
 <p>In <code>Program.cs</code>:</p>
-
 
 
 <pre class="wp-block-code"><code>builder.Services.AddSignalR();
@@ -200,25 +156,19 @@ public class ChatHub : Hub
 app.MapHub&lt;ChatHub&gt;("/chatHub");</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Connecting from a Blazor Client</h1>
 
 
-
 <p>Install:</p>
-
 
 
 <pre class="wp-block-code"><code>dotnet add package Microsoft.AspNetCore.SignalR.Client</code></pre>
 
 
-
 <p>Create a connection:</p>
-
 
 
 <pre class="wp-block-code"><code>hubConnection = new HubConnectionBuilder()
@@ -227,21 +177,16 @@ app.MapHub&lt;ChatHub&gt;("/chatHub");</code></pre>
     .Build();</code></pre>
 
 
-
 <p>Start it:</p>
-
 
 
 <pre class="wp-block-code"><code>await hubConnection.StartAsync();</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Receiving Messages</h1>
-
 
 
 <pre class="wp-block-code"><code>hubConnection.On&lt;string, string&gt;(
@@ -253,13 +198,10 @@ app.MapHub&lt;ChatHub&gt;("/chatHub");</code></pre>
     });</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Sending Messages</h1>
-
 
 
 <pre class="wp-block-code"><code>await hubConnection.InvokeAsync(
@@ -268,17 +210,13 @@ app.MapHub&lt;ChatHub&gt;("/chatHub");</code></pre>
     message);</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Connection Lifecycle</h1>
 
 
-
 <p>Handle connection events:</p>
-
 
 
 <pre class="wp-block-code"><code>hubConnection.Reconnecting += error =&gt;
@@ -298,21 +236,16 @@ hubConnection.Closed += error =&gt;
 };</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Authentication with SignalR</h1>
 
 
-
 <p>SignalR supports authenticated users.</p>
 
 
-
 <p>Example:</p>
-
 
 
 <pre class="wp-block-code"><code>&#91;Authorize]
@@ -321,241 +254,184 @@ public class ChatHub : Hub
 }</code></pre>
 
 
-
 <p>This allows you to send messages only to authenticated users.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Broadcasting to Specific Users</h1>
-
 
 
 <p>Send to everyone:</p>
 
 
-
 <pre class="wp-block-code"><code>await Clients.All.SendAsync(...);</code></pre>
 
 
-
 <p>Send to one user:</p>
-
 
 
 <pre class="wp-block-code"><code>await Clients.User(userId)
 .SendAsync(...);</code></pre>
 
 
-
 <p>Send to a group:</p>
-
 
 
 <pre class="wp-block-code"><code>await Clients.Group("Sales")
 .SendAsync(...);</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Common Errors</h1>
 
 
-
 <h2 class="wp-block-heading">Hub Connection Failed</h2>
 
 
-
 <p>Usually caused by:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Wrong hub URL</li>
 
 
-
 <li>CORS configuration</li>
-
 
 
 <li>HTTPS mismatch</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">WebSocket Connection Closed</h2>
 
 
-
 <p>Possible reasons:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Proxy issues</li>
 
 
-
 <li>Firewall</li>
-
 
 
 <li>Idle timeout</li>
 </ul>
 
 
-
 <p>SignalR automatically falls back to other transports if WebSockets are unavailable.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">Hub Method Not Found</h2>
 
 
-
 <p>Check:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Method names</li>
 
 
-
 <li>Parameter types</li>
-
 
 
 <li>Client and server versions</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Best Practices</h1>
-
 
 
 <ul class="wp-block-list">
 <li>Use <code>WithAutomaticReconnect()</code></li>
 
 
-
 <li>Dispose hub connections properly</li>
-
 
 
 <li>Keep hub methods lightweight</li>
 
 
-
 <li>Validate user input</li>
 
 
-
 <li>Secure hubs with authentication and authorization</li>
-
 
 
 <li>Use groups instead of broadcasting to all users when appropriate</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Real-World Use Cases</h1>
 
 
-
 <p>SignalR is commonly used for:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Customer support chat</li>
 
 
-
 <li>Live production dashboards</li>
-
 
 
 <li>Monitoring manufacturing systems</li>
 
 
-
 <li>Instant notifications</li>
 
 
-
 <li>Live stock updates</li>
-
 
 
 <li>Online collaboration tools</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">Conclusion</h1>
 
 
-
 <p>SignalR enables developers to build responsive, real-time applications with minimal effort. Combined with Blazor, it provides an excellent framework for creating dashboards, chat systems, notifications, and other interactive features that update instantly.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h1 class="wp-block-heading">Frequently Asked Questions</h1>
-
 
 
 <h3 class="wp-block-heading">What is SignalR used for?</h3>
 
 
-
 <p>SignalR enables real-time communication between ASP.NET Core servers and connected clients.</p>
-
 
 
 <h3 class="wp-block-heading">Does SignalR use WebSockets?</h3>
 
 
-
 <p>Yes. SignalR prefers WebSockets and automatically falls back to other transports if necessary.</p>
 
 
-
 <h3 class="wp-block-heading">Can Blazor use SignalR?</h3>
-
 
 
 <p>Yes. Both Blazor Server and Blazor WebAssembly can communicate with SignalR hubs to receive and send real-time updates.</p>
