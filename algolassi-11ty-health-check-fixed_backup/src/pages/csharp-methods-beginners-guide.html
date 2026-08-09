@@ -1,0 +1,31 @@
+---
+title: "C# Methods for Beginners"
+layout: layouts/base.njk
+permalink: "/csharp-methods-beginners-guide/"
+contentType: "page"
+---
+<h1>C# Methods for Beginners</h1>
+<p>A method is a named block of code that performs a task. Methods make programs easier to read, test, and reuse.</p>
+<h2>A simple method</h2>
+<pre><code>static void SayHello()
+{
+    Console.WriteLine("Hello!");
+}
+
+SayHello();</code></pre>
+<h2>Parameters</h2>
+<pre><code>static void Greet(string name)
+{
+    Console.WriteLine($"Hello, {name}!");
+}
+
+Greet("Ravi");</code></pre>
+<h2>Return values</h2>
+<pre><code>static int Add(int a, int b)
+{
+    return a + b;
+}
+
+int result = Add(10, 20);</code></pre>
+<p>Start with small methods that do one clear job. Later, methods become the building blocks of classes and larger applications.</p>
+<p>Continue with the <a href="/csharp-tutorials/">C# Tutorials pillar</a> when you are ready for deeper topics.</p>

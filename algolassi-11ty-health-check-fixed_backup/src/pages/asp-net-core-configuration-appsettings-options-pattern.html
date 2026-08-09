@@ -1,0 +1,64 @@
+---
+title: "ASP.NET Core Configuration: appsettings.json, Environment Variables and Options Pattern"
+layout: layouts/base.njk
+permalink: "/asp-net-core-configuration-appsettings-options-pattern/"
+contentType: "page"
+description: "Learn how ASP.NET Core configuration works with appsettings.json, environment variables and strongly typed options."
+---
+
+# ASP.NET Core Configuration: appsettings.json, Environment Variables and Options Pattern
+
+ASP.NET Core applications commonly receive configuration from JSON files, environment variables, command-line arguments, user secrets, and other providers.
+
+## appsettings.json
+
+A simple configuration file might contain:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=Demo;Trusted_Connection=True;"
+  },
+  "Application": {
+    "Name": "Algolassi"
+  }
+}
+```
+
+Do not place production passwords or secrets in a file that is committed to source control.
+
+## Environment-specific configuration
+
+ASP.NET Core can load environment-specific files such as `appsettings.Development.json`. This makes local development settings separate from production settings.
+
+## Environment variables
+
+Environment variables are useful for deployment configuration and secrets supplied by the hosting environment.
+
+## Options pattern
+
+For related settings, strongly typed options are easier to consume than repeatedly reading string keys.
+
+```csharp
+public class ApplicationOptions
+{
+    public string Name { get; set; } = "";
+}
+```
+
+Registration can bind the section to the class:
+
+```csharp
+builder.Services.Configure<ApplicationOptions>(
+    builder.Configuration.GetSection("Application"));
+```
+
+A service can then receive `IOptions<ApplicationOptions>`.
+
+## Practical advice
+
+Keep configuration names consistent, validate important options at startup, and keep secrets out of source-controlled JSON files.
+
+## Summary
+
+ASP.NET Core's configuration system combines multiple providers into one configuration view. Use JSON for ordinary settings, environment-specific files for environment differences, environment variables or secret stores for sensitive deployment values, and the Options pattern for clean strongly typed access.

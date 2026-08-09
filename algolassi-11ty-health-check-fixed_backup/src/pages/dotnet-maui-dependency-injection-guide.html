@@ -1,0 +1,45 @@
+---
+title: ".NET MAUI Dependency Injection: Register and Use Services"
+layout: layouts/base.njk
+permalink: "/dotnet-maui-dependency-injection-guide/"
+contentType: "page"
+description: "Learn how dependency injection works in .NET MAUI applications, how to register services, and how to inject them into pages and view models."
+date: "2026-08-09T10:45:00"
+---
+
+<h1>.NET MAUI Dependency Injection: Register and Use Services</h1>
+<p>.NET MAUI includes the .NET dependency injection container, making it straightforward to register application services and inject them into pages, view models, and other components.</p>
+
+<h2>Register a Service</h2>
+<pre><code>builder.Services.AddSingleton&lt;ISettingsService, SettingsService&gt;();
+builder.Services.AddTransient&lt;MainViewModel&gt;();</code></pre>
+<p>Use singleton lifetime for genuinely shared state or stateless services that can safely be shared. Use transient or scoped patterns according to the lifetime needs of the application.</p>
+
+<h2>Inject Into a Page</h2>
+<pre><code>public partial class MainPage : ContentPage
+{
+    private readonly ISettingsService settings;
+
+    public MainPage(ISettingsService settings)
+    {
+        InitializeComponent();
+        this.settings = settings;
+    }
+}</code></pre>
+
+<h2>Constructor Injection Is Preferred</h2>
+<p>Constructor injection makes dependencies explicit and allows the container to validate the object graph when resolving the page.</p>
+
+<h2>Register Pages Too</h2>
+<p>If a page has constructor dependencies, register the page or ensure the navigation mechanism resolves it through the service provider.</p>
+
+<h2>Keep Platform Code Isolated</h2>
+<p>Services that depend on Android, iOS, Windows, or MacCatalyst APIs can be hidden behind interfaces. This keeps shared application logic easier to test and maintain.</p>
+
+<h2>Common Mistakes</h2>
+<ul><li>Creating service instances manually with <code>new</code> everywhere.</li><li>Using singleton lifetime for mutable per-user state without considering concurrency.</li><li>Registering an interface but requesting a different implementation type.</li><li>Putting too much application state into one global singleton.</li></ul>
+
+<h2>Conclusion</h2>
+<p>Dependency injection is one of the simplest ways to keep a MAUI application modular. Register services centrally, inject dependencies through constructors, and choose lifetimes based on ownership and state requirements.</p>
+
+<p><a href="/net-maui-tutorials/">Back to .NET MAUI Tutorials</a></p>

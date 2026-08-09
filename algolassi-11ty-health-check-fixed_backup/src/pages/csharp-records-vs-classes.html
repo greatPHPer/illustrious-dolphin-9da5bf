@@ -1,0 +1,103 @@
+---
+title: "C# Records vs Classes: What's the Difference?"
+layout: layouts/base.njk
+permalink: "/csharp-records-vs-classes/"
+date: "2026-08-09T06:30:00"
+description: "Learn the practical differences between C# records and classes, including value-based equality, immutability, with expressions, and when to use each."
+---
+
+<h1>C# Records vs Classes: What's the Difference?</h1>
+
+<p>C# records and classes can both represent objects, but they are designed with different goals. Classes are the traditional choice for objects with identity and mutable state, while records are especially useful for data-centric models where value-based equality is important.</p>
+
+<hr>
+
+<h2>🏷️ A Simple Class</h2>
+
+<pre><code>public class Customer
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}</code></pre>
+
+<p>Two class instances are normally compared by reference unless equality is explicitly implemented.</p>
+
+<hr>
+
+<h2>📦 A Simple Record</h2>
+
+<pre><code>public record Customer(string Name, int Age);</code></pre>
+
+<p>Records provide compiler-generated value-oriented equality based on their data.</p>
+
+<pre><code>var a = new Customer("Dhilip", 31);
+var b = new Customer("Dhilip", 31);
+
+Console.WriteLine(a == b); // True</code></pre>
+
+<hr>
+
+<h2>⚖️ Equality Is the Big Difference</h2>
+
+<p>For many record scenarios, two objects containing the same values are considered equal. A normal class does not behave that way by default.</p>
+
+<pre><code>public class Product
+{
+    public int Id { get; set; }
+}
+
+var p1 = new Product { Id = 10 };
+var p2 = new Product { Id = 10 };
+
+Console.WriteLine(p1 == p2); // False</code></pre>
+
+<hr>
+
+<h2>🔄 Non-Destructive Updates with with</h2>
+
+<p>Records work particularly well with the <code>with</code> expression:</p>
+
+<pre><code>var original = new Customer("Dhilip", 31);
+var updated = original with { Age = 32 };</code></pre>
+
+<p>The original record remains unchanged while a new value is produced.</p>
+
+<hr>
+
+<h2>🧊 Records and Immutability</h2>
+
+<p>Records are not automatically immutable in every possible form, but positional records naturally encourage immutable-style models.</p>
+
+<pre><code>public record Customer(string Name, int Age);</code></pre>
+
+<p>This is particularly convenient for DTOs, messages, configuration snapshots, and other data-transfer scenarios.</p>
+
+<hr>
+
+<h2>🧩 When Should You Use a Class?</h2>
+
+<ul>
+<li>The object has a strong identity.</li>
+<li>The object changes state frequently.</li>
+<li>You need inheritance or object-oriented behavior.</li>
+<li>Reference identity is meaningful.</li>
+<li>The object represents an entity managed by a lifecycle.</li>
+</ul>
+
+<h2>🎯 When Should You Use a Record?</h2>
+
+<ul>
+<li>The object mainly represents data.</li>
+<li>Value-based equality is useful.</li>
+<li>You prefer immutable-style models.</li>
+<li>You are representing commands, events, or DTOs.</li>
+<li>You want convenient non-destructive updates.</li>
+</ul>
+
+<hr>
+
+<h2>🧠 Quick Rule</h2>
+
+<p><strong>If identity matters, start by considering a class. If the values are the important part, consider a record.</strong></p>
+
+<p>For more C# fundamentals, visit <a href="/csharp-tutorials/">💻 C# Tutorials</a>.</p>

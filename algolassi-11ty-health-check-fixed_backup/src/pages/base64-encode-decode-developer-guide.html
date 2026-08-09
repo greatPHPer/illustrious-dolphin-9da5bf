@@ -1,0 +1,36 @@
+---
+title: "Base64 Encode and Decode: What Developers Should Know"
+layout: layouts/base.njk
+permalink: "/base64-encode-decode-developer-guide/"
+contentType: "page"
+description: "Understand Base64 encoding and decoding, common use cases, URL-safe Base64, and why Base64 is not encryption."
+date: "2026-08-09T10:35:00"
+---
+
+<h1>Base64 Encode and Decode: What Developers Should Know</h1>
+<p>Base64 converts binary data into a text representation using a limited character set. Developers commonly encounter it in data URLs, email attachments, tokens, configuration values, and API payloads.</p>
+
+<h2>Why Base64 Exists</h2>
+<p>Some systems are designed primarily for text. Base64 provides a way to represent arbitrary bytes using characters that are easier to transport through text-oriented protocols.</p>
+
+<h2>JavaScript Example</h2>
+<pre><code>const encoded = btoa("Algolassi");
+const decoded = atob(encoded);</code></pre>
+<p>For Unicode text and arbitrary binary data, use APIs that correctly handle UTF-8 and byte arrays rather than assuming every string is ASCII.</p>
+
+<h2>Base64 Is Not Encryption</h2>
+<p>Anyone with the encoded value can decode it. Base64 provides representation, not confidentiality. Secrets, passwords, and private information should not be protected merely by Base64 encoding.</p>
+
+<h2>URL-Safe Base64</h2>
+<p>Some systems replace characters that have special meaning in URLs and may remove padding. Always follow the encoding convention expected by the receiving system.</p>
+
+<h2>Common Uses</h2>
+<ul><li>Embedding small images or files in data URLs.</li><li>Transporting binary values through text protocols.</li><li>Representing authentication-related data in established standards.</li><li>Encoding configuration values where a text representation is convenient.</li></ul>
+
+<h2>Common Mistakes</h2>
+<ul><li>Treating Base64 as encryption.</li><li>Confusing standard Base64 with URL-safe variants.</li><li>Ignoring Unicode and binary data handling.</li><li>Putting very large files into Base64 and unnecessarily increasing payload size.</li></ul>
+
+<h2>Conclusion</h2>
+<p>Base64 is a transport and representation technique. It is useful, simple, and widely supported, but it should never be presented as a security mechanism.</p>
+
+<p><a href="/tutorials/">Back to Algolassi Tutorials</a></p>

@@ -1,0 +1,76 @@
+---
+title: "Dependency Injection in .NET MAUI: A Practical Guide"
+layout: layouts/base.njk
+permalink: "/dotnet-maui-dependency-injection-explained/"
+contentType: "page"
+description: "Learn how dependency injection works in .NET MAUI, how to register services in MauiProgram.cs, and how to consume them from pages and view models."
+---
+
+<h1>Dependency Injection in .NET MAUI</h1>
+
+<p>Dependency injection (DI) is one of the most useful patterns in a growing .NET MAUI application. Instead of creating services directly inside every page, you register them once and let the built-in service container provide the required objects.</p>
+
+<h2>Why Use Dependency Injection?</h2>
+
+<p>Without DI, a page can become tightly coupled to concrete service implementations. DI makes those dependencies explicit and makes applications easier to test, maintain, and extend.</p>
+
+<h2>Register a Service</h2>
+
+<p>Service registration normally happens in <code>MauiProgram.cs</code>.</p>
+
+<pre><code>builder.Services.AddSingleton&lt;ISettingsService, SettingsService&gt;();
+builder.Services.AddTransient&lt;LoginViewModel&gt;();</code></pre>
+
+<p>Use <strong>Singleton</strong> for services that should have one instance for the application's lifetime, <strong>Transient</strong> when a new instance is appropriate each time, and <strong>Scoped</strong> only when your application's architecture provides a meaningful scope.</p>
+
+<h2>Inject a Service into a Page</h2>
+
+<p>A MAUI page can receive a registered service through its constructor.</p>
+
+<pre><code>public partial class MainPage : ContentPage
+{
+    private readonly ISettingsService _settings;
+
+    public MainPage(ISettingsService settings)
+    {
+        InitializeComponent();
+        _settings = settings;
+    }
+}</code></pre>
+
+<h2>Inject Services into View Models</h2>
+
+<p>Constructor injection is particularly useful with MVVM because the view model can depend on interfaces rather than concrete implementations.</p>
+
+<pre><code>public class MainViewModel
+{
+    private readonly ISettingsService _settings;
+
+    public MainViewModel(ISettingsService settings)
+    {
+        _settings = settings;
+    }
+}</code></pre>
+
+<h2>Choosing a Lifetime</h2>
+
+<ul>
+<li><strong>Singleton:</strong> useful for application-wide state and reusable services.</li>
+<li><strong>Transient:</strong> useful for lightweight objects where each request should receive a new instance.</li>
+<li><strong>Scoped:</strong> use carefully and understand the scope created by the hosting architecture.</li>
+</ul>
+
+<h2>Common DI Mistakes</h2>
+
+<ul>
+<li>Forgetting to register a service before injecting it.</li>
+<li>Registering state as transient when it must survive across pages.</li>
+<li>Putting too much global mutable state into singletons.</li>
+<li>Depending on concrete classes everywhere instead of useful interfaces.</li>
+</ul>
+
+<h2>Conclusion</h2>
+
+<p>Dependency injection gives a .NET MAUI application a clean way to manage services and application dependencies. Start with constructor injection and sensible service lifetimes, then introduce interfaces and MVVM as the application grows.</p>
+
+<p>Continue with the <a href="/net-maui-tutorials/">.NET MAUI Tutorials</a> roadmap for navigation, MVVM, local storage, APIs, and Blazor Hybrid.</p>

@@ -1,0 +1,34 @@
+---
+title: ".NET MAUI Blazor Hybrid: How the Architecture Works"
+layout: layouts/base.njk
+permalink: "/dotnet-maui-blazor-hybrid-architecture/"
+contentType: "page"
+description: "Understand the .NET MAUI Blazor Hybrid architecture, how Razor components run inside the native app, and how shared services connect the UI to native features."
+date: "2026-08-09T10:55:00"
+---
+
+<h1>.NET MAUI Blazor Hybrid: How the Architecture Works</h1>
+<p>Blazor Hybrid combines a native .NET MAUI application with Razor components. Unlike Blazor WebAssembly, the Razor components in a Hybrid application run inside the native application process and render through a platform WebView.</p>
+
+<h2>Basic Architecture</h2>
+<ul><li><strong>MAUI host:</strong> owns the native application lifecycle.</li><li><strong>BlazorWebView:</strong> hosts the Razor UI.</li><li><strong>Razor components:</strong> provide reusable interactive UI.</li><li><strong>.NET services:</strong> can be shared between native and Razor layers.</li><li><strong>Platform APIs:</strong> expose device-specific capabilities.</li></ul>
+
+<h2>Why Use Hybrid?</h2>
+<p>Hybrid is useful when an application needs a rich Razor UI but also needs native capabilities such as local storage, device APIs, desktop integration, or mobile features.</p>
+
+<h2>Dependency Injection</h2>
+<p>Shared services can be registered with the MAUI application's dependency injection container and injected into Razor components. This allows authentication, configuration, API clients, and application state to be centralized.</p>
+
+<h2>JavaScript Interop</h2>
+<p>Blazor components can use JavaScript interop for browser-side behavior inside the WebView. Keep interop calls isolated so that platform-specific details do not leak into every component.</p>
+
+<h2>State Management</h2>
+<p>Be deliberate about service lifetimes. Shared mutable state stored in a singleton can be convenient, but it also needs clear ownership and synchronization. Refreshing a page or restarting the native process may change what state survives.</p>
+
+<h2>Common Mistakes</h2>
+<ul><li>Assuming Hybrid behaves exactly like Blazor Server.</li><li>Putting every native operation directly inside Razor components.</li><li>Using global mutable state without defining its lifetime.</li><li>Forgetting to dispose long-lived event subscriptions or JavaScript resources.</li></ul>
+
+<h2>Conclusion</h2>
+<p>.NET MAUI Blazor Hybrid is a strong option when you want reusable Razor UI together with native application capabilities. A clean separation between UI, services, native integrations, and state management keeps the project maintainable as it grows.</p>
+
+<p><a href="/net-maui-tutorials/">Back to .NET MAUI Tutorials</a></p>

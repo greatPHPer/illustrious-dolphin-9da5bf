@@ -1,0 +1,48 @@
+---
+title: "Visual Studio Debugging: Breakpoints, Watch, Locals and Immediate Window"
+layout: layouts/base.njk
+permalink: "/visual-studio-debugging-breakpoints-watch-immediate/"
+contentType: "page"
+description: "Use Visual Studio debugging tools effectively with breakpoints, Watch, Locals, Call Stack and the Immediate Window."
+---
+
+# Visual Studio Debugging: Breakpoints, Watch, Locals and Immediate Window
+
+Effective debugging is usually faster than repeatedly changing code and guessing what happened. Visual Studio provides several tools for inspecting program execution.
+
+## Breakpoints
+
+A breakpoint pauses execution before a selected line runs. Conditional breakpoints are useful when you only want to stop for a particular value or condition.
+
+## Locals window
+
+The Locals window shows variables that are in scope at the current execution point. It is useful for quickly checking the state of the current method.
+
+## Watch window
+
+Watch expressions let you monitor specific variables or expressions while stepping through code.
+
+## Call Stack
+
+The Call Stack shows how execution reached the current method. When an exception occurs deep inside a service, the call stack often provides the quickest route back to the original caller.
+
+## Immediate Window
+
+The Immediate Window can evaluate expressions during a debugging session, making it useful for inspecting values without temporarily adding logging statements.
+
+## Step through deliberately
+
+Use Step Over when you want to execute the current method call without entering it, and Step Into when you need to inspect the called method. Step Out returns from the current method.
+
+## Practical debugging workflow
+
+1. Reproduce the problem.
+2. Set a breakpoint near the suspicious behavior.
+3. Inspect inputs and local state.
+4. Follow the call stack.
+5. Step through only the relevant code.
+6. Confirm the root cause before changing the implementation.
+
+## Summary
+
+Visual Studio's debugger is most effective when you use it to observe program state and execution flow. Breakpoints, Watch, Locals, Call Stack, and the Immediate Window together can turn a vague bug into a concrete state transition that can be fixed confidently.

@@ -24,221 +24,22 @@ html, body {
     -ms-overflow-style: none !important;
     scrollbar-width: none !important;
 }
-
-/* Breadcrumb */
-.breadcrumb {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    font-size: 15px;
-    line-height: 1.5;
-}
-
-/* Current page in breadcrumb */
-.breadcrumb > a:last-child,
-.breadcrumb > a:last-child:visited {
-    color: #0056b3;
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.breadcrumb > a:last-child:hover {
-    color: #004494;
-    text-decoration: underline;
-}
-
-/* Trigger */
-.crumb-trigger {
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-}
-
-/* Dropdown */
-.crumb-teleport-menu {
-    display: none;
-    position: fixed;
-    background: #ffffff;
-    min-width: 260px;
-    max-width: 320px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    box-shadow: 0 8px 20px rgba(0,0,0,.20);
-    padding: 4px 0;
-    z-index: 9999999 !important;
-}
-
-.crumb-teleport-menu a {
-    display: block;
-    padding: 7px 12px;
-    text-decoration: none;
-    color: #333;
-    font-size: 13px;
-    line-height: 1.3;
-}
-
-.crumb-teleport-menu a:hover {
-    background: #f2f2f2;
-}
-
-.crumb-current{
-    background:#e8f3ff;
-    color:#0d6efd !important;
-    font-weight:600;
-}
-
-.crumb-current:hover{
-    background:#d8ebff !important;
-}
 </style>
-
-<div class="breadcrumb">
-
-    <span class="crumb-trigger" data-menu="home">
-        <a href="/">🏠 Home ▼</a>
-    </span>
-
-    &gt;
-
-    <span class="crumb-trigger" data-menu="tutorials">
-        <a href="/tutorials/">📚 Tutorials ▼</a>
-    </span>
-
-    &gt;
-
-    <span class="crumb-trigger" data-menu="sqlserver">
-        <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials ▼</a>
-    </span>
-
-    &gt;
-
-    <a href="/sql-server-cte-vs-temporary-tables/">
-        📊 SQL Server CTE vs Temporary Tables: When to Use Each
-    </a>
-
-</div>
-
-<!-- Home Menu -->
-<div class="crumb-teleport-menu" id="menu-home">
-
-    <a href="/tutorials/">📚 Tutorials</a>
-    <a href="/about-algolassi/">🌟 About Algolassi</a>
-    <a href="/197-2/">💼 Portfolio</a>
-    <a href="/contact-algolassi/">📧 Contact</a>
-
-</div>
-
-<!-- Tutorials Menu -->
-<div class="crumb-teleport-menu" id="menu-tutorials">
-
-    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
-    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
-    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
-    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
-    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
-    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
-    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
-
-</div>
-
-<!-- SQL Server Menu -->
-<div class="crumb-teleport-menu" id="menu-sqlserver">
-
-    <a href="/sql-server-cte-vs-temporary-tables/" class="crumb-current">
-        📊 SQL Server CTE vs Temporary Tables: When to Use Each
-    </a>
-
-    <a href="/sql-server-indexing-explained/">
-        🚀 SQL Server Indexing Explained: Improve Query Performance
-    </a>
-
-</div>
-
-<script>
-(function () {
-
-    const triggers = document.querySelectorAll('.crumb-trigger');
-
-    triggers.forEach(trigger => {
-
-        const menuName = trigger.dataset.menu;
-        const menu = document.getElementById("menu-" + menuName);
-
-        if (!menu) return;
-
-        document.body.appendChild(menu);
-
-        function updatePosition() {
-
-            const rect = trigger.getBoundingClientRect();
-
-            menu.style.left = rect.left + "px";
-            menu.style.top = (rect.bottom + 5) + "px";
-
-        }
-
-        function showMenu() {
-
-            updatePosition();
-
-            document
-                .querySelectorAll(".crumb-teleport-menu")
-                .forEach(m => m.style.display = "none");
-
-            menu.style.display = "block";
-
-        }
-
-        function hideMenu() {
-
-            setTimeout(() => {
-
-                if (!trigger.matches(":hover") &&
-                    !menu.matches(":hover")) {
-
-                    menu.style.display = "none";
-
-                }
-
-            },100);
-
-        }
-
-        trigger.addEventListener("mouseenter",showMenu);
-        trigger.addEventListener("mouseleave",hideMenu);
-
-        menu.addEventListener("mouseenter",showMenu);
-        menu.addEventListener("mouseleave",hideMenu);
-
-        window.addEventListener("resize",updatePosition);
-        window.addEventListener("scroll",updatePosition,true);
-
-    });
-
-})();
-</script>
-
 
 
 <h2 class="wp-block-heading">Introduction</h2>
 
 
-
 <p>Explain why developers often confuse CTEs and temporary tables and when each should be used.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">What is a CTE?</h2>
 
 
-
 <p>Explain syntax with example.</p>
-
 
 
 <pre class="wp-block-code"><code>WITH EmployeeCTE AS
@@ -250,17 +51,13 @@ SELECT *
 FROM EmployeeCTE;</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">What is a Temporary Table?</h2>
 
 
-
 <p>Example:</p>
-
 
 
 <pre class="wp-block-code"><code>CREATE TABLE #Employees
@@ -277,250 +74,191 @@ SELECT *
 FROM #Employees;</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">Key Differences</h2>
 
 
-
 <p>Create a comparison table.</p>
-
 
 
 <figure class="wp-block-table"><table class="has-fixed-layout"><thead><tr><th>Feature</th><th>CTE</th><th>Temporary Table</th></tr></thead><tbody><tr><td>Stored</td><td>No</td><td>Yes</td></tr><tr><td>Scope</td><td>Single statement</td><td>Session</td></tr><tr><td>Indexes</td><td>No</td><td>Yes</td></tr><tr><td>Statistics</td><td>No</td><td>Yes</td></tr><tr><td>Multiple reuse</td><td>No</td><td>Yes</td></tr></tbody></table></figure>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">Performance Comparison</h2>
 
 
-
 <p>Explain:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Small datasets</li>
 
 
-
 <li>Large datasets</li>
 
 
-
 <li>Recursive queries</li>
-
 
 
 <li>Multiple joins</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">When to Use CTE</h2>
 
 
-
 <p>Examples:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Recursive hierarchy</li>
 
 
-
 <li>Readability</li>
 
 
-
 <li>One-time query</li>
-
 
 
 <li>Breaking complex SQL</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">When to Use Temporary Tables</h2>
 
 
-
 <p>Examples:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Large datasets</li>
 
 
-
 <li>Multiple joins</li>
 
 
-
 <li>Stored procedures</li>
-
 
 
 <li>Multiple query reuse</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">Recursive CTE Example</h2>
 
 
-
 <p>Employee hierarchy example.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">Temporary Table Example</h2>
 
 
-
 <p>Monthly sales report.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">Common Mistakes</h2>
-
 
 
 <ul class="wp-block-list">
 <li>Using CTE repeatedly in large queries</li>
 
 
-
 <li>Forgetting to drop temp tables (optional; local temp tables are dropped automatically at session end, but explicit cleanup can still be good practice)</li>
 
 
-
 <li>Choosing temp tables for tiny datasets</li>
-
 
 
 <li>Assuming CTEs improve performance</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">Best Practices</h2>
-
 
 
 <ul class="wp-block-list">
 <li>Use CTEs for readability</li>
 
 
-
 <li>Use temp tables for reuse</li>
 
 
-
 <li>Test execution plans</li>
-
 
 
 <li>Index temp tables when needed</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">Conclusion</h2>
 
 
-
 <p>Summarize the trade-offs and emphasize choosing based on workload rather than preference.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">FAQ</h2>
-
 
 
 <ul class="wp-block-list">
 <li>Is a CTE faster than a temp table?</li>
 
 
-
 <li>Can a CTE be indexed?</li>
 
 
-
 <li>Can I join a CTE?</li>
-
 
 
 <li>When should I use temp tables?</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">🔗 Internal Links</h2>
 
 
-
 <p>Link to:</p>
-
 
 
 <ul class="wp-block-list">
 <li>C# Tutorials</li>
 
 
-
 <li>ASP.NET Core Tutorials</li>
 
 
-
 <li>Visual Studio Tutorials</li>
-
 
 
 <li>SQL Server Tutorials</li>

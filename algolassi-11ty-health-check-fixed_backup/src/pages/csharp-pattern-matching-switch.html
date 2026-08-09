@@ -1,0 +1,54 @@
+---
+title: "C# Pattern Matching with switch: A Practical Guide"
+layout: layouts/base.njk
+permalink: "/csharp-pattern-matching-switch/"
+date: "2026-08-09T06:45:00"
+description: "Learn modern C# pattern matching with switch expressions, type patterns, property patterns, and relational patterns."
+---
+
+<h1>C# Pattern Matching with switch: A Practical Guide</h1>
+<p>Modern C# pattern matching lets you express branching logic more clearly than long chains of <code>if</code> statements. It can inspect values, types, properties, and ranges.</p>
+<hr>
+<h2>🔀 Basic switch Expression</h2>
+<pre><code>string GetLevel(int score) => score switch
+{
+    &gt;= 90 =&gt; "Excellent",
+    &gt;= 75 =&gt; "Good",
+    &gt;= 50 =&gt; "Pass",
+    _ =&gt; "Fail"
+};</code></pre>
+<p>The <code>_</code> pattern acts as the fallback case.</p>
+<hr>
+<h2>🏷️ Type Patterns</h2>
+<pre><code>if (value is string text)
+{
+    Console.WriteLine(text.Length);
+}</code></pre>
+<p>The pattern both checks the type and gives you a strongly typed variable.</p>
+<hr>
+<h2>🔎 Property Patterns</h2>
+<pre><code>if (customer is { IsActive: true, Age: &gt;= 18 })
+{
+    // Eligible customer
+}</code></pre>
+<p>This is useful when a decision depends on several properties of an object.</p>
+<hr>
+<h2>📊 Relational Patterns</h2>
+<pre><code>string Classify(int value) => value switch
+{
+    &lt; 0 =&gt; "Negative",
+    0 =&gt; "Zero",
+    &gt; 0 =&gt; "Positive"
+};</code></pre>
+<hr>
+<h2>🧩 When Pattern Matching Helps</h2>
+<ul>
+<li>Replacing repetitive conditional code</li>
+<li>Checking object shapes and properties</li>
+<li>Handling different runtime types</li>
+<li>Expressing ranges and business rules clearly</li>
+</ul>
+<hr>
+<h2>🧠 Key Takeaway</h2>
+<p><strong>Pattern matching makes many C# decisions declarative, readable, and easier to extend.</strong></p>
+<p>Explore more at <a href="/csharp-tutorials/">💻 C# Tutorials</a>.</p>

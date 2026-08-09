@@ -1,0 +1,54 @@
+---
+title: "Blazor EventCallback: Passing Events from Child to Parent"
+layout: layouts/base.njk
+permalink: "/blazor-eventcallback-child-parent/"
+date: "2026-08-09T06:47:00"
+description: "Learn how Blazor EventCallback lets child components notify parent components and pass values back to them."
+---
+
+<h1>Blazor EventCallback: Passing Events from Child to Parent</h1>
+<p>Blazor components often need to notify a parent component after a user action. <code>EventCallback</code> provides the standard component pattern for doing this.</p>
+<hr>
+<h2>👶 Child Component</h2>
+<pre><code>&lt;button @onclick="NotifyParent"&gt;
+    Save
+&lt;/button&gt;
+
+@code {
+    [Parameter]
+    public EventCallback OnSaved { get; set; }
+
+    private async Task NotifyParent()
+    {
+        await OnSaved.InvokeAsync();
+    }
+}</code></pre>
+<hr>
+<h2>👨‍👩‍👧 Parent Component</h2>
+<pre><code>&lt;ChildComponent OnSaved="HandleSaved" /&gt;
+
+@code {
+    private void HandleSaved()
+    {
+        // Refresh data or update state.
+    }
+}</code></pre>
+<hr>
+<h2>📦 Passing a Value</h2>
+<p>Use <code>EventCallback&lt;T&gt;</code> when the child needs to send data.</p>
+<pre><code>[Parameter]
+public EventCallback&lt;int&gt; ItemSelected { get; set; }
+
+await ItemSelected.InvokeAsync(42);</code></pre>
+<hr>
+<h2>✨ Why EventCallback?</h2>
+<ul>
+<li>Works naturally with Blazor component parameters.</li>
+<li>Supports asynchronous callbacks.</li>
+<li>Keeps child components reusable.</li>
+<li>Makes parent-child communication explicit.</li>
+</ul>
+<hr>
+<h2>🧠 Key Takeaway</h2>
+<p><strong>Use parameters to pass data down and EventCallback to notify the parent or send data back up.</strong></p>
+<p>Explore more at <a href="/blazor-tutorials/">🔥 Blazor Tutorials</a>.</p>

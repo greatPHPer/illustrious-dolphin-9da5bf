@@ -1,0 +1,44 @@
+---
+title: ".NET MAUI Shell Navigation: Routes, Query Parameters, and Navigation"
+layout: layouts/base.njk
+permalink: "/dotnet-maui-shell-navigation-guide/"
+contentType: "page"
+description: "A practical guide to .NET MAUI Shell navigation, route registration, query parameters, and passing data between pages."
+date: "2026-08-09T10:50:00"
+---
+
+<h1>.NET MAUI Shell Navigation: Routes, Query Parameters, and Navigation</h1>
+<p>.NET MAUI Shell provides a centralized navigation model based on routes. It can simplify page navigation, deep links, and passing small pieces of state between pages.</p>
+
+<h2>Register a Route</h2>
+<pre><code>Routing.RegisterRoute("details", typeof(DetailsPage));</code></pre>
+<p>The route name becomes the stable identifier used by navigation code rather than relying on page construction at every call site.</p>
+
+<h2>Navigate to a Route</h2>
+<pre><code>await Shell.Current.GoToAsync("details");</code></pre>
+
+<h2>Pass Query Parameters</h2>
+<pre><code>await Shell.Current.GoToAsync("details?id=42");</code></pre>
+<p>For more structured navigation, use Shell's query-property support or a navigation state object rather than placing large amounts of data in the URL-like route.</p>
+
+<h2>Receive Parameters</h2>
+<pre><code>[QueryProperty(nameof(ProductId), "id")]
+public partial class DetailsPage : ContentPage
+{
+    public string ProductId { get; set; }
+}</code></pre>
+
+<h2>Navigation Should Stay Simple</h2>
+<p>Pass identifiers and small values through navigation. For complex application state, use a service or view-model rather than turning navigation parameters into a global data store.</p>
+
+<h2>Back Navigation</h2>
+<pre><code>await Shell.Current.GoToAsync("..");</code></pre>
+<p>Using relative routes keeps the page decoupled from the full navigation hierarchy.</p>
+
+<h2>Common Mistakes</h2>
+<ul><li>Using inconsistent route names.</li><li>Passing large objects through query strings.</li><li>Mixing Shell navigation with manual page creation everywhere.</li><li>Assuming navigation parameters are secure; they are not an authorization mechanism.</li></ul>
+
+<h2>Conclusion</h2>
+<p>Shell navigation works best when routes remain predictable and navigation carries only the small amount of state needed to identify the destination.</p>
+
+<p><a href="/net-maui-tutorials/">Back to .NET MAUI Tutorials</a></p>

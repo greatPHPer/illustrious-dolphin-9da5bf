@@ -1,0 +1,53 @@
+---
+title: "ASP.NET Core Configuration: appsettings.json, Environment Variables, and Options"
+layout: layouts/base.njk
+permalink: "/asp-net-core-configuration-settings/"
+date: "2026-08-09T07:10:00"
+description: "Understand how configuration works in ASP.NET Core using appsettings.json, environment variables, and strongly typed options."
+---
+
+<h1>ASP.NET Core Configuration: appsettings.json, Environment Variables, and Options</h1>
+<p>ASP.NET Core applications commonly need settings such as connection strings, API URLs, feature flags, and logging options. The built-in configuration system provides a consistent way to load and consume those values.</p>
+<hr>
+<h2>📄 appsettings.json</h2>
+<p>A simple configuration file can contain application settings:</p>
+<pre><code>{
+  "AppSettings": {
+    "ApplicationName": "MyApp",
+    "TimeoutSeconds": 30
+  }
+}</code></pre>
+<p>ASP.NET Core loads <code>appsettings.json</code> automatically in the standard application setup.</p>
+<hr>
+<h2>🌍 Environment-Specific Settings</h2>
+<p>You can provide environment-specific configuration with files such as <code>appsettings.Development.json</code> and <code>appsettings.Production.json</code>. This allows development and production settings to remain separate.</p>
+<hr>
+<h2>🔐 Environment Variables</h2>
+<p>Sensitive or deployment-specific values can be supplied through environment variables instead of being committed to source control.</p>
+<pre><code>var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection");</code></pre>
+<p>For nested configuration values, environment-variable providers support hierarchical keys.</p>
+<hr>
+<h2>⚡ Reading Configuration Directly</h2>
+<pre><code>var appName = builder.Configuration["AppSettings:ApplicationName"];
+var timeout = builder.Configuration.GetValue&lt;int&gt;(
+    "AppSettings:TimeoutSeconds");</code></pre>
+<p>This is convenient for a small number of values, but larger groups of related settings are usually easier to manage with the Options pattern.</p>
+<hr>
+<h2>🧩 Strongly Typed Options</h2>
+<pre><code>public class AppSettings
+{
+    public string ApplicationName { get; set; } = "";
+    public int TimeoutSeconds { get; set; }
+}
+
+builder.Services.Configure&lt;AppSettings&gt;(
+    builder.Configuration.GetSection("AppSettings"));</code></pre>
+<p>A service can then consume the settings through <code>IOptions&lt;AppSettings&gt;</code>.</p>
+<hr>
+<h2>🚫 Don't Store Secrets in Source Control</h2>
+<p>Passwords, production connection strings, API keys, and other secrets should not normally be committed to a public repository. Use environment variables, a secret store, or your hosting platform's secret configuration.</p>
+<hr>
+<h2>🧠 Key Takeaway</h2>
+<p><strong>ASP.NET Core configuration is layered and flexible.</strong> Use simple configuration access for occasional values and strongly typed options when a feature has several related settings.</p>
+<p>Continue with <a href="/asp-net-core-tutorials/">⚡ ASP.NET Core Tutorials</a>.</p>

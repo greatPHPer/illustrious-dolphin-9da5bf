@@ -1,0 +1,133 @@
+---
+title: ".NET Restore vs Build: What's the Difference?"
+layout: layouts/base.njk
+permalink: "/dotnet-restore-vs-build/"
+legacyId: 501
+contentType: "page"
+date: "2026-08-09T06:15:00"
+description: "Learn the difference between dotnet restore, dotnet build, and dotnet clean, when each command is used, and how they help troubleshoot .NET projects."
+---
+
+<h1>.NET Restore vs Build: What's the Difference?</h1>
+
+<p>When a .NET project behaves unexpectedly, developers often run <code>dotnet restore</code>, <code>dotnet build</code>, or <code>dotnet clean</code> without knowing exactly what each command does. They are related, but they solve different problems.</p>
+
+<p>This guide explains what each command does, when to use it, and how the commands work together during normal .NET development.</p>
+
+<hr>
+
+<h2>🔄 What Does dotnet restore Do?</h2>
+
+<p><code>dotnet restore</code> resolves the NuGet dependencies declared by your project and downloads the packages required for the build.</p>
+
+<pre><code>dotnet restore</code></pre>
+
+<p>For example, if your project contains:</p>
+
+<pre><code>&lt;PackageReference Include="Newtonsoft.Json" Version="13.0.3" /&gt;</code></pre>
+
+<p>restore makes sure the required package and its dependency graph are available locally.</p>
+
+<h3>Restore is mainly about dependencies</h3>
+
+<ul>
+<li>Reads project and package information.</li>
+<li>Resolves direct and transitive dependencies.</li>
+<li>Downloads missing NuGet packages.</li>
+<li>Creates or updates the assets information used by the build.</li>
+</ul>
+
+<hr>
+
+<h2>🏗️ What Does dotnet build Do?</h2>
+
+<p><code>dotnet build</code> compiles your project or solution.</p>
+
+<pre><code>dotnet build</code></pre>
+
+<p>The build process uses the resolved dependencies and compiles your C# source files into assemblies and other build outputs.</p>
+
+<p>In a normal project, running <code>dotnet build</code> may also trigger restore automatically when the required restore information is missing or outdated.</p>
+
+<hr>
+
+<h2>🧹 What Does dotnet clean Do?</h2>
+
+<p><code>dotnet clean</code> removes generated build output such as files under the project's <code>bin</code> and <code>obj</code> directories.</p>
+
+<pre><code>dotnet clean</code></pre>
+
+<p>It does not mean “delete every NuGet package.” It primarily removes generated build artifacts so the next build can start from a cleaner state.</p>
+
+<hr>
+
+<h2>📋 Restore vs Build vs Clean</h2>
+
+<table style="width:100%;border-collapse:collapse;margin:20px 0;">
+<tr><th style="border:1px solid #ddd;padding:10px;text-align:left;">Command</th><th style="border:1px solid #ddd;padding:10px;text-align:left;">Main purpose</th></tr>
+<tr><td style="border:1px solid #ddd;padding:10px;"><code>dotnet restore</code></td><td style="border:1px solid #ddd;padding:10px;">Resolve and download NuGet dependencies</td></tr>
+<tr><td style="border:1px solid #ddd;padding:10px;"><code>dotnet build</code></td><td style="border:1px solid #ddd;padding:10px;">Compile the project</td></tr>
+<tr><td style="border:1px solid #ddd;padding:10px;"><code>dotnet clean</code></td><td style="border:1px solid #ddd;padding:10px;">Remove generated build output</td></tr>
+</table>
+
+<hr>
+
+<h2>🧩 A Typical Development Sequence</h2>
+
+<p>A common troubleshooting sequence is:</p>
+
+<pre><code>dotnet clean
+dotnet restore
+dotnet build</code></pre>
+
+<p>Each command has a separate responsibility:</p>
+
+<ol>
+<li>Clean removes stale build artifacts.</li>
+<li>Restore resolves the current dependency graph.</li>
+<li>Build compiles the source code using those dependencies.</li>
+</ol>
+
+<hr>
+
+<h2>⚠️ When Should You Run dotnet restore?</h2>
+
+<p>Restore is particularly useful after changing package references, cloning a project to a new computer, deleting the <code>obj</code> directory, or encountering missing-package errors.</p>
+
+<p>If the problem is a NuGet version conflict, inspect the dependency graph before repeatedly restoring. A restore cannot make incompatible package requirements compatible by itself.</p>
+
+<p>For dependency troubleshooting, see <a href="/direct-vs-transitive-nuget-dependencies/">📦 Direct vs Transitive NuGet Dependencies</a>.</p>
+
+<hr>
+
+<h2>🔧 When Should You Run dotnet clean?</h2>
+
+<p>Use clean when old generated files may be interfering with a build, when you want to reproduce a clean build locally, or before packaging a project from scratch.</p>
+
+<p>Cleaning is not normally necessary after every source-code change.</p>
+
+<hr>
+
+<h2>💻 Useful Commands</h2>
+
+<pre><code># Restore dependencies
+dotnet restore
+
+# Build in Debug configuration
+dotnet build
+
+# Clean generated output
+dotnet clean
+
+# Clean and then restore and build
+dotnet clean &amp;&amp; dotnet restore &amp;&amp; dotnet build</code></pre>
+
+<hr>
+
+<h2>🧠 Key Takeaway</h2>
+
+<p><strong>Restore resolves dependencies, build compiles code, and clean removes generated build output.</strong></p>
+
+<p>Understanding this distinction makes .NET troubleshooting much easier because you can choose the command that actually addresses the problem instead of treating restore and build as interchangeable operations.</p>
+
+<p>For more .NET tutorials, visit <a href="/net-tutorials/">🌐 .NET Tutorials</a>.</p>

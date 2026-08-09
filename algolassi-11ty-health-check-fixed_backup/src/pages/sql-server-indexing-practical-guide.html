@@ -1,0 +1,58 @@
+---
+title: "SQL Server Indexing: A Practical Guide to Faster Queries"
+layout: layouts/base.njk
+permalink: "/sql-server-indexing-practical-guide/"
+contentType: "page"
+description: "Learn how SQL Server indexes work, when to add them, and how to avoid common indexing mistakes."
+---
+
+# SQL Server Indexing: A Practical Guide to Faster Queries
+
+Indexes can dramatically reduce the amount of data SQL Server needs to examine, but unnecessary indexes also increase storage and write overhead.
+
+## What is an index?
+
+An index is a data structure that helps SQL Server locate rows efficiently. A common example is a nonclustered index on a frequently filtered column.
+
+```sql
+CREATE INDEX IX_Employee_DepartmentId
+ON Employee(DepartmentId);
+```
+
+## Index columns used by real queries
+
+Look at actual `WHERE`, `JOIN`, `ORDER BY`, and sometimes `GROUP BY` patterns rather than creating indexes simply because a column exists.
+
+For example:
+
+```sql
+SELECT EmployeeId, EmployeeName
+FROM Employee
+WHERE DepartmentId = 10;
+```
+
+A useful index may begin with `DepartmentId`.
+
+## Covering indexes
+
+An index can sometimes include additional columns so SQL Server can satisfy a query without looking up the base table for every matching row.
+
+```sql
+CREATE INDEX IX_Employee_Department
+ON Employee(DepartmentId)
+INCLUDE (EmployeeName);
+```
+
+The right design depends on workload and table size.
+
+## Too many indexes are also a problem
+
+Every insert, update, and delete may require index maintenance. An index that improves one read-heavy query may hurt a write-heavy workload.
+
+## Measure before and after
+
+Use execution plans, logical reads, duration, and workload characteristics to evaluate an indexing change. Avoid judging an index only from one execution in isolation.
+
+## Summary
+
+Good SQL Server indexing is workload-driven. Index columns that matter to real queries, consider covering strategies when justified, and remove indexes that provide little value while adding maintenance cost.

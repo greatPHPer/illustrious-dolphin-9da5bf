@@ -11,21 +11,16 @@ description: "This page is a living knowledge base for developers working with R
 <p>This page is a <strong>living knowledge base</strong> for developers working with <strong>RDLC reports in ASP.NET (WebForms / MVC / Core)</strong>. If you’ve ever faced cryptic RDLC designer errors, PDF export issues, or dataset binding problems—this page is for you.</p>
 
 
-
 <p>Each issue below is <strong>real-world tested</strong>, with <strong>clear cause → fix explanations</strong>.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">1. Deserialization failed: ReportSection is empty (Width missing)</h2>
 
 
-
 <p><strong>Error</strong></p>
-
 
 
 <blockquote class="wp-block-quote">
@@ -33,23 +28,18 @@ description: "This page is a living knowledge base for developers working with R
 </blockquote>
 
 
-
 <p><strong>Root Cause</strong></p>
-
 
 
 <ul class="wp-block-list">
 <li>Corrupted RDLC XML</li>
 
 
-
 <li>Manual edits removed <code>&lt;Width></code> inside <code>&lt;ReportSection></code></li>
 </ul>
 
 
-
 <p><strong>Fix</strong><br>Ensure every <code>&lt;ReportSection&gt;</code> contains a <code>&lt;Width&gt;</code> element.</p>
-
 
 
 <pre class="wp-block-code"><code>&lt;ReportSection&gt;
@@ -61,21 +51,16 @@ description: "This page is a living knowledge base for developers working with R
 </code></pre>
 
 
-
 <p>✅ Tip: Always open RDLC in <strong>XML View</strong> after copy-paste operations.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">2. The DataSet element is empty (Query missing)</h2>
 
 
-
 <p><strong>Error</strong></p>
-
 
 
 <blockquote class="wp-block-quote">
@@ -83,23 +68,18 @@ description: "This page is a living knowledge base for developers working with R
 </blockquote>
 
 
-
 <p><strong>Root Cause</strong></p>
-
 
 
 <ul class="wp-block-list">
 <li>Dataset created manually</li>
 
 
-
 <li>RDLC expects a dummy query even if data is supplied via code</li>
 </ul>
 
 
-
 <p><strong>Fix</strong><br>Add a dummy query block:</p>
-
 
 
 <pre class="wp-block-code"><code>&lt;DataSet Name="MyDataSet"&gt;
@@ -111,21 +91,16 @@ description: "This page is a living knowledge base for developers working with R
 </code></pre>
 
 
-
 <p>💡 RDLC validates structure, not runtime data.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">3. Tablix is missing TablixRowHierarchy</h2>
 
 
-
 <p><strong>Error</strong></p>
-
 
 
 <blockquote class="wp-block-quote">
@@ -133,23 +108,18 @@ description: "This page is a living knowledge base for developers working with R
 </blockquote>
 
 
-
 <p><strong>Root Cause</strong></p>
-
 
 
 <ul class="wp-block-list">
 <li>Broken table structure</li>
 
 
-
 <li>Rows removed accidentally in XML</li>
 </ul>
 
 
-
 <p><strong>Fix</strong><br>Ensure both hierarchies exist:</p>
-
 
 
 <pre class="wp-block-code"><code>&lt;TablixRowHierarchy&gt;
@@ -166,17 +136,13 @@ description: "This page is a living knowledge base for developers working with R
 </code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">4. Parameters are not matching the RDLC definition</h2>
 
 
-
 <p><strong>Error</strong></p>
-
 
 
 <blockquote class="wp-block-quote">
@@ -184,44 +150,34 @@ description: "This page is a living knowledge base for developers working with R
 </blockquote>
 
 
-
 <p><strong>Root Cause</strong></p>
-
 
 
 <ul class="wp-block-list">
 <li>Parameter name mismatch</li>
 
 
-
 <li>Extra spaces or case mismatch</li>
 </ul>
 
 
-
 <p><strong>Fix (C#)</strong><br>Always match RDLC parameter names exactly:</p>
-
 
 
 <pre class="wp-block-code"><code>report.SetParameters(new ReportParameter("Vendor", lblSuppliername.Text));
 </code></pre>
 
 
-
 <p>✅ Never rely on ViewState names blindly.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">5. RDLC Tick Mark / Checkbox showing wrong symbol</h2>
 
 
-
 <p><strong>Issue</strong></p>
-
 
 
 <ul class="wp-block-list">
@@ -229,9 +185,7 @@ description: "This page is a living knowledge base for developers working with R
 </ul>
 
 
-
 <p><strong>Root Cause</strong></p>
-
 
 
 <ul class="wp-block-list">
@@ -239,120 +193,93 @@ description: "This page is a living knowledge base for developers working with R
 </ul>
 
 
-
 <p><strong>Fix</strong></p>
-
 
 
 <ul class="wp-block-list">
 <li>Use <strong>Segoe UI / Arial Unicode MS</strong></li>
 
 
-
 <li>OR use expression-based images instead of symbols</li>
 </ul>
-
 
 
 <pre class="wp-block-code"><code>=IIF(Fields!IsChecked.Value = True, "✔", "")
 </code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">6. PDF Export shows blank or cut content</h2>
 
 
-
 <p><strong>Root Cause</strong></p>
-
 
 
 <ul class="wp-block-list">
 <li>Page width > Body width</li>
 
 
-
 <li>Margins incorrect</li>
 </ul>
 
 
-
 <p><strong>Fix Checklist</strong></p>
-
 
 
 <ul class="wp-block-list">
 <li>Body Width ≤ Page Width − (Left + Right Margins)</li>
 
 
-
 <li>No hidden wide tablix</li>
 </ul>
-
 
 
 <p>✅ Always test <strong>Print Layout</strong> view.</p>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">7. RDLC Report works locally but fails on server</h2>
 
 
-
 <p><strong>Common Reasons</strong></p>
-
 
 
 <ul class="wp-block-list">
 <li>Missing fonts on server</li>
 
 
-
 <li>Image path issues</li>
-
 
 
 <li>Wrong RDLC Build Action</li>
 </ul>
 
 
-
 <p><strong>Fix</strong></p>
-
 
 
 <ul class="wp-block-list">
 <li>Use embedded images</li>
 
 
-
 <li>Set RDLC file as <strong>Content</strong></li>
-
 
 
 <li>Avoid local file system paths</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">8. Subreport is not showing data</h2>
 
 
-
 <p><strong>Root Cause</strong></p>
-
 
 
 <ul class="wp-block-list">
@@ -360,9 +287,7 @@ description: "This page is a living knowledge base for developers working with R
 </ul>
 
 
-
 <p><strong>Fix</strong></p>
-
 
 
 <pre class="wp-block-code"><code>LocalReport.SubreportProcessing += (s, e) =&gt;
@@ -372,17 +297,13 @@ description: "This page is a living knowledge base for developers working with R
 </code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">9. Images not rendering in PDF</h2>
 
 
-
 <p><strong>Root Cause</strong></p>
-
 
 
 <ul class="wp-block-list">
@@ -390,9 +311,7 @@ description: "This page is a living knowledge base for developers working with R
 </ul>
 
 
-
 <p><strong>Fix</strong></p>
-
 
 
 <ul class="wp-block-list">
@@ -400,10 +319,8 @@ description: "This page is a living knowledge base for developers working with R
 </ul>
 
 
-
 <pre class="wp-block-code"><code>report.EnableExternalImages = true;
 </code></pre>
-
 
 
 <ul class="wp-block-list">
@@ -411,85 +328,65 @@ description: "This page is a living knowledge base for developers working with R
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">10. RDLC Designer crashes or won’t open</h2>
 
 
-
 <p><strong>Fix Steps</strong></p>
-
 
 
 <ol class="wp-block-list">
 <li>Close Visual Studio</li>
 
 
-
 <li>Open RDLC in XML editor</li>
 
 
-
 <li>Validate required nodes</li>
-
 
 
 <li>Delete invalid elements</li>
 </ol>
 
 
-
 <p>💡 Sometimes XML repair is faster than redesign.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">Best Practices for RDLC Stability</h2>
-
 
 
 <ul class="wp-block-list">
 <li>Avoid manual XML unless necessary</li>
 
 
-
 <li>Always keep dataset names consistent</li>
-
 
 
 <li>Use descriptive parameter names</li>
 
 
-
 <li>Test in PDF early</li>
-
 
 
 <li>Keep one report = one responsibility</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">Final Note</h2>
 
 
-
 <p>This page is continuously updated based on <strong>real production issues</strong> faced while working with <strong>ASP.NET + RDLC</strong>.</p>
 
 
-
 <p>📌 Bookmark this page if you work with RDLC regularly.</p>
-
 
 
 <p>— <strong>AlgoLassi</strong></p>

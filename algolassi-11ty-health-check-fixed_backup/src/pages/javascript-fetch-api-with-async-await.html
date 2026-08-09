@@ -1,0 +1,84 @@
+---
+title: "JavaScript Fetch API with async/await: A Practical Guide"
+layout: layouts/base.njk
+permalink: "/javascript-fetch-api-with-async-await/"
+contentType: "page"
+description: "Learn how to call REST APIs with the JavaScript Fetch API using async and await, including error handling, JSON responses, and loading states."
+date: "2026-08-09T10:05:00"
+---
+
+<h1>JavaScript Fetch API with async/await: A Practical Guide</h1>
+<p>The Fetch API is the standard browser API for making HTTP requests. Combined with <code>async</code> and <code>await</code>, it provides a readable way to load data from REST APIs.</p>
+
+<h2>Basic GET Request</h2>
+<pre><code>async function loadProducts() {
+    const response = await fetch("/api/products");
+    const products = await response.json();
+    console.log(products);
+}</code></pre>
+<p>The first <code>await</code> waits for the HTTP response. The second waits for the response body to be converted from JSON.</p>
+
+<h2>Always Check response.ok</h2>
+<p>A common mistake is assuming that Fetch rejects the promise for every HTTP error. A response with status 404 or 500 is still a completed HTTP request, so application code should check <code>response.ok</code>.</p>
+<pre><code>async function loadProducts() {
+    const response = await fetch("/api/products");
+
+    if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    return await response.json();
+}</code></pre>
+
+<h2>Handling Errors</h2>
+<pre><code>try {
+    const products = await loadProducts();
+    renderProducts(products);
+} catch (error) {
+    console.error(error);
+    showError("Unable to load products.");
+}</code></pre>
+
+<h2>POST Request</h2>
+<pre><code>const response = await fetch("/api/products", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        name: "Keyboard",
+        price: 1499
+    })
+});</code></pre>
+
+<h2>Abort Slow Requests</h2>
+<p>For search boxes and other interactive pages, an <code>AbortController</code> can cancel an outdated request.</p>
+<pre><code>const controller = new AbortController();
+
+fetch("/api/search?q=dotnet", {
+    signal: controller.signal
+});
+
+controller.abort();</code></pre>
+
+<h2>Loading States</h2>
+<p>For a good user experience, set a loading indicator before the request and clear it in a <code>finally</code> block.</p>
+<pre><code>async function refresh() {
+    setLoading(true);
+    try {
+        const data = await loadProducts();
+        renderProducts(data);
+    } catch (error) {
+        showError("Request failed.");
+    } finally {
+        setLoading(false);
+    }
+}</code></pre>
+
+<h2>Common Mistakes</h2>
+<ul><li>Forgetting to check <code>response.ok</code>.</li><li>Calling <code>response.json()</code> more than once.</li><li>Ignoring cancellation for rapidly changing searches.</li><li>Displaying raw server errors to users.</li><li>Assuming network errors and HTTP errors behave identically.</li></ul>
+
+<h2>Conclusion</h2>
+<p>Fetch becomes much easier to maintain when it is wrapped in small async functions with explicit HTTP checks and consistent error handling. This pattern works well for dashboards, forms, search pages, and frontend applications.</p>
+
+<p><a href="/tutorials/">Back to Algolassi Tutorials</a></p>

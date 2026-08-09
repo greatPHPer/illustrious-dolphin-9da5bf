@@ -1,0 +1,24 @@
+---
+title: "Blazor for Beginners: What It Is and How It Works"
+layout: layouts/base.njk
+permalink: "/blazor-beginners-guide/"
+contentType: "page"
+---
+<h1>Blazor for Beginners: What It Is and How It Works</h1>
+<p>Blazor is a .NET web UI framework that lets you build interactive interfaces using C# and Razor components.</p>
+<h2>What is a component?</h2>
+<p>A component is a reusable UI unit. It can contain markup, C# logic, parameters, and event handling.</p>
+<pre><code>&lt;h1&gt;Hello, Blazor!&lt;/h1&gt;
+&lt;button @onclick="Increment"&gt;Clicks: @count&lt;/button&gt;
+
+@code {
+    private int count;
+
+    private void Increment() =&gt; count++;
+}</code></pre>
+<h2>Server and WebAssembly</h2>
+<p>Blazor supports different hosting models. Blazor Server runs application logic on the server and communicates with the browser, while Blazor WebAssembly runs .NET code in the browser.</p>
+<h2>Why learn Blazor?</h2>
+<p>If you already know C# and .NET, Blazor provides a natural way to build interactive web interfaces without making JavaScript your primary application language.</p>
+<h2>Next step</h2>
+<p>Continue with the <a href="/blazor-tutorials/">Blazor Tutorials pillar</a> for components, parameters, JavaScript interop, SignalR, and hosting models.</p>

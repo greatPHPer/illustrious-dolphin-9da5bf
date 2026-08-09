@@ -1,0 +1,71 @@
+---
+title: "Blazor Component Lifecycle Methods Explained"
+layout: layouts/base.njk
+permalink: "/blazor-component-lifecycle-methods/"
+contentType: "page"
+description: "Understand the main Blazor component lifecycle methods and when to use them."
+---
+
+# Blazor Component Lifecycle Methods Explained
+
+Blazor components have a lifecycle that lets you run code when parameters change, rendering begins, or a component is removed. Understanding that lifecycle helps prevent unnecessary API calls and rendering bugs.
+
+## OnInitialized and OnInitializedAsync
+
+Use these methods for initialization that does not depend on parameters supplied by a parent component.
+
+```csharp
+protected override async Task OnInitializedAsync()
+{
+    products = await ProductService.GetProductsAsync();
+}
+```
+
+The asynchronous version is useful when initialization requires an API or database call.
+
+## OnParametersSet and OnParametersSetAsync
+
+These methods run when component parameters are assigned or updated. Use them when initialization depends on a parameter.
+
+```csharp
+[Parameter]
+public int ProductId { get; set; }
+
+protected override async Task OnParametersSetAsync()
+{
+    product = await ProductService.GetAsync(ProductId);
+}
+```
+
+## OnAfterRenderAsync
+
+Use `OnAfterRenderAsync` when code must interact with the rendered DOM, such as JavaScript interop.
+
+```csharp
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        await JS.InvokeVoidAsync("initializeWidget");
+    }
+}
+```
+
+The `firstRender` check prevents initialization code from running after every render.
+
+## ShouldRender
+
+`ShouldRender` can control whether a component renders again. Use it carefully because preventing renders can also prevent expected UI updates.
+
+## Disposal
+
+Components that subscribe to events, timers, or other resources may need `IDisposable` or `IAsyncDisposable` so those resources are released when the component is removed.
+
+## A simple rule of thumb
+
+- `OnInitializedAsync` → load initial component data.
+- `OnParametersSetAsync` → react to parameter changes.
+- `OnAfterRenderAsync` → interact with the rendered DOM or JavaScript.
+- `Dispose` / `DisposeAsync` → clean up resources.
+
+Understanding these boundaries makes Blazor components easier to reason about and helps avoid repeated API calls and JavaScript initialization problems.

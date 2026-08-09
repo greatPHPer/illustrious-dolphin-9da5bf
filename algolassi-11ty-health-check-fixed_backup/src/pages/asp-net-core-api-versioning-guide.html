@@ -1,0 +1,68 @@
+---
+title: "ASP.NET Core API Versioning: Practical Strategies and Examples"
+layout: layouts/base.njk
+permalink: "/asp-net-core-api-versioning-guide/"
+contentType: "page"
+description: "Understand practical API versioning strategies for ASP.NET Core applications and when to introduce a new version."
+---
+
+# ASP.NET Core API Versioning: Practical Strategies and Examples
+
+API contracts often live longer than the code that implements them. Versioning gives clients a predictable way to continue using an older contract while a newer contract is introduced.
+
+## Why version an API?
+
+Suppose an endpoint initially returns:
+
+```json
+{
+  "id": 10,
+  "name": "Laptop"
+}
+```
+
+Later, the contract needs to change substantially. Existing mobile or external clients may not be ready to consume that new shape immediately. A versioned API can support the old and new contracts during the transition.
+
+## Common versioning strategies
+
+### URL path versioning
+
+A version can be represented directly in the URL:
+
+```text
+/api/v1/products
+/api/v2/products
+```
+
+This is easy to discover and test.
+
+### Query-string versioning
+
+Another option is:
+
+```text
+/api/products?api-version=1.0
+```
+
+This keeps the resource path stable while expressing the requested contract separately.
+
+### Header-based versioning
+
+The client can request a version using a header. This keeps the URL clean but requires clients and tools to understand the versioning convention.
+
+## When should you create a new version?
+
+Not every change requires a new API version. Adding a backward-compatible optional response property may not require one. Removing a property, changing its meaning, or altering required request behavior is more likely to be a breaking change.
+
+## Keep versioning intentional
+
+Before introducing a new version, document:
+
+- What changed.
+- Which clients are affected.
+- How long the old version will remain supported.
+- How clients should migrate.
+
+## Summary
+
+API versioning is mainly a contract-management strategy. Choose one clear convention, apply it consistently, document breaking changes, and avoid creating versions for changes that are safely backward compatible.

@@ -1,0 +1,51 @@
+---
+title: "ASP.NET Core Model Validation: DataAnnotations and ModelState"
+layout: layouts/base.njk
+permalink: "/asp-net-core-model-validation/"
+date: "2026-08-09T06:46:00"
+description: "Learn how model validation works in ASP.NET Core MVC and Web API applications using DataAnnotations and ModelState."
+---
+
+<h1>ASP.NET Core Model Validation: DataAnnotations and ModelState</h1>
+<p>Model validation helps prevent invalid input from reaching application logic. ASP.NET Core can validate incoming models using attributes and other validation mechanisms.</p>
+<hr>
+<h2>🏷️ DataAnnotations</h2>
+<pre><code>public class Product
+{
+    [Required]
+    public string Name { get; set; } = "";
+
+    [Range(1, 100000)]
+    public decimal Price { get; set; }
+}</code></pre>
+<p>The attributes describe basic validation rules close to the model.</p>
+<hr>
+<h2>🌐 MVC Validation</h2>
+<pre><code>[HttpPost]
+public IActionResult Create(Product model)
+{
+    if (!ModelState.IsValid)
+        return View(model);
+
+    // Save the valid model.
+    return RedirectToAction("Index");
+}</code></pre>
+<p>When validation fails, <code>ModelState.IsValid</code> becomes false and the controller can return the form with validation messages.</p>
+<hr>
+<h2>🚀 API Validation</h2>
+<p>With controller-based APIs using <code>[ApiController]</code>, ASP.NET Core can automatically return a validation error response when the incoming model is invalid.</p>
+<hr>
+<h2>🧠 Why Validate at the Boundary?</h2>
+<ul>
+<li>Reject malformed input early.</li>
+<li>Keep business logic focused on valid data.</li>
+<li>Provide useful feedback to clients.</li>
+<li>Reduce repeated validation code.</li>
+</ul>
+<hr>
+<h2>🔧 Custom Validation</h2>
+<p>When an attribute is not enough, you can implement custom validation logic or use a dedicated validation layer for more complex business rules.</p>
+<hr>
+<h2>🧠 Key Takeaway</h2>
+<p><strong>Validate incoming data at the application boundary, then let the rest of your code work with trusted, validated values.</strong></p>
+<p>Continue with <a href="/asp-net-core-tutorials/">⚡ ASP.NET Core Tutorials</a>.</p>

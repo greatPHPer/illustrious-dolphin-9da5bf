@@ -1,0 +1,53 @@
+---
+title: "Blazor Component Parameters Explained"
+layout: layouts/base.njk
+permalink: "/blazor-component-parameters-explained/"
+date: "2026-08-09T06:42:00"
+description: "Learn how to pass data into Blazor components with parameters, including typed parameters and reusable component patterns."
+---
+
+<h1>Blazor Component Parameters Explained</h1>
+<p>Blazor components become reusable when they can receive data from their parent components. The <code>[Parameter]</code> attribute provides the standard way to pass values into a component.</p>
+<hr>
+<h2>📦 Create a Parameter</h2>
+<pre><code>@code {
+    [Parameter]
+    public string Title { get; set; } = "";
+}</code></pre>
+<p>The component can then render the value:</p>
+<pre><code>&lt;h2&gt;@Title&lt;/h2&gt;</code></pre>
+<hr>
+<h2>👨‍👩‍👧 Parent to Child</h2>
+<p>A parent component can provide the value:</p>
+<pre><code>&lt;MyCard Title="Welcome to Algolassi" /&gt;</code></pre>
+<p>This keeps the child component reusable because the parent controls the data.</p>
+<hr>
+<h2>🔢 Typed Parameters</h2>
+<pre><code>@code {
+    [Parameter]
+    public int Count { get; set; }
+}</code></pre>
+<p>Typed parameters make the component contract clearer and allow the compiler to catch many incorrect usages.</p>
+<hr>
+<h2>🔄 Passing Complex Objects</h2>
+<pre><code>@code {
+    [Parameter]
+    public Customer? Customer { get; set; }
+}</code></pre>
+<p>Components can receive model objects, collections, and other application-specific types.</p>
+<hr>
+<h2>📢 EventCallback for Child-to-Parent Communication</h2>
+<p>When a child needs to notify its parent, <code>EventCallback</code> is commonly used:</p>
+<pre><code>@code {
+    [Parameter]
+    public EventCallback OnSave { get; set; }
+
+    private async Task Save()
+    {
+        await OnSave.InvokeAsync();
+    }
+}</code></pre>
+<hr>
+<h2>🧠 Key Takeaway</h2>
+<p><strong>Parameters define how a Blazor component receives data, while EventCallback provides a clean way for a child component to notify its parent.</strong></p>
+<p>Continue with <a href="/blazor-tutorials/">🔥 Blazor Tutorials</a>.</p>

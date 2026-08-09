@@ -1,0 +1,92 @@
+---
+title: "ASP.NET Core Configuration: appsettings.json, Environment Variables, and Options"
+layout: layouts/base.njk
+permalink: "/asp-net-core-configuration-appsettings-environment-variables/"
+contentType: "page"
+description: "A practical guide to ASP.NET Core configuration, environment variables, and strongly typed options."
+---
+
+# ASP.NET Core Configuration: appsettings.json, Environment Variables, and Options
+
+Configuration is one of the first things you need to understand when building an ASP.NET Core application. Connection strings, API URLs, feature switches, and other settings should not be hard-coded into controllers or services.
+
+ASP.NET Core provides a layered configuration system that makes it easy to keep defaults in `appsettings.json` while overriding values for development, staging, and production.
+
+## 1. appsettings.json
+
+A typical configuration file looks like this:
+
+```json
+{
+  "MyApplication": {
+    "ApiUrl": "https://localhost:7001",
+    "TimeoutSeconds": 30
+  }
+}
+```
+
+## 2. Read configuration with IConfiguration
+
+You can inject `IConfiguration` into a service or controller:
+
+```csharp
+public class MyService
+{
+    private readonly IConfiguration configuration;
+
+    public MyService(IConfiguration configuration)
+    {
+        this.configuration = configuration;
+    }
+
+    public string GetApiUrl()
+    {
+        return configuration["MyApplication:ApiUrl"] ?? string.Empty;
+    }
+}
+```
+
+The colon separates nested configuration sections.
+
+## 3. Override values with environment variables
+
+Environment variables are especially useful in deployed applications because secrets and environment-specific settings do not have to be committed to source control.
+
+For example:
+
+```text
+MyApplication__ApiUrl=https://api.example.com
+```
+
+The double underscore represents the `:` separator used by ASP.NET Core configuration.
+
+## 4. Use strongly typed Options
+
+For larger applications, the Options pattern is usually cleaner:
+
+```csharp
+public class MyApplicationOptions
+{
+    public string ApiUrl { get; set; } = string.Empty;
+    public int TimeoutSeconds { get; set; }
+}
+```
+
+Register it in `Program.cs`:
+
+```csharp
+builder.Services.Configure<MyApplicationOptions>(
+    builder.Configuration.GetSection("MyApplication"));
+```
+
+Then inject `IOptions<MyApplicationOptions>` where required.
+
+## Why this matters
+
+Keeping configuration outside application logic makes applications easier to deploy and maintain. Development values can remain local while production values are supplied by the hosting environment.
+
+For sensitive values such as passwords, API keys, and connection strings, use an appropriate secret-management mechanism rather than committing secrets to Git.
+
+## Summary
+
+ASP.NET Core configuration supports JSON files, environment variables, command-line arguments, and other providers. Start with `IConfiguration` for simple access, and use the Options pattern when a configuration section represents a meaningful application object.

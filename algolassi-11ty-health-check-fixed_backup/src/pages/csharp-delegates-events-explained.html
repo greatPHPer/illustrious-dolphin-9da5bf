@@ -1,0 +1,65 @@
+---
+title: "C# Delegates and Events Explained with Practical Examples"
+layout: layouts/base.njk
+permalink: "/csharp-delegates-events-explained/"
+contentType: "page"
+description: "Learn how C# delegates and events work, how they differ, and where to use them in real applications."
+---
+
+# C# Delegates and Events Explained with Practical Examples
+
+Delegates and events are important parts of C#. They are especially useful when one component needs to notify another component without tightly coupling the two.
+
+## What is a delegate?
+
+A delegate is a type-safe reference to a method.
+
+```csharp
+public delegate void MessageHandler(string message);
+
+static void PrintMessage(string message)
+{
+    Console.WriteLine(message);
+}
+
+MessageHandler handler = PrintMessage;
+handler("Hello from C#");
+```
+
+The delegate describes the method signature that can be assigned to it.
+
+## Multicast delegates
+
+A delegate can reference multiple compatible methods using `+=`.
+
+```csharp
+handler += AnotherMessage;
+handler("Hello");
+```
+
+All subscribed methods are invoked in sequence.
+
+## What is an event?
+
+An event provides a controlled notification mechanism. A class can raise an event while external code can subscribe or unsubscribe.
+
+```csharp
+public event EventHandler? Completed;
+
+protected virtual void OnCompleted()
+{
+    Completed?.Invoke(this, EventArgs.Empty);
+}
+```
+
+## Delegate vs event
+
+A delegate can be invoked directly by code that has access to it. An event restricts invocation so that the declaring type controls when the notification is raised.
+
+## Practical use cases
+
+Delegates and events are common in UI programming, domain notifications, progress reporting, and component communication.
+
+## Summary
+
+Delegates provide type-safe method references, while events build a notification pattern around delegates. Use them when they make communication between components clearer without introducing unnecessary coupling.

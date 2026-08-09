@@ -1,0 +1,67 @@
+---
+title: "Async and Await in C#: Common Mistakes and Best Practices"
+layout: layouts/base.njk
+permalink: "/csharp-async-await-common-mistakes/"
+contentType: "page"
+description: "Learn practical async and await patterns in C#, including common mistakes and safer coding practices."
+---
+
+# Async and Await in C#: Common Mistakes and Best Practices
+
+`async` and `await` make asynchronous C# code much easier to read, but there are a few mistakes that can cause deadlocks, unnecessary blocking, or poor performance.
+
+## Prefer await over blocking
+
+Avoid calling `.Result` or `.Wait()` on an asynchronous operation when you can await it instead.
+
+```csharp
+public async Task<string> GetDataAsync()
+{
+    var response = await httpClient.GetStringAsync("https://example.com");
+    return response;
+}
+```
+
+Blocking an asynchronous operation can tie up threads and can create deadlock problems in some application environments.
+
+## Do not use async void for normal methods
+
+For application code, prefer `Task` or `Task<T>`:
+
+```csharp
+public async Task SaveAsync()
+{
+    await repository.SaveAsync();
+}
+```
+
+`async void` is mainly appropriate for event handlers because callers cannot await it or observe its exceptions in the normal Task-based way.
+
+## Pass cancellation when appropriate
+
+Long-running operations should often accept a `CancellationToken`:
+
+```csharp
+public async Task<string> GetDataAsync(CancellationToken cancellationToken)
+{
+    return await httpClient.GetStringAsync(
+        "https://example.com",
+        cancellationToken);
+}
+```
+
+This allows callers to stop work that is no longer needed.
+
+## Avoid unnecessary Task.Run
+
+`Task.Run` is not a general-purpose way to make I/O asynchronous. Network and database APIs that already provide asynchronous methods should normally be awaited directly.
+
+Use `Task.Run` primarily when deliberately moving CPU-bound work away from the current thread is appropriate.
+
+## ConfigureAwait and modern applications
+
+In modern ASP.NET Core applications, `ConfigureAwait(false)` is usually not required merely to avoid a UI synchronization context because ASP.NET Core does not use the classic ASP.NET synchronization context. Library code may still choose it depending on its compatibility requirements.
+
+## Summary
+
+The most useful rule is simple: keep asynchronous operations asynchronous from the API boundary through the implementation. Prefer `Task`, await naturally asynchronous APIs, propagate cancellation when useful, and avoid synchronous blocking.

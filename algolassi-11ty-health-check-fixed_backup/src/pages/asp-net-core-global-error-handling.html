@@ -1,0 +1,50 @@
+---
+title: "ASP.NET Core Global Exception Handling: Practical Guide"
+layout: layouts/base.njk
+permalink: "/asp-net-core-global-error-handling/"
+date: "2026-08-09T06:41:00"
+description: "Learn practical ways to handle unhandled exceptions globally in ASP.NET Core using middleware and centralized error handling."
+---
+
+<h1>ASP.NET Core Global Exception Handling: Practical Guide</h1>
+<p>Handling exceptions in every controller or endpoint quickly becomes repetitive. ASP.NET Core provides centralized mechanisms so unexpected failures can be logged and converted into consistent responses.</p>
+<hr>
+<h2>🧩 Why Centralize Exception Handling?</h2>
+<ul><li>Keep endpoints focused on application logic.</li><li>Return consistent error responses.</li><li>Log unexpected failures in one place.</li><li>Avoid exposing internal exception details to clients.</li></ul>
+<hr>
+<h2>⚡ Use Exception Handler Middleware</h2>
+<p>A simple application-level configuration can enable centralized exception handling:</p>
+<pre><code>var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/error");
+}</code></pre>
+<p>The exact endpoint or handler can be designed around the application's API or MVC architecture.</p>
+<hr>
+<h2>🛠️ Custom Middleware</h2>
+<p>For APIs that need a consistent JSON response, custom middleware can catch exceptions and write an appropriate response.</p>
+<pre><code>public async Task InvokeAsync(HttpContext context)
+{
+    try
+    {
+        await _next(context);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Unhandled exception");
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsJsonAsync(
+            new { message = "An unexpected error occurred." });
+    }
+}</code></pre>
+<hr>
+<h2>🔐 Don't Leak Sensitive Details</h2>
+<p>Returning the complete exception message or stack trace to a production client can reveal implementation details. Log the exception internally and return a safe public message.</p>
+<hr>
+<h2>🧪 Development vs Production</h2>
+<p>Detailed developer exception information is useful while developing, but production responses should normally be controlled and predictable.</p>
+<hr>
+<h2>🧠 Key Takeaway</h2>
+<p><strong>Centralized exception handling keeps ASP.NET Core applications cleaner and gives clients consistent, safer error responses.</strong></p>
+<p>Continue with <a href="/asp-net-core-tutorials/">⚡ ASP.NET Core Tutorials</a>.</p>

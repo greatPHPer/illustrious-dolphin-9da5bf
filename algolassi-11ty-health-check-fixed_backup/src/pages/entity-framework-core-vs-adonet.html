@@ -24,247 +24,42 @@ html, body {
     -ms-overflow-style: none !important;
     scrollbar-width: none !important;
 }
-
-/* Breadcrumb */
-.breadcrumb {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    font-size: 15px;
-    line-height: 1.5;
-}
-
-/* Current page in breadcrumb */
-.breadcrumb > a:last-child,
-.breadcrumb > a:last-child:visited {
-    color: #0056b3;
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.breadcrumb > a:last-child:hover {
-    color: #004494;
-    text-decoration: underline;
-}
-
-/* Trigger */
-.crumb-trigger {
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-}
-
-/* Dropdown */
-.crumb-teleport-menu {
-    display: none;
-    position: fixed;
-    background: #ffffff;
-    min-width: 260px;
-    max-width: 320px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    box-shadow: 0 8px 20px rgba(0,0,0,.20);
-    padding: 4px 0;
-    z-index: 9999999 !important;
-}
-
-.crumb-teleport-menu a {
-    display: block;
-    padding: 7px 12px;
-    text-decoration: none;
-    color: #333;
-    font-size: 13px;
-    line-height: 1.3;
-}
-
-.crumb-teleport-menu a:hover {
-    background: #f2f2f2;
-}
-
-.crumb-current{
-    background:#e8f3ff;
-    color:#0d6efd !important;
-    font-weight:600;
-}
-
-.crumb-current:hover{
-    background:#d8ebff !important;
-}
 </style>
-
-<div class="breadcrumb">
-
-    <span class="crumb-trigger" data-menu="home">
-        <a href="/">🏠 Home ▼</a>
-    </span>
-
-    &gt;
-
-    <span class="crumb-trigger" data-menu="tutorials">
-        <a href="/tutorials/">📚 Tutorials ▼</a>
-    </span>
-
-    &gt;
-
-    <span class="crumb-trigger" data-menu="dotnet">
-        <a href="/net-tutorials/">⚙️ .NET Tutorials ▼</a>
-    </span>
-
-    &gt;
-
-    <a href="/entity-framework-core-vs-adonet/">
-        🗃️ Entity Framework Core vs ADO.NET: Which One Should You Use?
-    </a>
-
-</div>
-
-<!-- Home Menu -->
-<div class="crumb-teleport-menu" id="menu-home">
-
-    <a href="/tutorials/">📚 Tutorials</a>
-    <a href="/about-algolassi/">🌟 About Algolassi</a>
-    <a href="/197-2/">💼 Portfolio</a>
-    <a href="/contact-algolassi/">📧 Contact</a>
-
-</div>
-
-<!-- Tutorials Menu -->
-<div class="crumb-teleport-menu" id="menu-tutorials">
-
-    <a href="/csharp-tutorials/">💻 C# Tutorials</a>
-    <a href="/net-tutorials/">⚙️ .NET Tutorials</a>
-    <a href="/asp-net-core-tutorials/">🌐 ASP.NET Core Tutorials</a>
-    <a href="/blazor-tutorials/">⚡ Blazor Tutorials</a>
-    <a href="/sql-server-tutorials/">🗄️ SQL Server Tutorials</a>
-    <a href="/visual-studio-tutorials/">🖥️ Visual Studio Tutorials</a>
-    <a href="/net-maui-tutorials/">📱 .NET MAUI Tutorials</a>
-
-</div>
-
-<!-- .NET Menu -->
-<div class="crumb-teleport-menu" id="menu-dotnet">
-
-    <a href="/entity-framework-core-vs-adonet/" class="crumb-current">
-        🗃️ Entity Framework Core vs ADO.NET: Which One Should You Use?
-    </a>
-
-    <a href="/entity-framework-core-performance-tips/">
-        🚀 Entity Framework Core Performance Tips
-    </a>
-
-</div>
-
-<script>
-(function () {
-
-    const triggers = document.querySelectorAll('.crumb-trigger');
-
-    triggers.forEach(trigger => {
-
-        const menuName = trigger.dataset.menu;
-        const menu = document.getElementById("menu-" + menuName);
-
-        if (!menu) return;
-
-        document.body.appendChild(menu);
-
-        function updatePosition() {
-
-            const rect = trigger.getBoundingClientRect();
-
-            menu.style.left = rect.left + "px";
-            menu.style.top = (rect.bottom + 5) + "px";
-
-        }
-
-        function showMenu() {
-
-            updatePosition();
-
-            document
-                .querySelectorAll(".crumb-teleport-menu")
-                .forEach(m => m.style.display = "none");
-
-            menu.style.display = "block";
-
-        }
-
-        function hideMenu() {
-
-            setTimeout(() => {
-
-                if (!trigger.matches(":hover") &&
-                    !menu.matches(":hover")) {
-
-                    menu.style.display = "none";
-
-                }
-
-            },100);
-
-        }
-
-        trigger.addEventListener("mouseenter",showMenu);
-        trigger.addEventListener("mouseleave",hideMenu);
-
-        menu.addEventListener("mouseenter",showMenu);
-        menu.addEventListener("mouseleave",hideMenu);
-
-        window.addEventListener("resize",updatePosition);
-        window.addEventListener("scroll",updatePosition,true);
-
-    });
-
-})();
-</script>
-
 
 
 <h2 class="wp-block-heading">Introduction</h2>
 
 
-
 <p>Explain that .NET provides multiple ways to access databases, and choosing the right one affects performance, maintainability, and development speed.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">What is ADO.NET?</h2>
 
 
-
 <p>Explain:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Direct database access</li>
 
 
-
 <li>SQL commands</li>
-
 
 
 <li><code>SqlConnection</code></li>
 
 
-
 <li><code>SqlCommand</code></li>
-
 
 
 <li><code>SqlDataReader</code></li>
 </ul>
 
 
-
 <p>Example:</p>
-
 
 
 <pre class="wp-block-code"><code>using SqlConnection con = new(connectionString);
@@ -275,318 +70,243 @@ SqlCommand cmd = new("SELECT * FROM Employees", con);
 SqlDataReader reader = cmd.ExecuteReader();</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">What is Entity Framework Core?</h2>
 
 
-
 <p>Explain:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Object-Relational Mapper (ORM)</li>
 
 
-
 <li>Works with C# classes</li>
 
 
-
 <li>LINQ queries</li>
-
 
 
 <li>Automatic change tracking</li>
 </ul>
 
 
-
 <p>Example:</p>
-
 
 
 <pre class="wp-block-code"><code>var employees = await context.Employees.ToListAsync();</code></pre>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">Feature Comparison</h2>
 
 
-
 <p>Create a table comparing:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Learning curve</li>
 
 
-
 <li>Performance</li>
-
 
 
 <li>Development speed</li>
 
 
-
 <li>SQL control</li>
-
 
 
 <li>Migrations</li>
 
 
-
 <li>Change tracking</li>
-
 
 
 <li>Maintainability</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">Performance Comparison</h2>
 
 
-
 <p>Explain when ADO.NET is faster and when EF Core's productivity outweighs the overhead.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">Advantages of ADO.NET</h2>
-
 
 
 <ul class="wp-block-list">
 <li>Maximum performance</li>
 
 
-
 <li>Full SQL control</li>
 
 
-
 <li>Minimal abstraction</li>
-
 
 
 <li>Good for reporting and bulk operations</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">Advantages of EF Core</h2>
-
 
 
 <ul class="wp-block-list">
 <li>Less code</li>
 
 
-
 <li>LINQ support</li>
-
 
 
 <li>Automatic tracking</li>
 
 
-
 <li>Easier maintenance</li>
-
 
 
 <li>Database migrations</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">When to Use ADO.NET</h2>
 
 
-
 <p>Examples:</p>
-
 
 
 <ul class="wp-block-list">
 <li>Large reports</li>
 
 
-
 <li>Stored procedures</li>
 
 
-
 <li>High-performance APIs</li>
-
 
 
 <li>Bulk data processing</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">When to Use EF Core</h2>
 
 
-
 <p>Examples:</p>
-
 
 
 <ul class="wp-block-list">
 <li>CRUD applications</li>
 
 
-
 <li>Business applications</li>
 
 
-
 <li>Rapid development</li>
-
 
 
 <li>Small to medium projects</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">Can You Use Both Together?</h2>
 
 
-
 <p>Explain that many enterprise applications use EF Core for CRUD operations and ADO.NET or stored procedures for performance-critical queries.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">Best Practices</h2>
-
 
 
 <ul class="wp-block-list">
 <li>Use EF Core for productivity.</li>
 
 
-
 <li>Use ADO.NET for performance-critical scenarios.</li>
 
 
-
 <li>Parameterize SQL queries.</li>
-
 
 
 <li>Profile queries before optimizing.</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h2 class="wp-block-heading">Conclusion</h2>
 
 
-
 <p>Summarize that there is no single "best" option; the right choice depends on the application's requirements.</p>
-
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
 
-
 <h2 class="wp-block-heading">FAQ</h2>
-
 
 
 <ul class="wp-block-list">
 <li>Is EF Core slower than ADO.NET?</li>
 
 
-
 <li>Should I learn ADO.NET before EF Core?</li>
 
 
-
 <li>Can I use stored procedures with EF Core?</li>
-
 
 
 <li>Can EF Core and ADO.NET be used in the same project?</li>
 </ul>
 
 
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 
 <h1 class="wp-block-heading">🔗 Internal Links</h1>
 
 
-
 <p>Link to:</p>
-
 
 
 <ul class="wp-block-list">
 <li>SQL Server CTE vs Temporary Tables</li>
 
 
-
 <li>Async and Await in C#</li>
-
 
 
 <li>ASP.NET Core Dependency Injection</li>
 
 
-
 <li>C# Tutorials</li>
-
 
 
 <li>.NET Tutorials</li>

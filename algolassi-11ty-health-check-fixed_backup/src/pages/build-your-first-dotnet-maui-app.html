@@ -1,0 +1,70 @@
+---
+title: "Build Your First .NET MAUI App: A Practical Beginner Guide"
+layout: layouts/base.njk
+permalink: "/build-your-first-dotnet-maui-app/"
+contentType: "page"
+description: "Learn how to create your first .NET MAUI application, understand the project structure, build a simple UI, and prepare the app for further development."
+---
+
+<h1>Build Your First .NET MAUI App</h1>
+
+<p>.NET MAUI lets you build native applications for multiple platforms from a shared C# codebase. This guide walks through the basic workflow for creating a first application and understanding the files you will work with most often.</p>
+
+<h2>1. Create the Project</h2>
+
+<p>In Visual Studio, create a new project and select <strong>.NET MAUI App</strong>. Choose a project name and target the current .NET version installed on your machine.</p>
+
+<p>After the project is created, Visual Studio provides the platform targets, shared application code, XAML resources, and configuration files required by the template.</p>
+
+<h2>2. Understand the Project Structure</h2>
+
+<ul>
+<li><strong>MauiProgram.cs</strong> — application startup and dependency injection configuration.</li>
+<li><strong>App.xaml</strong> — shared application resources and styles.</li>
+<li><strong>App.xaml.cs</strong> — application-level startup logic.</li>
+<li><strong>MainPage.xaml</strong> — the initial user interface.</li>
+<li><strong>MainPage.xaml.cs</strong> — code-behind for the page.</li>
+<li><strong>Platforms</strong> — platform-specific Android, Windows, iOS, and Mac Catalyst code.</li>
+<li><strong>Resources</strong> — images, fonts, styles, and other application resources.</li>
+</ul>
+
+<h2>3. Build a Simple UI</h2>
+
+<p>A MAUI page can be created with XAML controls such as <code>VerticalStackLayout</code>, <code>Label</code>, <code>Entry</code>, and <code>Button</code>.</p>
+
+<pre><code>&lt;VerticalStackLayout Padding="30" Spacing="15"&gt;
+    &lt;Label Text="Hello, MAUI!" FontSize="28" /&gt;
+    &lt;Entry Placeholder="Enter your name" x:Name="NameEntry" /&gt;
+    &lt;Button Text="Say Hello" Clicked="OnSayHelloClicked" /&gt;
+&lt;/VerticalStackLayout&gt;</code></pre>
+
+<p>The page's code-behind can respond to the button event and update the interface.</p>
+
+<pre><code>private void OnSayHelloClicked(object sender, EventArgs e)
+{
+    DisplayAlert("Welcome", $"Hello, {NameEntry.Text}!", "OK");
+}</code></pre>
+
+<h2>4. Run the Application</h2>
+
+<p>Select a supported target such as Windows or an Android emulator and start debugging. The same shared page can be used across supported platforms while platform-specific behavior remains available when required.</p>
+
+<h2>5. Where to Go Next</h2>
+
+<p>Once the first application runs, the next useful topics are dependency injection, MVVM, navigation, local storage, REST API calls, Blazor Hybrid, and platform-specific APIs.</p>
+
+<p>See the <a href="/net-maui-tutorials/">.NET MAUI Tutorials</a> hub for the broader learning roadmap.</p>
+
+<h2>Common Beginner Mistakes</h2>
+
+<ul>
+<li>Putting all application logic directly in code-behind.</li>
+<li>Ignoring dependency injection as the project grows.</li>
+<li>Hard-coding platform-specific paths.</li>
+<li>Adding platform-specific code when a shared MAUI API already exists.</li>
+<li>Skipping proper testing on the target platforms.</li>
+</ul>
+
+<h2>Conclusion</h2>
+
+<p>Your first .NET MAUI application is mainly about understanding the shared project structure and the relationship between XAML, C#, resources, and platform-specific code. From this foundation, you can progressively introduce MVVM, dependency injection, APIs, databases, and Blazor Hybrid.</p>

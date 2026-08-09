@@ -1,0 +1,41 @@
+---
+title: "JavaScript Fetch API: A Practical Guide"
+layout: layouts/base.njk
+permalink: "/javascript-fetch-api-practical-guide/"
+contentType: "page"
+date: "2026-08-09T10:31:00"
+description: "Learn how to use the JavaScript Fetch API for GET and POST requests, JSON responses, error handling, and practical browser applications."
+---
+<h1>JavaScript Fetch API: A Practical Guide</h1>
+<p>The Fetch API provides a modern promise-based way to make HTTP requests from browser JavaScript.</p>
+<h2>GET Request</h2>
+<pre><code>const response = await fetch('/api/products');
+const products = await response.json();</code></pre>
+<h2>Always Check the HTTP Status</h2>
+<p>A fetch promise normally rejects for network failures, not simply because the server returned a 404 or 500. Check <code>response.ok</code> when appropriate.</p>
+<pre><code>const response = await fetch('/api/products');
+
+if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+}
+
+const data = await response.json();</code></pre>
+<h2>POST JSON</h2>
+<pre><code>const response = await fetch('/api/products', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Keyboard', price: 1200 })
+});</code></pre>
+<h2>Error Handling</h2>
+<pre><code>try {
+    const response = await fetch('/api/products');
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    console.log(data);
+} catch (error) {
+    console.error('Request failed:', error);
+}</code></pre>
+<h2>Practical Tips</h2>
+<ul><li>Check HTTP status codes.</li><li>Validate JSON before using it when the response is not fully trusted.</li><li>Use <code>AbortController</code> for requests that need cancellation.</li><li>Do not put secrets such as API keys in browser JavaScript.</li></ul>
+<h2>Continue Learning</h2>
+<p><a href="/javascript-tutorials/">Back to JavaScript Tutorials</a></p>
