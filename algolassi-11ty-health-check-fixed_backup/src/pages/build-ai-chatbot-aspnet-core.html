@@ -1,0 +1,42 @@
+---
+title: "How to Build an AI Chatbot in ASP.NET Core: Architecture Guide"
+layout: layouts/base.njk
+permalink: "/build-ai-chatbot-aspnet-core/"
+contentType: "page"
+description: "A practical architecture guide for adding an AI chatbot to an ASP.NET Core application using services, prompts, conversation state, and secure API boundaries."
+date: "2026-08-09T10:20:00"
+---
+
+<h1>How to Build an AI Chatbot in ASP.NET Core: Architecture Guide</h1>
+<p>An AI chatbot is easier to maintain when the web application, conversation logic, model provider, and knowledge retrieval are separated. The goal is to keep the AI integration replaceable instead of spreading provider-specific code throughout controllers and Razor components.</p>
+
+<h2>Recommended Architecture</h2>
+<ul><li><strong>UI:</strong> collects messages and displays responses.</li><li><strong>Application service:</strong> coordinates conversations.</li><li><strong>AI provider service:</strong> communicates with the model API.</li><li><strong>Knowledge service:</strong> retrieves relevant documents when needed.</li><li><strong>Persistence:</strong> stores conversation data when required.</li></ul>
+
+<h2>Use Dependency Injection</h2>
+<pre><code>builder.Services.AddScoped&lt;IChatService, ChatService&gt;();
+builder.Services.AddScoped&lt;IAiProvider, AiProvider&gt;();</code></pre>
+<p>The UI should depend on an application abstraction rather than directly constructing an SDK client.</p>
+
+<h2>Keep the Prompt Separate</h2>
+<p>System instructions, retrieved context, and user input should be assembled deliberately. Keep reusable instructions in a service or configuration resource rather than hard-coding them into every endpoint.</p>
+
+<h2>Conversation State</h2>
+<p>A simple application can store a conversation identifier and recent messages. Larger systems should consider token limits, summarization, retention policies, and privacy requirements.</p>
+
+<h2>Knowledge Retrieval</h2>
+<p>For a knowledge-base chatbot, first retrieve relevant documents and then provide only the necessary context to the model. Retrieval should be treated as a separate step that can be tested independently.</p>
+
+<h2>Secure the API Boundary</h2>
+<ul><li>Keep provider API keys on the server.</li><li>Authenticate users before exposing protected data.</li><li>Apply authorization to knowledge-base records.</li><li>Rate-limit public endpoints.</li><li>Validate uploaded or retrieved content.</li><li>Log failures without storing sensitive prompts unnecessarily.</li></ul>
+
+<h2>Handle Failures</h2>
+<p>AI requests can fail because of timeouts, rate limits, invalid requests, provider outages, or oversized context. Return a user-friendly message and log enough diagnostic information for troubleshooting.</p>
+
+<h2>Do Not Let the Model Enforce Permissions</h2>
+<p>A chatbot should never be trusted to decide whether a user is allowed to access a record. Authorization must happen before protected data is placed into the model context.</p>
+
+<h2>Conclusion</h2>
+<p>A clean chatbot architecture isolates the AI provider, keeps prompts and retrieval manageable, and treats security as an application responsibility. This approach also makes it easier to change AI providers later.</p>
+
+<p><a href="/asp-net-core-tutorials/">Back to ASP.NET Core Tutorials</a></p>
