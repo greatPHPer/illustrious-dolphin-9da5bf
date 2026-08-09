@@ -1,0 +1,44 @@
+---
+title: "C# Nullable Reference Types Explained"
+layout: layouts/base.njk
+permalink: "/csharp-nullable-reference-types-explained/"
+date: "2026-08-09T06:40:00"
+description: "Learn how nullable reference types work in C#, how the compiler detects possible null values, and how to write safer code."
+---
+
+<h1>C# Nullable Reference Types Explained</h1>
+<p>NullReferenceException is one of the most common runtime problems in C#. Nullable reference types help the compiler identify code paths where a reference may be null before the application runs.</p>
+<hr>
+<h2>🔎 What Does the Feature Do?</h2>
+<p>With nullable reference types enabled, a normal reference type such as <code>string</code> is treated as non-null by default, while <code>string?</code> explicitly allows null.</p>
+<pre><code>string name = "Dhilip";
+string? optionalName = null;</code></pre>
+<hr>
+<h2>⚙️ Enable Nullable Analysis</h2>
+<p>Modern .NET projects can enable nullable analysis in the project file:</p>
+<pre><code>&lt;PropertyGroup&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+&lt;/PropertyGroup&gt;</code></pre>
+<p>The compiler can then warn when a possibly null value is assigned or dereferenced unsafely.</p>
+<hr>
+<h2>⚠️ A Common Warning</h2>
+<pre><code>string? name = GetName();
+Console.WriteLine(name.Length);</code></pre>
+<p>If <code>GetName()</code> can return null, the compiler can warn about accessing <code>Length</code> without checking the value.</p>
+<hr>
+<h2>✅ Null Checking</h2>
+<pre><code>if (name is not null)
+{
+    Console.WriteLine(name.Length);
+}</code></pre>
+<p>Another common pattern is:</p>
+<pre><code>Console.WriteLine(name?.Length);</code></pre>
+<p>The null-conditional operator safely avoids the member access when the value is null.</p>
+<hr>
+<h2>🛡️ The Null-Forgiving Operator</h2>
+<pre><code>string value = possiblyNull!;</code></pre>
+<p>The <code>!</code> tells the compiler that you believe the value is not null. It does not perform a runtime null check, so it should be used only when that assumption is justified.</p>
+<hr>
+<h2>🧠 Key Takeaway</h2>
+<p><strong>Nullable reference types move many null-related mistakes from runtime failures toward compile-time warnings.</strong></p>
+<p>Continue with <a href="/csharp-tutorials/">💻 C# Tutorials</a> for more C# articles.</p>
