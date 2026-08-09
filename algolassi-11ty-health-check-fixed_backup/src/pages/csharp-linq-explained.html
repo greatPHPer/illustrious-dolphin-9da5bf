@@ -1,0 +1,125 @@
+---
+title: "LINQ in C#: Complete Practical Guide"
+layout: layouts/base.njk
+permalink: "/csharp-linq-explained/"
+contentType: "page"
+description: "Learn LINQ in C# with practical examples covering Where, Select, OrderBy, GroupBy, Join, Any, FirstOrDefault, and common mistakes."
+---
+
+<h1>LINQ in C#: Complete Practical Guide</h1>
+
+<p>LINQ (Language Integrated Query) lets you query collections and other data sources using readable C# expressions. It is especially useful when filtering, sorting, projecting, grouping, and searching application data.</p>
+
+<h2>What is LINQ?</h2>
+
+<p>Instead of writing repetitive loops for every collection operation, LINQ provides standard query operators that describe what you want to do with the data.</p>
+
+<pre><code>var activeEmployees = employees
+    .Where(e =&gt; e.IsActive)
+    .OrderBy(e =&gt; e.Name)
+    .ToList();</code></pre>
+
+<h2>Where: Filter Data</h2>
+
+<p><code>Where</code> keeps only elements that satisfy a condition.</p>
+
+<pre><code>var adults = people.Where(p =&gt; p.Age &gt;= 18).ToList();</code></pre>
+
+<h2>Select: Transform Data</h2>
+
+<p><code>Select</code> projects each item into another value or object.</p>
+
+<pre><code>var names = employees
+    .Select(e =&gt; e.Name)
+    .ToList();</code></pre>
+
+<h2>OrderBy and ThenBy</h2>
+
+<pre><code>var sorted = employees
+    .OrderBy(e =&gt; e.Department)
+    .ThenBy(e =&gt; e.Name)
+    .ToList();</code></pre>
+
+<h2>Any, All, and Contains</h2>
+
+<p>Use these operators when you need to test conditions rather than retrieve an entire collection.</p>
+
+<pre><code>bool hasManagers = employees.Any(e =&gt; e.Role == "Manager");
+bool allActive = employees.All(e =&gt; e.IsActive);
+bool containsId = ids.Contains(employeeId);</code></pre>
+
+<h2>FirstOrDefault and SingleOrDefault</h2>
+
+<p><code>FirstOrDefault</code> returns the first matching item or the default value when there is no match. <code>SingleOrDefault</code> is appropriate when the data should contain zero or one matching item; it throws if multiple matches exist.</p>
+
+<pre><code>var employee = employees
+    .FirstOrDefault(e =&gt; e.Id == 10);</code></pre>
+
+<h2>GroupBy</h2>
+
+<p><code>GroupBy</code> is useful for summaries and reports.</p>
+
+<pre><code>var byDepartment = employees
+    .GroupBy(e =&gt; e.Department)
+    .Select(g =&gt; new
+    {
+        Department = g.Key,
+        Count = g.Count()
+    })
+    .ToList();</code></pre>
+
+<h2>Join</h2>
+
+<p>LINQ can combine related sequences using <code>Join</code>.</p>
+
+<pre><code>var result = employees.Join(
+    departments,
+    e =&gt; e.DepartmentId,
+    d =&gt; d.Id,
+    (e, d) =&gt; new { e.Name, Department = d.Name });</code></pre>
+
+<h2>Method Syntax vs Query Syntax</h2>
+
+<p>LINQ supports both method syntax and query syntax.</p>
+
+<pre><code>var result = from e in employees
+             where e.IsActive
+             orderby e.Name
+             select e;</code></pre>
+
+<p>The equivalent method syntax is:</p>
+
+<pre><code>var result = employees
+    .Where(e =&gt; e.IsActive)
+    .OrderBy(e =&gt; e.Name);</code></pre>
+
+<h2>Deferred Execution</h2>
+
+<p>Many LINQ operators use deferred execution. The query may not run until you enumerate it with operations such as <code>foreach</code>, <code>ToList</code>, or <code>ToArray</code>.</p>
+
+<p>This matters when the source collection changes between creating the query and executing it.</p>
+
+<h2>Common LINQ Mistakes</h2>
+
+<ul>
+<li>Calling <code>ToList()</code> too early and creating unnecessary intermediate collections.</li>
+<li>Using <code>First()</code> when no matching item is possible and an exception would be undesirable.</li>
+<li>Using <code>Single()</code> when duplicate records are actually possible.</li>
+<li>Performing expensive work inside a projection unnecessarily.</li>
+<li>For database queries, accidentally materializing data before applying filters.</li>
+</ul>
+
+<h2>LINQ and Entity Framework Core</h2>
+
+<p>LINQ is also commonly used with Entity Framework Core. When a query is translated to SQL, keeping filtering and projection on the queryable source can allow the database to perform the work instead of loading unnecessary rows into memory.</p>
+
+<pre><code>var products = await db.Products
+    .Where(p =&gt; p.IsActive)
+    .Select(p =&gt; new { p.Id, p.Name })
+    .ToListAsync();</code></pre>
+
+<h2>Conclusion</h2>
+
+<p>LINQ is a core C# skill for modern .NET development. Start with <code>Where</code>, <code>Select</code>, sorting, and aggregation, then move on to grouping, joins, deferred execution, and database queries.</p>
+
+<p>Continue through the <a href="/csharp-tutorials/">C# Tutorials</a> roadmap for more practical C# guides.</p>
