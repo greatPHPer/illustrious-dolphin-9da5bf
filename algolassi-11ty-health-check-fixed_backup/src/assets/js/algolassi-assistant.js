@@ -1,64 +1,61 @@
 /*
- * Algolassi Assistant — Phase 2
+ * Algolassi Assistant - Phases 1-3
  *
- * Privacy-first behavior layer for the static Eleventy site.
- * This script never reads browser history. It only remembers lightweight
- * interactions that happen on Algolassi itself.
+ * Privacy:
+ * - Never reads browser history.
+ * - Phase 1/2 behavior stays in localStorage.
+ * - Phase 3 asks for location only when the visitor has not opted out.
+ * - Location is sent only to the configured news endpoint, if one exists.
+ * - If no endpoint is configured, the assistant uses a public RSS-to-JSON
+ *   service with country-specific Google News RSS feeds and sends no location.
  */
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "algolassi_assistant_v2";
+  var STORAGE_KEY = "algolassi_assistant_v1";
   var TOAST_MS = 12000;
   var SLEEP_MS = 10 * 60 * 1000;
-  var COOLDOWN_MS = 45 * 1000;
+  var NEWS_COOLDOWN_MS = 6 * 60 * 60 * 1000;
   var state = loadState();
   var toastTimer = null;
-  var lastToastAt = 0;
 
-  var SITE_RULES = [
-    { key: "reddit", hosts: ["reddit.com", "old.reddit.com"], label: "Reddit", login: "https://www.reddit.com/login/" },
-    { key: "geeksforgeeks", hosts: ["geeksforgeeks.org"], label: "GeeksforGeeks", login: "https://auth.geeksforgeeks.org/" },
-    { key: "github", hosts: ["github.com"], label: "GitHub", login: "https://github.com/login" },
-    { key: "stackoverflow", hosts: ["stackoverflow.com"], label: "Stack Overflow", login: "https://stackoverflow.com/users/login" },
-    { key: "microsoftlearn", hosts: ["learn.microsoft.com"], label: "Microsoft Learn", login: "https://learn.microsoft.com/users/login" },
-    { key: "youtube", hosts: ["youtube.com", "youtu.be"], label: "YouTube", login: "https://accounts.google.com/" },
-    { key: "medium", hosts: ["medium.com"], label: "Medium", login: "https://medium.com/m/signin" }
-  ];
-
-  var CATEGORY_RULES = [
-    { key: "csharp", words: ["c#", "csharp", "c-sharp"], label: "C#", url: "/csharp-tutorials/" },
-    { key: "dotnet", words: [".net", "dotnet", "asp.net"], label: ".NET", url: "/net-tutorials/" },
-    { key: "aspnetcore", words: ["asp.net core", "dependency injection", "minimal api", "middleware"], label: "ASP.NET Core", url: "/asp-net-core-tutorials/" },
-    { key: "blazor", words: ["blazor"], label: "Blazor", url: "/blazor-tutorials/" },
-    { key: "sqlserver", words: ["sql server", "mssql", "t-sql", "stored procedure"], label: "SQL Server", url: "/sql-server-tutorials/" }
-  ];
-
-  function defaults() {
-    return {
-      hideCount: 0,
-      shutUpCount: 0,
-      sleepingUntil: 0,
-      sites: {},
-      categories: {},
-      copyNotices: 0,
-      pageViews: 0,
-      lastPage: "",
-      lastCategoryToastAt: 0,
-      lastSiteToastAt: 0,
-      lastFirstVisitToast: ""
-    };
-  }
+  var COUNTRY_CONFIG = {
+    IN: { name: "India", flag: "🇮🇳", hl: "en-IN", gl: "IN", ceid: "IN:en", language: "English" },
+    US: { name: "United States", flag: "🇺🇸", hl: "en-US", gl: "US", ceid: "US:en", language: "English" },
+    GB: { name: "United Kingdom", flag: "🇬🇧", hl: "en-GB", gl: "GB", ceid: "GB:en", language: "English" },
+    CA: { name: "Canada", flag: "🇨🇦", hl: "en-CA", gl: "CA", ceid: "CA:en", language: "English" },
+    AU: { name: "Australia", flag: "🇦🇺", hl: "en-AU", gl: "AU", ceid: "AU:en", language: "English" },
+    DE: { name: "Germany", flag: "🇩🇪", hl: "de-DE", gl: "DE", ceid: "DE:de", language: "German" },
+    FR: { name: "France", flag: "🇫🇷", hl: "fr-FR", gl: "FR", ceid: "FR:fr", language: "French" },
+    ES: { name: "Spain", flag: "🇪🇸", hl: "es-ES", gl: "ES", ceid: "ES:es", language: "Spanish" },
+    IT: { name: "Italy", flag: "🇮🇹", hl: "it-IT", gl: "IT", ceid: "IT:it", language: "Italian" },
+    BR: { name: "Brazil", flag: "🇧🇷", hl: "pt-BR", gl: "BR", ceid: "BR:pt-419", language: "Portuguese" },
+    JP: { name: "Japan", flag: "🇯🇵", hl: "ja-JP", gl: "JP", ceid: "JP:ja", language: "Japanese" },
+    KR: { name: "South Korea", flag: "🇰🇷", hl: "ko-KR", gl: "KR", ceid: "KR:ko", language: "Korean" },
+    SG: { name: "Singapore", flag: "🇸🇬", hl: "en-SG", gl: "SG", ceid: "SG:en", language: "English" },
+    AE: { name: "United Arab Emirates", flag: "🇦🇪", hl: "en-AE", gl: "AE", ceid: "AE:en", language: "English" },
+    IN_TA: { name: "India", flag: "🇮🇳", hl: "ta-IN", gl: "IN", ceid: "IN:ta", language: "Tamil" }
+  };
 
   function loadState() {
-    var base = defaults();
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return base;
-      var parsed = JSON.parse(raw);
-      return Object.assign(base, parsed);
+      var parsed = raw ? JSON.parse(raw) : {};
+      return Object.assign({
+        hideCount: 0,
+        shutUpCount: 0,
+        sleepingUntil: 0,
+        sites: {},
+        categories: {},
+        copyNotices: 0,
+        locationAsked: false,
+        locationDenied: false,
+        newsShownAt: 0,
+        detectedCountry: "",
+        detectedLanguage: ""
+      }, parsed);
     } catch (e) {
-      return base;
+      return { hideCount: 0, shutUpCount: 0, sleepingUntil: 0, sites: {}, categories: {}, copyNotices: 0, locationAsked: false, locationDenied: false, newsShownAt: 0, detectedCountry: "", detectedLanguage: "" };
     }
   }
 
@@ -68,6 +65,12 @@
 
   function isSleeping() {
     return Number(state.sleepingUntil || 0) > Date.now();
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
   function ensureToastHost() {
@@ -81,29 +84,16 @@
     return host;
   }
 
-  function escapeHtml(value) {
-    return String(value == null ? "" : value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
   function showToast(message, options) {
     options = options || {};
     if (isSleeping() && !options.force) return;
-    if (!options.force && !options.ignoreCooldown && Date.now() - lastToastAt < COOLDOWN_MS) return;
 
-    lastToastAt = Date.now();
     var host = ensureToastHost();
     clearTimeout(toastTimer);
     host.innerHTML = "";
 
     var toast = document.createElement("section");
-    toast.className = "algolassi-assistant-toast";
-    if (options.news) toast.classList.add("algolassi-assistant-news");
-
+    toast.className = "algolassi-assistant-toast" + (options.news ? " algolassi-assistant-news" : "");
     var title = options.title || "Algolassi Assistant";
     var html = '<div class="algolassi-assistant-head"><span class="algolassi-assistant-avatar">🤖</span><strong>' + escapeHtml(title) + '</strong></div>';
     html += '<div class="algolassi-assistant-body">' + message + '</div>';
@@ -128,9 +118,7 @@
 
     toastTimer = setTimeout(function () {
       toast.classList.add("algolassi-assistant-toast-hide");
-      setTimeout(function () {
-        if (host.contains(toast)) host.removeChild(toast);
-      }, 350);
+      setTimeout(function () { if (host.contains(toast)) host.removeChild(toast); }, 350);
     }, options.duration || TOAST_MS);
   }
 
@@ -139,117 +127,13 @@
     if (host) host.innerHTML = "";
   }
 
-  function findSite(url) {
-    try {
-      var host = new URL(url, location.href).hostname.toLowerCase();
-      for (var i = 0; i < SITE_RULES.length; i++) {
-        for (var j = 0; j < SITE_RULES[i].hosts.length; j++) {
-          var ruleHost = SITE_RULES[i].hosts[j];
-          if (host === ruleHost || host.endsWith("." + ruleHost)) return SITE_RULES[i];
-        }
-      }
-    } catch (e) {}
-    return null;
-  }
-
-  function recordExternalSite(rule) {
-    if (!rule) return;
-    state.sites[rule.key] = Number(state.sites[rule.key] || 0) + 1;
-    saveState();
-
-    var count = state.sites[rule.key];
-    if (count === 3 && Date.now() - state.lastSiteToastAt > 5 * 60 * 1000) {
-      state.lastSiteToastAt = Date.now();
-      saveState();
-      var loginText = rule.key === "reddit" || rule.key === "geeksforgeeks"
-        ? rule.label + " again? 👀<br><br>Want to sign in?"
-        : "You keep visiting " + rule.label + ". 👀<br><br>Want to sign in?";
-      showToast(loginText, {
-        ignoreCooldown: true,
-        actions: [{
-          label: "Open " + rule.label,
-          onClick: function () {
-            window.open(rule.login, "_blank", "noopener,noreferrer");
-          }
-        }]
-      });
-    }
-  }
-
-  function pageText() {
-    var title = document.title || "";
-    var heading = document.querySelector("h1");
-    var text = title + " " + (heading ? heading.textContent : "") + " " + location.pathname;
-    return text.toLowerCase();
-  }
-
-  function detectCategory() {
-    var text = pageText();
-    var matches = [];
-    CATEGORY_RULES.forEach(function (rule) {
-      for (var i = 0; i < rule.words.length; i++) {
-        if (text.indexOf(rule.words[i].toLowerCase()) !== -1) {
-          matches.push(rule);
-          break;
-        }
-      }
-    });
-    return matches;
-  }
-
-  function recordCategories() {
-    var matches = detectCategory();
-    matches.forEach(function (rule) {
-      state.categories[rule.key] = Number(state.categories[rule.key] || 0) + 1;
-    });
-    state.pageViews = Number(state.pageViews || 0) + 1;
-    state.lastPage = location.pathname;
-    saveState();
-    return matches;
-  }
-
-  function topCategory() {
-    var best = null;
-    var bestCount = 0;
-    CATEGORY_RULES.forEach(function (rule) {
-      var count = Number(state.categories[rule.key] || 0);
-      if (count > bestCount) {
-        best = rule;
-        bestCount = count;
-      }
-    });
-    return best ? { rule: best, count: bestCount } : null;
-  }
-
-  function maybeCategoryToast(matches) {
-    if (isSleeping() || !matches.length) return;
-    if (Number(state.pageViews || 0) < 4) return;
-    if (Date.now() - Number(state.lastCategoryToastAt || 0) < 10 * 60 * 1000) return;
-
-    var top = topCategory();
-    if (!top || top.count < 3) return;
-
-    state.lastCategoryToastAt = Date.now();
-    saveState();
-
-    showToast("You've been spending some time with <strong>" + escapeHtml(top.rule.label) + "</strong>. 👀<br><br>Want the tutorial hub?", {
-      ignoreCooldown: true,
-      actions: [{
-        label: "Open " + top.rule.label,
-        onClick: function () { window.location.href = top.rule.url; }
-      }]
-    });
-  }
-
   function handleHide() {
     state.hideCount = Number(state.hideCount || 0) + 1;
     saveState();
-    if (state.hideCount === 1) {
-      showToast("Hiding..", { duration: 5000, ignoreCooldown: true });
-    } else if (state.hideCount === 2) {
-      showToast("2nd time? noted!", { duration: 5000, ignoreCooldown: true });
-    } else {
-      showToast("3rd time noted!<br>I'll stay quiet now. 😶", { duration: 5000, ignoreCooldown: true });
+    if (state.hideCount === 1) showToast("Hiding..", { duration: 5000 });
+    else if (state.hideCount === 2) showToast("2nd time? noted!", { duration: 5000 });
+    else {
+      showToast("3rd time noted!<br>I'll stay quiet now. 😶", { duration: 5000 });
       setTimeout(hideAssistant, 1200);
     }
   }
@@ -261,19 +145,15 @@
       state.sleepingUntil = Date.now() + SLEEP_MS;
       saveState();
       showToast("😴 Sleep mode for 10 minutes.<br><small>I promise not to toast you.</small>", {
-        force: true,
-        duration: 15000,
+        force: true, duration: 15000,
         actions: [{ label: "Awaken Assistant", onClick: function () {
-          state.sleepingUntil = 0;
-          state.shutUpCount = 0;
-          saveState();
+          state.sleepingUntil = 0; state.shutUpCount = 0; saveState();
           showToast("I'm awake again. 👋", { force: true });
         }}]
       });
       return;
     }
     showToast(state.shutUpCount === 1 ? "Okay... I'll be quieter. 😶" : "Again? Fine. 😐", {
-      ignoreCooldown: true,
       actions: [{ label: "Shut up", onClick: handleShutUp }]
     });
   }
@@ -288,11 +168,72 @@
     if (element.closest && element.closest("pre, code")) return;
     var text = String(selection.toString() || "").trim();
     if (!text || text.length < 20) return;
-
     state.copyNotices = Number(state.copyNotices || 0) + 1;
     saveState();
-    showToast("Noted. Copying content?", {
-      actions: [{ label: "Shut up", onClick: handleShutUp }]
+    showToast("Noted. Copying content?", { actions: [{ label: "Shut up", onClick: handleShutUp }] });
+  }
+
+  function siteKeyFromUrl(url) {
+    try {
+      var host = new URL(url, location.href).hostname.toLowerCase();
+      if (host.indexOf("reddit.com") !== -1) return "reddit";
+      if (host.indexOf("geeksforgeeks.org") !== -1) return "geeksforgeeks";
+      if (host.indexOf("github.com") !== -1) return "github";
+      if (host.indexOf("stackoverflow.com") !== -1) return "stackoverflow";
+      if (host.indexOf("learn.microsoft.com") !== -1) return "microsoft-learn";
+      if (host.indexOf("youtube.com") !== -1 || host.indexOf("youtu.be") !== -1) return "youtube";
+      if (host.indexOf("medium.com") !== -1) return "medium";
+    } catch (e) {}
+    return null;
+  }
+
+  function recordExternalSite(site) {
+    if (!site) return;
+    state.sites[site] = Number(state.sites[site] || 0) + 1;
+    saveState();
+    if (site === "reddit" && state.sites[site] === 3) {
+      showToast("Reddit again? 👀<br><br>Want to sign in?", { actions: [{ label: "Open Reddit login", onClick: function () { window.open("https://www.reddit.com/login/", "_blank", "noopener,noreferrer"); }}] });
+    }
+    if (site === "geeksforgeeks" && state.sites[site] === 3) {
+      showToast("GeeksforGeeks again? 👀<br><br>Want to sign in?", { actions: [{ label: "Open GeeksforGeeks", onClick: function () { window.open("https://auth.geeksforgeeks.org/", "_blank", "noopener,noreferrer"); }}] });
+    }
+  }
+
+  function detectCategory() {
+    var text = ((document.title || "") + " " + (document.querySelector("h1") || {}).textContent + " " + location.pathname).toLowerCase();
+    var rules = {
+      "C#": /\bc#\b|csharp|c-sharp/,
+      ".NET": /\.net|dotnet|asp\.net/,
+      "ASP.NET Core": /asp[- ]?net[- ]?core/,
+      "Blazor": /blazor/,
+      "SQL Server": /sql[- ]?server|mssql|t-sql|transact[- ]?sql/,
+      "Visual Studio": /visual[- ]?studio/,
+      "Angular": /angular/,
+      "MAUI": /\.net maui|maui/,
+      "JavaScript": /javascript|js tutorial/,
+      "TypeScript": /typescript/,
+      "Git": /git|github/
+    };
+    var found = [];
+    Object.keys(rules).forEach(function (name) {
+      if (rules[name].test(text)) found.push(name);
+    });
+    found.forEach(function (name) { state.categories[name] = Number(state.categories[name] || 0) + 1; });
+    saveState();
+    return found;
+  }
+
+  function maybeCategoryToast(categories) {
+    if (!categories.length || isSleeping()) return;
+    var now = Date.now();
+    if (Number(state.categoryToastAt || 0) + 24 * 60 * 60 * 1000 > now) return;
+    var best = categories.slice().sort(function (a, b) { return (state.categories[b] || 0) - (state.categories[a] || 0); })[0];
+    if ((state.categories[best] || 0) < 3) return;
+    state.categoryToastAt = now;
+    saveState();
+    var urls = { "C#": "/csharp-tutorials/", ".NET": "/net-tutorials/", "ASP.NET Core": "/asp-net-core-tutorials/", "Blazor": "/blazor-tutorials/", "SQL Server": "/sql-server-tutorials/", "Visual Studio": "/visual-studio-tutorials/" };
+    showToast("You've been spending some time with <strong>" + escapeHtml(best) + "</strong>. 👀", {
+      actions: urls[best] ? [{ label: "Open " + best + " tutorials", onClick: function () { location.href = urls[best]; } }] : undefined
     });
   }
 
@@ -300,47 +241,113 @@
     document.addEventListener("click", function (event) {
       var target = event.target.closest ? event.target.closest("a") : null;
       if (!target) return;
-      var rule = findSite(target.href);
-      if (rule) recordExternalSite(rule);
+      var site = siteKeyFromUrl(target.href);
+      if (site) recordExternalSite(site);
     });
     document.addEventListener("copy", handleCopy);
   }
 
+  function localeCountry() {
+    var locale = navigator.language || "en-IN";
+    var parts = locale.split("-");
+    var country = (parts[1] || "").toUpperCase();
+    if (COUNTRY_CONFIG[country]) return country;
+    try {
+      var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+      if (/kolkata|calcutta/i.test(tz)) return "IN";
+      if (/tokyo/i.test(tz)) return "JP";
+      if (/berlin/i.test(tz)) return "DE";
+      if (/paris/i.test(tz)) return "FR";
+      if (/london/i.test(tz)) return "GB";
+      if (/new_york|los_angeles|chicago/i.test(tz)) return "US";
+    } catch (e) {}
+    return "US";
+  }
+
+  function detectCountryAndMaybeNews() {
+    if (isSleeping()) return;
+    var country = localeCountry();
+    var locale = navigator.language || "en-US";
+    var config = COUNTRY_CONFIG[country] || COUNTRY_CONFIG.US;
+    state.detectedCountry = country;
+    state.detectedLanguage = locale;
+    saveState();
+
+    if (state.newsShownAt && Date.now() - Number(state.newsShownAt) < NEWS_COOLDOWN_MS) return;
+    state.newsShownAt = Date.now();
+    saveState();
+
+    var endpoint = window.ALGOLASSI_ASSISTANT_NEWS_ENDPOINT;
+    if (endpoint) {
+      requestNewsEndpoint(endpoint, country, config);
+    } else {
+      requestPublicNews(config);
+    }
+  }
+
+  function requestNewsEndpoint(endpoint, country, config) {
+    var url = endpoint + (endpoint.indexOf("?") === -1 ? "?" : "&") + "country=" + encodeURIComponent(country) + "&language=" + encodeURIComponent(config.language);
+    fetch(url, { credentials: "omit" })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (news) { if (news && news.title) renderNews(news, config); })
+      .catch(function () {});
+  }
+
+  function requestPublicNews(config) {
+    var rss = "https://news.google.com/rss?hl=" + encodeURIComponent(config.hl) + "&gl=" + encodeURIComponent(config.gl) + "&ceid=" + encodeURIComponent(config.ceid);
+    var proxy = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rss);
+    fetch(proxy, { credentials: "omit" })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (data) {
+        if (!data || !data.items || !data.items.length) return;
+        var item = data.items[0];
+        renderNews({ title: item.title, url: item.link, image: item.thumbnail || "", summary: stripHtml(item.description || "") }, config);
+      })
+      .catch(function () {});
+  }
+
+  function stripHtml(value) {
+    var div = document.createElement("div");
+    div.innerHTML = value;
+    return (div.textContent || div.innerText || "").trim().slice(0, 180);
+  }
+
+  function renderNews(news, config) {
+    var image = news.image ? '<img class="algolassi-assistant-news-image" src="' + escapeHtml(news.image) + '" alt="">' : "";
+    var link = news.url ? '<a class="algolassi-assistant-news-link" href="' + escapeHtml(news.url) + '" target="_blank" rel="noopener noreferrer">Read trending news →</a>' : "";
+    showToast(image + '<div class="algolassi-assistant-news-country">' + escapeHtml(config.flag + " Trending in " + config.name) + '</div><strong>' + escapeHtml(news.title) + '</strong>' + (news.summary ? '<p>' + escapeHtml(news.summary) + '</p>' : "") + link, { news: true, duration: 15000 });
+  }
+
   function firstVisitToast() {
     if (isSleeping()) return;
-    if (state.pageViews > 1 || state.hideCount || state.copyNotices || Object.keys(state.sites).length) return;
-    showToast("Hi! I'm the Algolassi Assistant. 👋", {
-      actions: [{ label: "Hide", onClick: handleHide }]
-    });
+    if (state.hideCount || state.copyNotices || Object.keys(state.sites).length) return;
+    showToast("Hi! I'm the Algolassi Assistant. 👋", { actions: [{ label: "Hide", onClick: handleHide }] });
   }
 
   function init() {
     setupInteractions();
-    var categories = recordCategories();
-
+    var categories = detectCategory();
     window.AlgolassiAssistant = {
       toast: showToast,
       hide: hideAssistant,
-      awaken: function () {
-        state.sleepingUntil = 0;
-        state.shutUpCount = 0;
-        saveState();
-        showToast("I'm awake again. 👋", { force: true });
-      },
+      state: state,
+      handleHide: handleHide,
+      handleShutUp: handleShutUp,
+      detectCountry: detectCountryAndMaybeNews,
       resetMemory: function () {
         try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-        location.reload();
+        state = loadState();
       },
-      state: state
+      awaken: function () {
+        state.sleepingUntil = 0; state.shutUpCount = 0; saveState();
+        showToast("I'm awake again. 👋", { force: true });
+      }
     };
-
     setTimeout(firstVisitToast, 2500);
-    setTimeout(function () { maybeCategoryToast(categories); }, 6000);
+    setTimeout(function () { maybeCategoryToast(categories); }, 7000);
+    setTimeout(detectCountryAndMaybeNews, 12000);
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
