@@ -1,0 +1,66 @@
+---
+title: "ASP.NET Core Logging Basics: ILogger and Structured Logs"
+layout: layouts/base.njk
+permalink: "/asp-net-core-logging-serilog-basics/"
+date: "2026-08-09T07:15:00"
+description: "Learn practical ASP.NET Core logging with ILogger, log levels, structured logging, and production-friendly logging practices."
+---
+
+<h1>ASP.NET Core Logging Basics: ILogger and Structured Logs</h1>
+<p>Good logging makes production problems much easier to diagnose. ASP.NET Core provides <code>ILogger</code> so application code can record useful information without depending directly on a particular logging provider.</p>
+<hr>
+<h2>🧩 Inject ILogger</h2>
+<pre><code>public class OrderService
+{
+    private readonly ILogger&lt;OrderService&gt; _logger;
+
+    public OrderService(ILogger&lt;OrderService&gt; logger)
+    {
+        _logger = logger;
+    }
+
+    public void Process(int orderId)
+    {
+        _logger.LogInformation("Processing order {OrderId}", orderId);
+    }
+}</code></pre>
+<hr>
+<h2>📊 Choose the Right Log Level</h2>
+<ul><li><strong>Trace</strong> — very detailed diagnostic information.</li><li><strong>Debug</strong> — useful during development and troubleshooting.</li><li><strong>Information</strong> — normal application events.</li><li><strong>Warning</strong> — unexpected conditions that do not necessarily stop the request.</li><li><strong>Error</strong> — failures that need investigation.</li><li><strong>Critical</strong> — serious failures affecting the application.</li></ul>
+<hr>
+<h2>⚡ Use Structured Logging</h2>
+<p>Prefer named properties instead of building log messages with string concatenation.</p>
+<pre><code>_logger.LogInformation(
+    "User {UserId} updated product {ProductId}",
+    userId,
+    productId);</code></pre>
+<p>Structured properties make logs easier to search and analyze.</p>
+<hr>
+<h2>🚨 Log Exceptions Correctly</h2>
+<pre><code>try
+{
+    await ProcessAsync();
+}
+catch (Exception ex)
+{
+    _logger.LogError(ex, "Order processing failed for {OrderId}", orderId);
+    throw;
+}</code></pre>
+<p>Passing the exception object preserves its details and stack trace for the configured logging provider.</p>
+<hr>
+<h2>🔧 Configure Log Levels</h2>
+<p>Log levels can be controlled through configuration so production environments do not have to emit excessive diagnostic output.</p>
+<pre><code>"Logging": {
+  "LogLevel": {
+    "Default": "Information",
+    "Microsoft.AspNetCore": "Warning"
+  }
+}</code></pre>
+<hr>
+<h2>📝 What Should You Log?</h2>
+<ul><li>Important business events.</li><li>External service failures.</li><li>Unexpected exceptions.</li><li>Useful identifiers such as order or request IDs.</li><li>Timing information for operations where performance matters.</li></ul>
+<p>Avoid logging passwords, tokens, access keys, and other sensitive information.</p>
+<hr>
+<h2>🎯 Key Takeaway</h2>
+<p><strong>Use ILogger with meaningful log levels and structured properties.</strong> Good logs should help you understand what happened, where it happened, and which operation was affected.</p>
+<p>Continue with <a href="/asp-net-core-tutorials/">⚡ ASP.NET Core Tutorials</a>.</p>
