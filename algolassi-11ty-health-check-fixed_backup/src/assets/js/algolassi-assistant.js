@@ -1,35 +1,64 @@
 /*
- * Algolassi Assistant
- * Client-side assistant for the static Eleventy site.
+ * Algolassi Assistant — Phase 2
  *
- * Privacy note: this script does NOT read browser history. Browsers do not
- * expose another site's browsing history to a normal website. It only stores
- * lightweight interaction counts for links the visitor clicks on Algolassi.
+ * Privacy-first behavior layer for the static Eleventy site.
+ * This script never reads browser history. It only remembers lightweight
+ * interactions that happen on Algolassi itself.
  */
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "algolassi_assistant_v1";
+  var STORAGE_KEY = "algolassi_assistant_v2";
   var TOAST_MS = 12000;
   var SLEEP_MS = 10 * 60 * 1000;
+  var COOLDOWN_MS = 45 * 1000;
   var state = loadState();
   var toastTimer = null;
-  var newsTimer = null;
+  var lastToastAt = 0;
+
+  var SITE_RULES = [
+    { key: "reddit", hosts: ["reddit.com", "old.reddit.com"], label: "Reddit", login: "https://www.reddit.com/login/" },
+    { key: "geeksforgeeks", hosts: ["geeksforgeeks.org"], label: "GeeksforGeeks", login: "https://auth.geeksforgeeks.org/" },
+    { key: "github", hosts: ["github.com"], label: "GitHub", login: "https://github.com/login" },
+    { key: "stackoverflow", hosts: ["stackoverflow.com"], label: "Stack Overflow", login: "https://stackoverflow.com/users/login" },
+    { key: "microsoftlearn", hosts: ["learn.microsoft.com"], label: "Microsoft Learn", login: "https://learn.microsoft.com/users/login" },
+    { key: "youtube", hosts: ["youtube.com", "youtu.be"], label: "YouTube", login: "https://accounts.google.com/" },
+    { key: "medium", hosts: ["medium.com"], label: "Medium", login: "https://medium.com/m/signin" }
+  ];
+
+  var CATEGORY_RULES = [
+    { key: "csharp", words: ["c#", "csharp", "c-sharp"], label: "C#", url: "/csharp-tutorials/" },
+    { key: "dotnet", words: [".net", "dotnet", "asp.net"], label: ".NET", url: "/net-tutorials/" },
+    { key: "aspnetcore", words: ["asp.net core", "dependency injection", "minimal api", "middleware"], label: "ASP.NET Core", url: "/asp-net-core-tutorials/" },
+    { key: "blazor", words: ["blazor"], label: "Blazor", url: "/blazor-tutorials/" },
+    { key: "sqlserver", words: ["sql server", "mssql", "t-sql", "stored procedure"], label: "SQL Server", url: "/sql-server-tutorials/" }
+  ];
+
+  function defaults() {
+    return {
+      hideCount: 0,
+      shutUpCount: 0,
+      sleepingUntil: 0,
+      sites: {},
+      categories: {},
+      copyNotices: 0,
+      pageViews: 0,
+      lastPage: "",
+      lastCategoryToastAt: 0,
+      lastSiteToastAt: 0,
+      lastFirstVisitToast: ""
+    };
+  }
 
   function loadState() {
+    var base = defaults();
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
-      var parsed = raw ? JSON.parse(raw) : {};
-      return Object.assign({
-        hideCount: 0,
-        shutUpCount: 0,
-        sleepingUntil: 0,
-        sites: {},
-        copyNotices: 0,
-        locationAsked: false
-      }, parsed);
+      if (!raw) return base;
+      var parsed = JSON.parse(raw);
+      return Object.assign(base, parsed);
     } catch (e) {
-      return { hideCount: 0, shutUpCount: 0, sleepingUntil: 0, sites: {}, copyNotices: 0, locationAsked: false };
+      return base;
     }
   }
 
@@ -64,7 +93,9 @@
   function showToast(message, options) {
     options = options || {};
     if (isSleeping() && !options.force) return;
+    if (!options.force && !options.ignoreCooldown && Date.now() - lastToastAt < COOLDOWN_MS) return;
 
+    lastToastAt = Date.now();
     var host = ensureToastHost();
     clearTimeout(toastTimer);
     host.innerHTML = "";
@@ -97,7 +128,9 @@
 
     toastTimer = setTimeout(function () {
       toast.classList.add("algolassi-assistant-toast-hide");
-      setTimeout(function () { if (host.contains(toast)) host.removeChild(toast); }, 350);
+      setTimeout(function () {
+        if (host.contains(toast)) host.removeChild(toast);
+      }, 350);
     }, options.duration || TOAST_MS);
   }
 
@@ -106,49 +139,117 @@
     if (host) host.innerHTML = "";
   }
 
-  function siteKeyFromUrl(url) {
+  function findSite(url) {
     try {
       var host = new URL(url, location.href).hostname.toLowerCase();
-      if (host.indexOf("reddit.com") !== -1) return "reddit";
-      if (host.indexOf("geeksforgeeks.org") !== -1) return "geeksforgeeks";
-      if (host.indexOf("github.com") !== -1) return "github";
-      if (host.indexOf("stackoverflow.com") !== -1) return "stackoverflow";
+      for (var i = 0; i < SITE_RULES.length; i++) {
+        for (var j = 0; j < SITE_RULES[i].hosts.length; j++) {
+          var ruleHost = SITE_RULES[i].hosts[j];
+          if (host === ruleHost || host.endsWith("." + ruleHost)) return SITE_RULES[i];
+        }
+      }
     } catch (e) {}
     return null;
   }
 
-  function recordExternalSite(site) {
-    if (!site) return;
-    state.sites[site] = Number(state.sites[site] || 0) + 1;
+  function recordExternalSite(rule) {
+    if (!rule) return;
+    state.sites[rule.key] = Number(state.sites[rule.key] || 0) + 1;
     saveState();
 
-    if (site === "reddit" && state.sites[site] === 3) {
-      showToast("Reddit again? 👀<br><br>Want to sign in?", {
-        actions: [{ label: "Open Reddit login", onClick: function () {
-          window.open("https://www.reddit.com/login/", "_blank", "noopener,noreferrer");
-        }}]
+    var count = state.sites[rule.key];
+    if (count === 3 && Date.now() - state.lastSiteToastAt > 5 * 60 * 1000) {
+      state.lastSiteToastAt = Date.now();
+      saveState();
+      var loginText = rule.key === "reddit" || rule.key === "geeksforgeeks"
+        ? rule.label + " again? 👀<br><br>Want to sign in?"
+        : "You keep visiting " + rule.label + ". 👀<br><br>Want to sign in?";
+      showToast(loginText, {
+        ignoreCooldown: true,
+        actions: [{
+          label: "Open " + rule.label,
+          onClick: function () {
+            window.open(rule.login, "_blank", "noopener,noreferrer");
+          }
+        }]
       });
     }
+  }
 
-    if (site === "geeksforgeeks" && state.sites[site] === 3) {
-      showToast("GeeksforGeeks again? 👀<br><br>Want to sign in?", {
-        actions: [{ label: "Open GeeksforGeeks", onClick: function () {
-          window.open("https://auth.geeksforgeeks.org/", "_blank", "noopener,noreferrer");
-        }}]
-      });
-    }
+  function pageText() {
+    var title = document.title || "";
+    var heading = document.querySelector("h1");
+    var text = title + " " + (heading ? heading.textContent : "") + " " + location.pathname;
+    return text.toLowerCase();
+  }
+
+  function detectCategory() {
+    var text = pageText();
+    var matches = [];
+    CATEGORY_RULES.forEach(function (rule) {
+      for (var i = 0; i < rule.words.length; i++) {
+        if (text.indexOf(rule.words[i].toLowerCase()) !== -1) {
+          matches.push(rule);
+          break;
+        }
+      }
+    });
+    return matches;
+  }
+
+  function recordCategories() {
+    var matches = detectCategory();
+    matches.forEach(function (rule) {
+      state.categories[rule.key] = Number(state.categories[rule.key] || 0) + 1;
+    });
+    state.pageViews = Number(state.pageViews || 0) + 1;
+    state.lastPage = location.pathname;
+    saveState();
+    return matches;
+  }
+
+  function topCategory() {
+    var best = null;
+    var bestCount = 0;
+    CATEGORY_RULES.forEach(function (rule) {
+      var count = Number(state.categories[rule.key] || 0);
+      if (count > bestCount) {
+        best = rule;
+        bestCount = count;
+      }
+    });
+    return best ? { rule: best, count: bestCount } : null;
+  }
+
+  function maybeCategoryToast(matches) {
+    if (isSleeping() || !matches.length) return;
+    if (Number(state.pageViews || 0) < 4) return;
+    if (Date.now() - Number(state.lastCategoryToastAt || 0) < 10 * 60 * 1000) return;
+
+    var top = topCategory();
+    if (!top || top.count < 3) return;
+
+    state.lastCategoryToastAt = Date.now();
+    saveState();
+
+    showToast("You've been spending some time with <strong>" + escapeHtml(top.rule.label) + "</strong>. 👀<br><br>Want the tutorial hub?", {
+      ignoreCooldown: true,
+      actions: [{
+        label: "Open " + top.rule.label,
+        onClick: function () { window.location.href = top.rule.url; }
+      }]
+    });
   }
 
   function handleHide() {
     state.hideCount = Number(state.hideCount || 0) + 1;
     saveState();
-
     if (state.hideCount === 1) {
-      showToast("Hiding..", { duration: 5000 });
+      showToast("Hiding..", { duration: 5000, ignoreCooldown: true });
     } else if (state.hideCount === 2) {
-      showToast("2nd time? noted!", { duration: 5000 });
+      showToast("2nd time? noted!", { duration: 5000, ignoreCooldown: true });
     } else {
-      showToast("3rd time noted!<br>I'll stay quiet now. 😶", { duration: 5000 });
+      showToast("3rd time noted!<br>I'll stay quiet now. 😶", { duration: 5000, ignoreCooldown: true });
       setTimeout(hideAssistant, 1200);
     }
   }
@@ -156,7 +257,6 @@
   function handleShutUp() {
     state.shutUpCount = Number(state.shutUpCount || 0) + 1;
     saveState();
-
     if (state.shutUpCount >= 3) {
       state.sleepingUntil = Date.now() + SLEEP_MS;
       saveState();
@@ -172,30 +272,25 @@
       });
       return;
     }
-
     showToast(state.shutUpCount === 1 ? "Okay... I'll be quieter. 😶" : "Again? Fine. 😐", {
+      ignoreCooldown: true,
       actions: [{ label: "Shut up", onClick: handleShutUp }]
     });
   }
 
-  function handleCopy(event) {
+  function handleCopy() {
     if (isSleeping()) return;
-
     var selection = window.getSelection ? window.getSelection() : null;
     if (!selection || !selection.rangeCount) return;
-
     var node = selection.anchorNode;
     var element = node && node.nodeType === 3 ? node.parentElement : node;
     if (!element) return;
-
     if (element.closest && element.closest("pre, code")) return;
-
     var text = String(selection.toString() || "").trim();
     if (!text || text.length < 20) return;
 
     state.copyNotices = Number(state.copyNotices || 0) + 1;
     saveState();
-
     showToast("Noted. Copying content?", {
       actions: [{ label: "Shut up", onClick: handleShutUp }]
     });
@@ -205,49 +300,15 @@
     document.addEventListener("click", function (event) {
       var target = event.target.closest ? event.target.closest("a") : null;
       if (!target) return;
-      var site = siteKeyFromUrl(target.href);
-      if (site) recordExternalSite(site);
+      var rule = findSite(target.href);
+      if (rule) recordExternalSite(rule);
     });
-
     document.addEventListener("copy", handleCopy);
-  }
-
-  function getCountryFromLocale() {
-    var locale = navigator.language || "en-US";
-    var parts = locale.split("-");
-    return (parts[1] || "").toUpperCase();
-  }
-
-  function tryShowLocationNews() {
-    if (isSleeping() || state.locationAsked) return;
-
-    var endpoint = window.ALGOLASSI_ASSISTANT_NEWS_ENDPOINT;
-    if (!endpoint || !navigator.geolocation) return;
-
-    state.locationAsked = true;
-    saveState();
-
-    navigator.geolocation.getCurrentPosition(function (position) {
-      var url = endpoint + (endpoint.indexOf("?") === -1 ? "?" : "&") +
-        "lat=" + encodeURIComponent(position.coords.latitude) +
-        "&lon=" + encodeURIComponent(position.coords.longitude) +
-        "&country=" + encodeURIComponent(getCountryFromLocale());
-
-      fetch(url, { credentials: "omit" })
-        .then(function (response) { return response.ok ? response.json() : null; })
-        .then(function (news) {
-          if (!news || !news.title) return;
-          var image = news.image ? '<img class="algolassi-assistant-news-image" src="' + escapeHtml(news.image) + '" alt="">' : "";
-          var link = news.url ? '<a class="algolassi-assistant-news-link" href="' + escapeHtml(news.url) + '" target="_blank" rel="noopener noreferrer">Read trending news →</a>' : "";
-          showToast(image + '<strong>' + escapeHtml(news.title) + '</strong>' + (news.summary ? '<p>' + escapeHtml(news.summary) + '</p>' : "") + link, { news: true, duration: 15000 });
-        })
-        .catch(function () {});
-    }, function () {}, { maximumAge: 3600000, timeout: 8000 });
   }
 
   function firstVisitToast() {
     if (isSleeping()) return;
-    if (state.hideCount || state.copyNotices || Object.keys(state.sites).length) return;
+    if (state.pageViews > 1 || state.hideCount || state.copyNotices || Object.keys(state.sites).length) return;
     showToast("Hi! I'm the Algolassi Assistant. 👋", {
       actions: [{ label: "Hide", onClick: handleHide }]
     });
@@ -255,6 +316,8 @@
 
   function init() {
     setupInteractions();
+    var categories = recordCategories();
+
     window.AlgolassiAssistant = {
       toast: showToast,
       hide: hideAssistant,
@@ -264,12 +327,15 @@
         saveState();
         showToast("I'm awake again. 👋", { force: true });
       },
+      resetMemory: function () {
+        try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+        location.reload();
+      },
       state: state
     };
 
     setTimeout(firstVisitToast, 2500);
-    newsTimer = setTimeout(tryShowLocationNews, 12000);
-    void newsTimer;
+    setTimeout(function () { maybeCategoryToast(categories); }, 6000);
   }
 
   if (document.readyState === "loading") {
