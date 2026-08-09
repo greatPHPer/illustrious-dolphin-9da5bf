@@ -1,0 +1,63 @@
+---
+title: "Collections in C#: List, Dictionary, HashSet and Queue"
+layout: layouts/base.njk
+permalink: "/csharp-collections-explained/"
+contentType: "page"
+description: "Learn how to choose and use the most common C# collections, including List, Dictionary, HashSet, Queue, and Stack."
+---
+
+<h1>Collections in C#: List, Dictionary, HashSet and Queue</h1>
+<p>C# collections let you store and work with groups of values. Choosing the right collection can make code simpler, clearer, and faster.</p>
+<h2>List&lt;T&gt;</h2>
+<p><code>List&lt;T&gt;</code> is the general-purpose choice when you need an ordered, dynamically sized collection.</p>
+<pre><code>var names = new List&lt;string&gt; { "Alice", "Bob", "Charlie" };
+names.Add("Diana");
+
+foreach (var name in names)
+{
+    Console.WriteLine(name);
+}</code></pre>
+<p>Use a list when you frequently access items by index or need to preserve insertion order.</p>
+<h2>Dictionary&lt;TKey, TValue&gt;</h2>
+<p>A dictionary stores values by a key and is useful for fast lookups.</p>
+<pre><code>var employees = new Dictionary&lt;int, string&gt;
+{
+    [1001] = "Alice",
+    [1002] = "Bob"
+};
+
+if (employees.TryGetValue(1002, out var name))
+{
+    Console.WriteLine(name);
+}</code></pre>
+<p><code>TryGetValue</code> is usually preferable to indexing when the key might not exist.</p>
+<h2>HashSet&lt;T&gt;</h2>
+<p>A <code>HashSet&lt;T&gt;</code> stores unique values and is useful when fast membership checks matter.</p>
+<pre><code>var tags = new HashSet&lt;string&gt; { "csharp", "dotnet" };
+tags.Add("csharp");
+
+Console.WriteLine(tags.Count);</code></pre>
+<p>Adding an existing value does not create a duplicate.</p>
+<h2>Queue&lt;T&gt;</h2>
+<p>A queue follows first-in, first-out (FIFO) behavior.</p>
+<pre><code>var queue = new Queue&lt;string&gt;();
+queue.Enqueue("Task 1");
+queue.Enqueue("Task 2");
+
+var next = queue.Dequeue();</code></pre>
+<p>Queues are useful for work items, processing pipelines, and other FIFO scenarios.</p>
+<h2>Stack&lt;T&gt;</h2>
+<p>A stack follows last-in, first-out (LIFO) behavior.</p>
+<pre><code>var stack = new Stack&lt;string&gt;();
+stack.Push("Page A");
+stack.Push("Page B");
+
+var current = stack.Pop();</code></pre>
+<h2>Which Collection Should You Choose?</h2>
+<table><thead><tr><th>Collection</th><th>Typical use</th></tr></thead><tbody><tr><td>List&lt;T&gt;</td><td>Ordered general-purpose data</td></tr><tr><td>Dictionary&lt;TKey,TValue&gt;</td><td>Key-based lookup</td></tr><tr><td>HashSet&lt;T&gt;</td><td>Unique values and membership checks</td></tr><tr><td>Queue&lt;T&gt;</td><td>FIFO processing</td></tr><tr><td>Stack&lt;T&gt;</td><td>LIFO processing</td></tr></tbody></table>
+<h2>Common Mistakes</h2>
+<ul><li>Using a list when lookups should be key-based.</li><li>Assuming a dictionary preserves the semantics of a list.</li><li>Using a list to enforce uniqueness instead of a hash set.</li><li>Calling <code>Dequeue</code> or <code>Pop</code> without checking whether the collection contains an item.</li><li>Choosing a collection without considering access patterns.</li></ul>
+<h2>Summary</h2>
+<p>Start with <code>List&lt;T&gt;</code> for ordinary ordered data, use <code>Dictionary&lt;TKey,TValue&gt;</code> for key lookups, <code>HashSet&lt;T&gt;</code> for uniqueness, <code>Queue&lt;T&gt;</code> for FIFO processing, and <code>Stack&lt;T&gt;</code> for LIFO behavior.</p>
+<h2>Continue Learning C#</h2>
+<p>See the <a href="/csharp-tutorials/">C# Tutorials</a> pillar for the complete roadmap and related guides.</p>
