@@ -1,13 +1,11 @@
 /*
- * Algolassi Assistant - country detection correction.
+ * Algolassi Assistant - country / state / city detection.
  *
- * Country priority:
- * 1. Existing explicit country already stored by the assistant.
- * 2. Browser timezone (strong local signal; e.g. Asia/Kolkata => India).
- * 3. IP country lookup as a fallback.
- * 4. Browser locale country as a last resort.
- *
- * Browser language is deliberately NOT treated as physical location.
+ * Privacy model:
+ * - timezone is used as a strong country signal;
+ * - IP geolocation is used only to obtain approximate region/city news context;
+ * - exact latitude/longitude is never stored in localStorage;
+ * - browser language is used for language preference, not physical location.
  */
 (function () {
   "use strict";
@@ -61,35 +59,40 @@
     return "";
   }
 
-  function localeCountry() {
-    var locale = navigator.language || "";
-    var match = locale.match(/[-_]([A-Za-z]{2})(?:$|-)/);
-    var code = match ? match[1].toUpperCase() : "";
-    return COUNTRY[code] ? code : "";
+  function localeLanguage() {
+    var locale = (navigator.language || "en").toLowerCase();
+    return locale.split("-")[0].split("_")[0] || "en";
   }
 
   function preferredLanguage(country) {
-    var locale = (navigator.language || "").toLowerCase();
+    var language = localeLanguage();
     if (country === "IN") {
-      if (locale.indexOf("ta") === 0) return "Tamil";
-      if (locale.indexOf("hi") === 0) return "Hindi";
-      if (locale.indexOf("te") === 0) return "Telugu";
-      if (locale.indexOf("ml") === 0) return "Malayalam";
-      if (locale.indexOf("kn") === 0) return "Kannada";
+      if (language === "ta") return "Tamil";
+      if (language === "hi") return "Hindi";
+      if (language === "te") return "Telugu";
+      if (language === "ml") return "Malayalam";
+      if (language === "kn") return "Kannada";
+      if (language === "bn") return "Bengali";
+      if (language === "mr") return "Marathi";
+      if (language === "gu") return "Gujarati";
+      if (language === "pa") return "Punjabi";
       return "English";
     }
-    return locale.split("-")[0] || "en";
+    return language;
   }
 
-  function apply(country, source) {
+  function apply(country, source, region, city) {
     if (!country || !COUNTRY[country]) return false;
     var state = readState();
     state.detectedCountry = country;
     state.detectedCountrySource = source;
     state.detectedLanguage = preferredLanguage(country);
 
-    // Prevent the old Phase 3 detector from showing a second (wrong-country)
-    // news toast when it runs 12 seconds after page load.
+    // Store only coarse location labels, never latitude/longitude.
+    if (region) state.detectedRegion = String(region);
+    if (city) state.detectedCity = String(city);
+
+    // Prevent the old Phase 3 detector from producing a second wrong-country toast.
     state.newsShownAt = Date.now();
     writeState(state);
 
@@ -97,21 +100,38 @@
       code: country,
       name: COUNTRY[country].name,
       source: source,
-      language: state.detectedLanguage
+      language: state.detectedLanguage,
+      region: state.detectedRegion || "",
+      city: state.detectedCity || ""
     };
     return true;
   }
 
   function escapeHtml(value) {
-    return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;");
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;");
   }
 
-  function showCorrectNews(country) {
+  function buildNewsUrl(country, region, city) {
+    var config = COUNTRY[country];
+    if (!config) return "";
+
+    // Prefer local/state news. Fall back to national Google News if no region exists.
+    var query = city || region || "";
+    var base = "https://news.google.com/rss?hl=" + encodeURIComponent(config.hl) +
+      "&gl=" + encodeURIComponent(config.gl) + "&ceid=" + encodeURIComponent(config.ceid);
+    if (query) base += "&q=" + encodeURIComponent(query + " news");
+    return base;
+  }
+
+  function showCorrectNews(country, region, city) {
     var config = COUNTRY[country];
     if (!config) return;
 
-    var rss = "https://news.google.com/rss?hl=" + encodeURIComponent(config.hl) +
-      "&gl=" + encodeURIComponent(config.gl) + "&ceid=" + encodeURIComponent(config.ceid);
+    var rss = buildNewsUrl(country, region, city);
     var proxy = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rss);
 
     fetch(proxy, { credentials: "omit" })
@@ -119,40 +139,62 @@
       .then(function (data) {
         if (!data || !data.items || !data.items.length) return;
         var item = data.items[0];
+        var place = city || region || config.name;
         var image = item.thumbnail ? '<img class="algolassi-assistant-news-image" src="' + escapeHtml(item.thumbnail) + '" alt="">' : "";
-        var link = item.link ? '<a class="algolassi-assistant-news-link" href="' + escapeHtml(item.link) + '" target="_blank" rel="noopener noreferrer">Read trending news →</a>' : "";
+        var link = item.link ? '<a class="algolassi-assistant-news-link" href="' + escapeHtml(item.link) + '" target="_blank" rel="noopener noreferrer">Read local news →</a>' : "";
         var host = document.getElementById("algolassi-assistant-host");
         if (!host) return;
         host.innerHTML = '<section class="algolassi-assistant-toast algolassi-assistant-news">' +
-          '<div class="algolassi-assistant-head"><span class="algolassi-assistant-avatar">📰</span><strong>' + config.flag + ' Trending in ' + config.name + '</strong></div>' +
+          '<div class="algolassi-assistant-head"><span class="algolassi-assistant-avatar">📰</span><strong>📍 ' + escapeHtml(place) + '</strong></div>' +
           '<div class="algolassi-assistant-body">' + image + '<strong>' + escapeHtml(item.title) + '</strong>' + link + '</div></section>';
-        setTimeout(function () { if (host.firstElementChild) host.firstElementChild.classList.add("algolassi-assistant-toast-hide"); }, 15000);
+        setTimeout(function () {
+          if (host.firstElementChild) host.firstElementChild.classList.add("algolassi-assistant-toast-hide");
+        }, 15000);
       })
       .catch(function () {});
+  }
+
+  function requestApproximateLocation() {
+    return fetch("https://ipapi.co/json/", { credentials: "omit" })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (data) {
+        if (!data) return null;
+        return {
+          country: data.country_code ? String(data.country_code).toUpperCase() : "",
+          region: data.region || data.region_code || "",
+          city: data.city || ""
+        };
+      });
   }
 
   function init() {
     var existing = readState();
     var tzCountry = timezoneCountry();
-    var country = tzCountry || localeCountry();
-    var source = tzCountry ? "timezone" : "browser-locale";
 
-    if (country) {
-      apply(country, source);
-      setTimeout(function () { showCorrectNews(country); }, 10000);
-      return;
-    }
+    // Timezone gives us a reliable country for many visitors, but not a state/city.
+    // Fetch approximate IP metadata so state/city news can still be selected.
+    requestApproximateLocation()
+      .then(function (location) {
+        var country = (location && location.country) || tzCountry || existing.detectedCountry || "";
+        if (!country) return;
 
-    // Only use IP geolocation if timezone and locale cannot identify a country.
-    fetch("https://ipapi.co/json/", { credentials: "omit" })
-      .then(function (response) { return response.ok ? response.json() : null; })
-      .then(function (data) {
-        var ipCountry = data && data.country_code ? String(data.country_code).toUpperCase() : "";
-        if (!apply(ipCountry, "ip")) return;
-        setTimeout(function () { showCorrectNews(ipCountry); }, 10000);
+        var source = location && location.country ? (tzCountry ? "timezone+ip" : "ip") : "timezone";
+        var region = location && location.region ? location.region : (existing.detectedRegion || "");
+        var city = location && location.city ? location.city : (existing.detectedCity || "");
+
+        if (!apply(country, source, region, city)) return;
+
+        setTimeout(function () {
+          showCorrectNews(country, region, city);
+        }, 10000);
       })
       .catch(function () {
-        if (existing.detectedCountry && COUNTRY[existing.detectedCountry]) apply(existing.detectedCountry, "previously-detected");
+        if (tzCountry) {
+          apply(tzCountry, "timezone", existing.detectedRegion || "", existing.detectedCity || "");
+          setTimeout(function () {
+            showCorrectNews(tzCountry, existing.detectedRegion || "", existing.detectedCity || "");
+          }, 10000);
+        }
       });
   }
 
