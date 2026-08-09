@@ -1,0 +1,39 @@
+---
+title: "SQL Server Transaction Isolation Levels Explained"
+layout: layouts/base.njk
+permalink: "/sql-server-transaction-isolation-levels-explained/"
+contentType: "page"
+description: "Understand SQL Server transaction isolation levels, blocking, dirty reads, and the trade-offs between consistency and concurrency."
+---
+
+# SQL Server Transaction Isolation Levels Explained
+
+Transaction isolation controls how one transaction can observe data changed by another transaction. Choosing an isolation level is a balance between consistency and concurrency.
+
+## Read Uncommitted
+
+This permits reading changes that another transaction has not committed. It can reduce blocking but allows dirty reads.
+
+## Read Committed
+
+This is a common default behavior. A query normally reads committed data, while locks or row-versioning behavior determine how concurrent operations interact.
+
+## Repeatable Read
+
+This prevents rows already read by a transaction from being changed by another transaction until the first transaction completes, which can increase locking.
+
+## Serializable
+
+Serializable provides the strongest traditional isolation among these levels, preventing a transaction from seeing certain concurrent changes that would violate serial execution. It can significantly increase blocking.
+
+## Snapshot and row versioning
+
+SQL Server also supports row-versioning approaches such as snapshot isolation and read committed snapshot. These can reduce reader/writer blocking by allowing readers to work with versions of data.
+
+## Choosing an isolation level
+
+Do not automatically choose the strongest level. Start from the application's consistency requirements and workload, then measure concurrency and blocking behavior.
+
+## Summary
+
+Isolation is about controlling what concurrent transactions can see. Understanding dirty reads, blocking, and row versioning makes it easier to choose an appropriate SQL Server strategy instead of relying on trial and error.
