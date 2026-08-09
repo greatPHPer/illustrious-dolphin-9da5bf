@@ -1,10 +1,8 @@
 
 <!doctype html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ title }} | Algolassi</title>
   {% if description %}<meta name="description" content="{{ description | escape }}">{% endif %}
   <meta name="generator" content="Eleventy">
@@ -16,145 +14,22 @@
   {% if permalink %}<link rel="canonical" href="https://algolassi.online{{ permalink }}">{% endif %}
   <script async src="https://pagead2.googlesyndication.com/pagead/js?id=ca-pub-4185133949320759" crossorigin="anonymous"></script>
 </head>
-
 <body>
-<header class="site-header">
-  <div class="site-header-inner">
-    <a class="brand" href="/">
-      <img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32">
-      <span>Algolassi</span>
-    </a>
-    <nav class="site-nav" aria-label="Main navigation">
-      <a href="/tutorials/">Tutorials</a>
-      <a href="/csharp-tutorials/">C#</a>
-      <a href="/net-tutorials/">.NET</a>
-      <a href="/asp-net-core-tutorials/">ASP.NET Core</a>
-      <a href="/blazor-tutorials/">Blazor</a>
-      <a href="/sql-server-tutorials/">SQL Server</a>
-      <a href="/about-algolassi/">About</a>
-    </nav>
-  </div>
-</header>
-
+<header class="site-header"><div class="site-header-inner"><a class="brand" href="/"><img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32"><span>Algolassi</span></a><nav class="site-nav" aria-label="Main navigation"><a href="/tutorials/">Tutorials</a><a href="/csharp-tutorials/">C#</a><a href="/net-tutorials/">.NET</a><a href="/asp-net-core-tutorials/">ASP.NET Core</a><a href="/blazor-tutorials/">Blazor</a><a href="/sql-server-tutorials/">SQL Server</a><a href="/about-algolassi/">About</a></nav></div></header>
 <main class="site-main">
   {% include "components/breadcrumb.njk" %}
-  {% if contentType == "post" %}
-    <article class="article">
-      <header class="article-header">
-        <p class="eyebrow">ARTICLE</p>
-        <h1>{{ title }}</h1>
-        {% if date %}<time datetime="{{ date }}">{{ date | date("dd LLLL yyyy") }}</time>{% endif %}
-      </header>
-      <div class="article-content">{{ content | safe }}</div>
-      {% include "comments.njk" %}
-    </article>
-  {% else %}
-    <div class="page-content">
-      {{ content | safe }}
-      {% include "comments.njk" %}
-    </div>
-  {% endif %}
+  {% if contentType == "post" %}<article class="article"><header class="article-header"><p class="eyebrow">ARTICLE</p><h1>{{ title }}</h1>{% if date %}<time datetime="{{ date }}">{{ date | date("dd LLLL yyyy") }}</time>{% endif %}</header><div class="article-content">{{ content | safe }}</div>{% include "comments.njk" %}</article>
+  {% else %}<div class="page-content">{{ content | safe }}{% include "comments.njk" %}</div>{% endif %}
 </main>
-
-<footer class="site-footer">
-  <div class="footer-inner">
-    <div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div>
-    <nav>
-      <a href="/tutorials/">Tutorials</a>
-      <a href="/197-2/">Portfolio</a>
-      <a href="/about-algolassi/">About</a>
-      <a href="/contact-algolassi/">Contact</a>
-      <a href="/privacy-policy-2/">Privacy</a>
-    </nav>
-  </div>
-  <p class="copyright">© {{ currentYear }} Algolassi. All rights reserved.</p>
-</footer>
-
+<footer class="site-footer"><div class="footer-inner"><div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div><nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav></div><p class="copyright">© {{ currentYear }} Algolassi. All rights reserved.</p></footer>
+<script>window.ALGOLASSI_ASSISTANT_NEWS_ENDPOINT="";</script>
+<script src="/assets/js/algolassi-assistant-country-fix.js" defer></script><script src="/assets/js/algolassi-assistant.js" defer></script><script src="/assets/js/algolassi-assistant-radio.js" defer></script><script src="/assets/js/algolassi-assistant-phase5.js" defer></script>
 <script>
-  window.ALGOLASSI_ASSISTANT_NEWS_ENDPOINT = "";
+(function(){"use strict";if(window.__algolassiSpaRouter)return;window.__algolassiSpaRouter=true;var mainSelector=".site-main",navigating=false;
+function shouldHandle(link,event){if(!link||!link.href||!event||event.defaultPrevented||event.button!==0)return false;if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return false;if(link.target&&link.target!=="_self")return false;if(link.hasAttribute("download")||link.hasAttribute("data-no-spa"))return false;if(link.protocol!==location.protocol||link.host!==location.host)return false;if(link.hash&&link.pathname===location.pathname&&link.search===location.search)return false;return true;}
+function updateMeta(doc){if(doc.title)document.title=doc.title;var a=document.querySelector('meta[name="description"]'),b=doc.querySelector('meta[name="description"]');if(a&&b)a.setAttribute("content",b.getAttribute("content")||"");else if(!a&&b)document.head.appendChild(b.cloneNode(true));else if(a&&!b)a.remove();var c=document.querySelector('link[rel="canonical"]'),d=doc.querySelector('link[rel="canonical"]');if(c&&d)c.setAttribute("href",d.getAttribute("href")||"");else if(!c&&d)document.head.appendChild(d.cloneNode(true));else if(c&&!d)c.remove();}
+function initializePageComponents(){if(typeof window.AlgolassiCommentsInit==="function")window.AlgolassiCommentsInit();if(typeof window.AlgolassiRadioInit==="function")window.AlgolassiRadioInit();}
+function loadPage(url,push){if(navigating)return;navigating=true;fetch(url.href,{credentials:"same-origin"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.text();}).then(function(html){var doc=new DOMParser().parseFromString(html,"text/html"),cur=document.querySelector(mainSelector),next=doc.querySelector(mainSelector);if(!cur||!next)throw new Error("site-main not found");cur.innerHTML=next.innerHTML;updateMeta(doc);if(push)history.pushState({algolassiSpa:true},"",url.href);window.scrollTo(0,0);initializePageComponents();window.dispatchEvent(new Event("algolassi:spa-navigation"));}).catch(function(){location.href=url.href;}).finally(function(){navigating=false;});}
+document.addEventListener("click",function(event){var link=event.target.closest?event.target.closest("a"):null;if(!shouldHandle(link,event))return;event.preventDefault();loadPage(new URL(link.href),true);},true);window.addEventListener("popstate",function(){loadPage(new URL(location.href),false);});})();
 </script>
-<script src="/assets/js/algolassi-assistant-country-fix.js" defer></script>
-<script src="/assets/js/algolassi-assistant.js" defer></script>
-<script src="/assets/js/algolassi-assistant-radio.js" defer></script>
-<script src="/assets/js/algolassi-assistant-phase5.js" defer></script>
-
-<!-- Lightweight Eleventy navigation: keep assistant/radio alive without popup windows. -->
-<script>
-(function () {
-  "use strict";
-  if (window.__algolassiSpaRouter) return;
-  window.__algolassiSpaRouter = true;
-  var mainSelector = ".site-main";
-  var navigating = false;
-
-  function shouldHandle(link, event) {
-    if (!link || !link.href || !event || event.defaultPrevented || event.button !== 0) return false;
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
-    if (link.target && link.target !== "_self") return false;
-    if (link.hasAttribute("download") || link.hasAttribute("data-no-spa")) return false;
-    if (link.protocol !== window.location.protocol || link.host !== window.location.host) return false;
-    if (link.hash && link.pathname === window.location.pathname && link.search === window.location.search) return false;
-    return true;
-  }
-
-  function updateMeta(doc) {
-    if (doc.title) document.title = doc.title;
-    var oldDesc = document.querySelector('meta[name="description"]');
-    var newDesc = doc.querySelector('meta[name="description"]');
-    if (oldDesc && newDesc) oldDesc.setAttribute("content", newDesc.getAttribute("content") || "");
-    else if (!oldDesc && newDesc) document.head.appendChild(newDesc.cloneNode(true));
-    else if (oldDesc && !newDesc) oldDesc.remove();
-
-    var oldCanonical = document.querySelector('link[rel="canonical"]');
-    var newCanonical = doc.querySelector('link[rel="canonical"]');
-    if (oldCanonical && newCanonical) oldCanonical.setAttribute("href", newCanonical.getAttribute("href") || "");
-    else if (!oldCanonical && newCanonical) document.head.appendChild(newCanonical.cloneNode(true));
-    else if (oldCanonical && !newCanonical) oldCanonical.remove();
-  }
-
-  function initializePageComponents() {
-    if (typeof window.AlgolassiCommentsInit === "function") {
-      window.AlgolassiCommentsInit();
-    }
-  }
-
-  function loadPage(url, push) {
-    if (navigating) return;
-    navigating = true;
-    fetch(url.href, { credentials: "same-origin" })
-      .then(function (response) {
-        if (!response.ok) throw new Error("HTTP " + response.status);
-        return response.text();
-      })
-      .then(function (html) {
-        var doc = new DOMParser().parseFromString(html, "text/html");
-        var currentMain = document.querySelector(mainSelector);
-        var nextMain = doc.querySelector(mainSelector);
-        if (!currentMain || !nextMain) throw new Error("site-main not found");
-        currentMain.innerHTML = nextMain.innerHTML;
-        updateMeta(doc);
-        if (push) history.pushState({ algolassiSpa: true }, "", url.href);
-        window.scrollTo(0, 0);
-        initializePageComponents();
-        window.dispatchEvent(new Event("algolassi:spa-navigation"));
-      })
-      .catch(function () {
-        window.location.href = url.href;
-      })
-      .finally(function () { navigating = false; });
-  }
-
-  document.addEventListener("click", function (event) {
-    var link = event.target.closest ? event.target.closest("a") : null;
-    if (!shouldHandle(link, event)) return;
-    event.preventDefault();
-    loadPage(new URL(link.href), true);
-  }, true);
-
-  window.addEventListener("popstate", function () {
-    loadPage(new URL(window.location.href), false);
-  });
-})();
-</script>
-</body>
-</html>
+</body></html>
