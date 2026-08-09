@@ -1,0 +1,32 @@
+---
+title: "Calling an AI API from C#: Practical Patterns"
+layout: layouts/base.njk
+permalink: "/ai-api-csharp-practical-guide/"
+contentType: "page"
+date: "2026-08-09T10:34:00"
+description: "Learn practical C# patterns for calling an AI service, handling JSON responses, configuration, errors, and timeouts safely."
+---
+<h1>Calling an AI API from C#: Practical Patterns</h1>
+<p>AI services are normally consumed over HTTPS APIs. A production C# application should keep credentials out of source code, validate responses, and handle transient failures.</p>
+<h2>Keep Configuration Outside Source Code</h2>
+<pre><code>public sealed class AiOptions
+{
+    public string Endpoint { get; set; } = "";
+    public string ApiKey { get; set; } = "";
+}</code></pre>
+<p>Load secrets through your application's configuration and secret-management mechanism rather than committing them to Git.</p>
+<h2>Use HttpClient</h2>
+<pre><code>using var client = new HttpClient();
+client.DefaultRequestHeaders.Authorization =
+    new AuthenticationHeaderValue("Bearer", apiKey);
+
+var response = await client.PostAsJsonAsync(endpoint, request);
+response.EnsureSuccessStatusCode();
+var result = await response.Content.ReadFromJsonAsync&lt;AiResponse&gt;();</code></pre>
+<h2>Handle Failures</h2>
+<ul><li>Use sensible request timeouts.</li><li>Log diagnostic information without logging secrets.</li><li>Retry only transient failures and use backoff.</li><li>Validate the response before using it.</li><li>Apply application-level authorization independently of the model.</li></ul>
+<h2>Do Not Trust Generated Output</h2>
+<p>Generated text or structured data can be incomplete or incorrect. Treat it as untrusted input and validate it before writing to a database, executing an operation, or returning sensitive information.</p>
+<h2>Conclusion</h2>
+<p>The most reliable AI integrations look like ordinary API integrations: clear contracts, secure configuration, timeouts, error handling, validation, logging, and tests.</p>
+<p><a href="/ai-for-developers/">Back to AI for Developers</a></p>
