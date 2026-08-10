@@ -20,7 +20,7 @@
     }
   };
 
-  var installedPackages = {};
+  var installedPackages = {"Radzen.Blazor": true};
   var dirtyFiles = {};
   var componentState = {};
   var packageRecipes = {
