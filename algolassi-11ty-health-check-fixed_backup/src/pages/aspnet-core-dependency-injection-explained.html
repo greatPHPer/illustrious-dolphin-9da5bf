@@ -38,12 +38,12 @@ html, body {
     display: none;
     position: fixed;
     background: #fff;
-    min-width: 260px;    /* was 300px */
+    min-width: 260px;
     max-width: 320px;
     border: 1px solid #ddd;
     border-radius: 6px;
     box-shadow: 0 8px 20px rgba(0,0,0,.2);
-    padding: 4px 0;      /* was 8px */
+    padding: 4px 0;
     z-index: 9999999;
 }
 
@@ -54,8 +54,8 @@ html, body {
     color: #333;
     white-space: normal;
     line-height: 1.3;
-    font-size: 14px;     /* Smaller text */
-    font-weight: 400;    /* Normal weight */
+    font-size: 14px;
+    font-weight: 400;
 }
 
 .crumb-teleport-menu a:hover {
@@ -70,65 +70,33 @@ html, body {
 .breadcrumb > a:last-child:hover {
     text-decoration: underline;
 }
-/* Current page in dropdown */
 </style>
 
-
 <h2 class="wp-block-heading">1. Introduction</h2>
-
-
 <p>Explain what Dependency Injection is in simple terms.</p>
-
-
 <p>Example:</p>
-
-
 <blockquote class="wp-block-quote">
 <p>Imagine a car needs an engine. Instead of the car building its own engine, someone provides the engine when the car is created. ASP.NET Core works similarly by providing required services to your classes.</p>
 </blockquote>
-
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
-
 <h2 class="wp-block-heading">2. What Problem Does Dependency Injection Solve?</h2>
-
-
 <p>Without DI:</p>
-
-
 <pre class="wp-block-code"><code>public class UserService
 {
     private EmailService _email = new EmailService();
 }</code></pre>
-
-
 <p>Problems:</p>
-
-
 <ul class="wp-block-list">
 <li>Tight coupling</li>
-
-
 <li>Difficult to test</li>
-
-
 <li>Hard to replace implementations</li>
 </ul>
-
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
-
 <h2 class="wp-block-heading">3. Dependency Injection with ASP.NET Core</h2>
-
-
 <pre class="wp-block-code"><code>builder.Services.AddScoped&lt;IEmailService, EmailService&gt;();</code></pre>
-
-
 <p>Then:</p>
-
-
 <pre class="wp-block-code"><code>public class UserService
 {
     private readonly IEmailService _email;
@@ -138,89 +106,40 @@ html, body {
         _email = email;
     }
 }</code></pre>
-
-
 <p>Explain that ASP.NET Core automatically creates and injects the service.</p>
-
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 <h2 class="wp-block-heading">4. Registering Services</h2>
-
-
 <p>Explain the three common registrations.</p>
-
-
 <h3 class="wp-block-heading">Singleton</h3>
-
-
 <pre class="wp-block-code"><code>builder.Services.AddSingleton&lt;ISettingsService, SettingsService&gt;();</code></pre>
-
-
 <ul class="wp-block-list">
 <li>One instance for the entire application</li>
-
-
 <li>Good for configuration and caching</li>
 </ul>
-
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
-
 <h3 class="wp-block-heading">Scoped</h3>
-
-
 <pre class="wp-block-code"><code>builder.Services.AddScoped&lt;IUserService, UserService&gt;();</code></pre>
-
-
 <ul class="wp-block-list">
 <li>One instance per HTTP request</li>
-
-
 <li>Best choice for EF Core <code>DbContext</code></li>
 </ul>
-
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
-
 <h3 class="wp-block-heading">Transient</h3>
-
-
 <pre class="wp-block-code"><code>builder.Services.AddTransient&lt;IReportService, ReportService&gt;();</code></pre>
-
-
 <ul class="wp-block-list">
 <li>New instance every time</li>
-
-
 <li>Good for lightweight services</li>
 </ul>
-
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 <h2 class="wp-block-heading">5. Understanding Service Lifetimes</h2>
-
-
 <p>Include a simple comparison table:</p>
-
-
 <figure class="wp-block-table"><table class="has-fixed-layout"><thead><tr><th>Lifetime</th><th>Created</th><th>Typical Use</th></tr></thead><tbody><tr><td>Singleton</td><td>Once for the application</td><td>Configuration, cache</td></tr><tr><td>Scoped</td><td>Once per request</td><td>Business services, DbContext</td></tr><tr><td>Transient</td><td>Every injection</td><td>Utility/helper services</td></tr></tbody></table></figure>
-
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
-
 <h2 class="wp-block-heading">6. Constructor Injection</h2>
-
-
 <p>Example:</p>
-
-
 <pre class="wp-block-code"><code>public class ProductController : Controller
 {
     private readonly IProductService _service;
@@ -230,171 +149,83 @@ html, body {
         _service = service;
     }
 }</code></pre>
-
-
 <p>Explain why constructor injection is preferred over creating objects manually.</p>
-
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 <h2 class="wp-block-heading">7. Dependency Injection in Blazor</h2>
-
-
 <p>Since you work with Blazor, this section will make the article stand out.</p>
-
-
 <pre class="wp-block-code"><code>@inject NavigationManager Navigation
 @inject HttpClient Http</code></pre>
-
-
 <p>Also show a custom service:</p>
-
-
 <pre class="wp-block-code"><code>@inject WeatherService WeatherService</code></pre>
-
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
-
 <h2 class="wp-block-heading">8. Dependency Injection in .NET MAUI Blazor</h2>
-
-
 <p>Connect it to your expertise.</p>
-
-
 <p>Example:</p>
-
-
 <pre class="wp-block-code"><code>builder.Services.AddSingleton&lt;AppSessionService&gt;();
 builder.Services.AddScoped&lt;AuthApiService&gt;();
 builder.Services.AddSingleton&lt;ModuleState&gt;();</code></pre>
-
-
 <p>Explain why:</p>
-
-
 <ul class="wp-block-list">
 <li><code>AppSessionService</code> may be singleton to hold app-wide session state.</li>
-
-
 <li><code>AuthApiService</code> can be scoped depending on your app architecture.</li>
-
-
 <li>Always choose lifetimes intentionally rather than by habit.</li>
 </ul>
 
-
+<h3 class="wp-block-heading">Why Singleton Can Survive a Page Refresh in Blazor Hybrid</h3>
+<p>In a .NET MAUI Blazor Hybrid application, the lifetime behavior is different from a traditional ASP.NET Core web request. A <code>Scoped</code> service belongs to a DI scope, and that scope can be recreated when the application/page is refreshed or the relevant Blazor context is rebuilt. When that happens, values stored only inside the scoped service can be lost.</p>
+<p>A <code>Singleton</code> service, on the other hand, is created once for the lifetime of the application's DI container. Therefore, in a Blazor Hybrid application, application-level state stored in a singleton can remain available after a page refresh when the same application/container remains alive.</p>
+<blockquote class="wp-block-quote">
+<p><strong>Important:</strong> This is not a universal rule that "Singleton always survives refresh and Scoped never does." The exact behavior depends on the hosting model and the DI scope being recreated. In Blazor Hybrid, a singleton can be useful for application-level state, while scoped services should be used when state should belong to a particular DI scope.</p>
+</blockquote>
+<p>For example, if an <code>AppSessionService</code> stores the current company code, plant code, or other application session information in a MAUI Blazor Hybrid app, registering it as a singleton can keep that state available when a page is refreshed, whereas putting the same state in a recreated scoped service can cause it to reset.</p>
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 <h2 class="wp-block-heading">9. Common Mistakes</h2>
-
-
 <p>Cover things developers actually encounter:</p>
-
-
 <ul class="wp-block-list">
 <li>Registering a service but forgetting the interface.</li>
-
-
 <li>Using <code>new</code> instead of DI.</li>
-
-
 <li>Injecting a scoped service into a singleton.</li>
-
-
 <li>Forgetting to register a service.</li>
-
-
 <li>Creating circular dependencies.</li>
 </ul>
-
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
-
 
 <h2 class="wp-block-heading">10. Best Practices</h2>
-
-
 <p>Recommend:</p>
-
-
 <ul class="wp-block-list">
 <li>Depend on interfaces (<code>IEmailService</code>) instead of concrete classes.</li>
-
-
 <li>Keep services focused on one responsibility.</li>
-
-
 <li>Use constructor injection.</li>
-
-
 <li>Register the correct lifetime.</li>
-
-
 <li>Avoid service locator patterns.</li>
 </ul>
-
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
-
 <h2 class="wp-block-heading">11. Conclusion</h2>
-
-
 <p>Summarize why DI matters:</p>
-
-
 <blockquote class="wp-block-quote">
 <p>Dependency Injection is one of the core features of ASP.NET Core. It reduces coupling, improves testability, and makes applications easier to maintain as they grow.</p>
 </blockquote>
-
-
 <hr class="wp-block-separator has-alpha-channel-opacity"/>
 
-
 <h1 class="wp-block-heading">Internal Links</h1>
-
-
 <p>Link this article to:</p>
-
-
 <ul class="wp-block-list">
 <li><strong><a href="/csharp-tutorials/" data-type="page" data-id="247">C# Tutorials</a></strong> (interfaces and object-oriented concepts)</li>
-
-
 <li><strong><a href="/asp-net-core-tutorials/" data-type="page" data-id="258">ASP.NET Core Tutorials</a></strong> (hub page)</li>
-
-
 <li><strong><a href="/blazor-tutorials/" data-type="page" data-id="262">Blazor Tutorials</a></strong></li>
-
-
 <li><strong><a href="/net-maui-tutorials/" data-type="page" data-id="270">.NET MAUI Tutorials</a></strong></li>
 </ul>
-
-
 <p><strong>Related articles</strong></p>
-
-
 <ul class="wp-block-list">
 <li><a href="/what-is-dependency-injection-asp-net-core/" data-type="page" data-id="460">What Is Dependency Injection in ASP.NET Core? A Beginner's Guide</a></li>
-
-
 <li><a href="/register-services-asp-net-core-dependency-injection/" data-type="page" data-id="463">How to Register Services in ASP.NET Core Dependency Injection</a></li>
-
-
 <li><a href="/singleton-scoped-transient-asp-net-core/" data-type="page" data-id="466">Singleton vs Scoped vs Transient in ASP.NET Core: What's the Difference?</a></li>
-
-
 <li>How to Use Constructor Injection in ASP.NET Core</li>
-
-
 <li>How to Inject Services into Controllers, Razor Pages, and Blazor</li>
-
-
 <li>Common Dependency Injection Errors in ASP.NET Core and How to Fix Them</li>
-
-
 <li>Advanced Dependency Injection in ASP.NET Core: Factory, Keyed Services, and Service Lifetimes</li>
 </ul>

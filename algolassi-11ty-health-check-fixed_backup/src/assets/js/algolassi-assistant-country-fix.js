@@ -177,8 +177,6 @@
 
     requestApproximateLocation()
       .then(function (location) {
-        // If timezone and IP disagree, prefer the timezone for country. This
-        // prevents a VPN/ISP geolocation mismatch from turning India into US.
         var country = tzCountry || (location && location.country) || existing.detectedCountry || "";
         if (!country) return;
 
@@ -210,4 +208,38 @@
   };
 
   init();
+})();
+
+/* Mobile breadcrumb fix.
+ * The breadcrumb markup is replaced by the SPA router after navigation, so
+ * its inline click handler is not re-executed. Handle breadcrumb taps at the
+ * document capture phase so the SPA router cannot navigate away on the first
+ * tap. The first tap opens the dropdown; the second tap follows the link.
+ */
+(function () {
+  "use strict";
+
+  document.addEventListener("click", function (event) {
+    if (!window.matchMedia("(hover: none) and (pointer: coarse)").matches) return;
+
+    var trigger = event.target && event.target.closest
+      ? event.target.closest(".breadcrumb-trigger")
+      : null;
+    if (!trigger) return;
+
+    var item = trigger.closest(".breadcrumb-item");
+    var menu = item ? item.querySelector(".breadcrumb-menu") : null;
+    if (!menu) return;
+
+    if (!menu.classList.contains("open")) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      document.querySelectorAll(".breadcrumb-menu.open").forEach(function (otherMenu) {
+        otherMenu.classList.remove("open");
+      });
+
+      menu.classList.add("open");
+    }
+  }, true);
 })();
