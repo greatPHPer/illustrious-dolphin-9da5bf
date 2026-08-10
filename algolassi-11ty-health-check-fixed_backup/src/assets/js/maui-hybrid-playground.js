@@ -1,18 +1,546 @@
 /* Algolassi MAUI Hybrid browser playground */
-(function(){"use strict";
-var projects={"1. MyMauiApp":{"MainPage.xaml":"<ContentPage xmlns=\"http://schemas.microsoft.com/dotnet/2021/maui\"><VerticalStackLayout Padding=\"30\"><Label Text=\"Hello from MAUI Hybrid!\" FontSize=\"24\" /></VerticalStackLayout></ContentPage>","MainPage.xaml.cs":"namespace MyMauiApp;\n\npublic partial class MainPage : ContentPage\n{\n    public MainPage() { InitializeComponent(); }\n}","MauiProgram.cs":"namespace MyMauiApp;\n\npublic static class MauiProgram\n{\n    public static MauiApp CreateMauiApp()\n    {\n        var builder = MauiApp.CreateBuilder();\n        builder.UseMauiApp<App>();\n        return builder.Build();\n    }\n}"},"2. MyMauiApp.Shared":{"Home.razor":"@page \"/home\"\n\n<h1>Hello from Shared!</h1>\n<p>This Home.razor belongs to the Shared project.</p>\n<a href=\"/home\">Go Home</a>","Models/AppMessage.cs":"namespace MyMauiApp.Shared.Models;\n\npublic record AppMessage(string Text);"},"3. MyMauiApp.Web":{"Program.cs":"var builder = WebApplication.CreateBuilder(args);\nbuilder.Services.AddRazorComponents().AddInteractiveServerComponents();\nvar app = builder.Build();\napp.MapRazorComponents<App>().AddInteractiveServerRenderMode();\napp.Run();"},"4. MyMauiApp.Web.Client":{"Home.razor":"@page \"/\"\n\n<h1>@message</h1>\n<button @onclick=\"ChangeMessage\">Click Me</button>\n\n@code {\n    private string message = \"Hello from Web Client!\";\n    private void ChangeMessage() => message = \"You clicked the button!\";\n}"}};
-var installedPackages={},dirtyFiles={},componentState={};
-var recipes={"Radzen.Blazor":{project:"3. MyMauiApp.Web",registration:"builder.Services.AddRadzenComponents();",components:{RadzenButton:function(a,i){return '<button class="playground-radzen-button"'+clickAttr(a)+'>'+esc(i||a.Text||"Radzen Button")+'</button>';},RadzenTextBox:function(a){return '<input class="playground-radzen-input" placeholder="'+esc(a.Placeholder||"")+'" value="'+esc(a.Value||"")+'">';},RadzenLabel:function(a,i){return '<span class="playground-radzen-label">'+esc(i||a.Text||"")+'</span>';}}},"MudBlazor":{project:"3. MyMauiApp.Web",registration:"builder.Services.AddMudServices();",components:{MudButton:function(a,i){return '<button class="playground-mud-button"'+clickAttr(a)+'>'+esc(i||a.Text||"MudButton")+'</button>';},MudTextField:function(a){return '<input class="playground-mud-input" placeholder="'+esc(a.Label||a.Placeholder||"")+'">';}}},"Blazored.LocalStorage":{project:"3. MyMauiApp.Web",registration:"builder.Services.AddBlazoredLocalStorage();",components:{}},"Microsoft.Extensions.Http":{project:"3. MyMauiApp.Web",registration:"builder.Services.AddHttpClient();",components:{}}};
-function esc(v){return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}function clickAttr(a){var n=a["@onclick"]||a.onclick||"";return n?' data-playground-click="'+esc(n)+'"':'';}
-function start(){var cp="1. MyMauiApp",cf="MainPage.xaml",ed=document.getElementById("maui-code-editor"),out=document.getElementById("maui-console-output"),prev=document.getElementById("maui-browser-preview"),tabs=document.getElementById("maui-editor-tabs"),tree=document.querySelector(".maui-project-tree"),run=document.getElementById("maui-run-preview"),create=document.getElementById("maui-create-project");if(!ed||!out||!prev||!tabs||!tree)return;addStyles();addSaveButton();setupNuget();
-function files(p){return projects[p||cp]||{};}function key(p,f){return p+"::"+f;}function dirty(p,f){return !!dirtyFiles[key(p,f)];}function sync(){if(cp&&cf&&files()[cf]!==undefined)files()[cf]=ed.value;}function load(p,f){cp=p;cf=f;ed.value=files(p)[f]||"";ed.dataset.project=p;ed.dataset.file=f;}function saveCurrent(){sync();renderTree();renderTabs();}function saveAll(){sync();dirtyFiles={};renderTree();renderTabs();out.textContent="Project saved successfully.\n\nAll modified files are now saved.";}
-function renderTabs(){tabs.innerHTML="";var ns=Object.keys(files());if(ns.indexOf(cf)<0)cf=ns[0]||"";ns.forEach(function(n){var b=document.createElement("button");b.type="button";b.className="maui-editor-tab"+(n===cf?" active":"");b.appendChild(document.createTextNode(n));if(dirty(cp,n)){var s=document.createElement("span");s.className="maui-file-dirty";s.textContent=" *";b.appendChild(s);}b.onclick=function(e){e.preventDefault();saveCurrent();load(cp,n);renderTree();renderTabs();render();};tabs.appendChild(b);});}
-function renderTree(){tree.innerHTML="";Object.keys(projects).forEach(function(p){var root=document.createElement("li"),row=document.createElement("div"),folder=document.createElement("a"),plus=document.createElement("a"),ul=document.createElement("ul");row.className="maui-tree-folder-row";folder.href="#";folder.className="maui-tree-link maui-tree-folder-link";folder.innerHTML="▾ 📁 <strong>"+esc(p)+"</strong>";plus.href="#";plus.className="maui-tree-link maui-tree-add-link";plus.textContent="+";plus.title="Add file";row.append(folder,plus);ul.className="maui-tree-children";root.append(row,ul);Object.keys(projects[p]).forEach(function(f){var li=document.createElement("li"),a=document.createElement("a");a.href="#";a.className="maui-tree-link"+(p===cp&&f===cf?" active":"");a.appendChild(document.createTextNode("📄 "+f));if(dirty(p,f)){var s=document.createElement("span");s.className="maui-file-dirty";s.textContent=" *";a.appendChild(s);}a.onclick=function(e){e.preventDefault();e.stopPropagation();saveCurrent();load(p,f);renderTree();renderTabs();render();};li.appendChild(a);ul.appendChild(li);});plus.onclick=function(e){e.preventDefault();e.stopPropagation();var n=prompt("New file name","NewFile.razor");if(!n)return;n=n.trim();if(!n||projects[p][n]!==undefined)return;saveCurrent();projects[p][n]="";load(p,n);dirtyFiles[key(p,n)]=true;renderTree();renderTabs();render();};folder.onclick=function(e){e.preventDefault();saveCurrent();load(p,Object.keys(projects[p])[0]||"");renderTree();renderTabs();render();};tree.appendChild(root);});}
-function attrs(s){var a={},r=/([:@\w-]+)\s*=\s*["']([^"']*)["']/g,m;while((m=r.exec(s||"")))a[m[1]]=m[2];return a;}function codeBlock(s){var st=s.search(/@code\s*\{/i);if(st<0)return null;var op=s.indexOf("{",st),d=0,q=null;for(var i=op;i<s.length;i++){var c=s[i];if(q){if(c===q&&s[i-1]!=="\\")q=null;continue;}if(c==='"'||c==="'"){q=c;continue;}if(c==="{")d++;else if(c==="}"&&!--d)return{start:st,end:i+1,code:s.slice(op+1,i)};}return null;}function defaultValue(t){t=String(t||"").toLowerCase();if(t==="string")return"";if(/^(int|long|short|double|float|decimal)$/.test(t))return 0;if(t==="bool")return false;return null;}function evalExpr(x,s){x=String(x||"").trim().replace(/;$/g,"").replace(/^await\s+/i,"");if(x==="true")return true;if(x==="false")return false;if(x==="null")return null;if(/^-?\d+(\.\d+)?$/.test(x))return Number(x);if((x[0]==='"'&&x[x.length-1]==='"')||(x[0]==="'"&&x[x.length-1]==="'"))return x.slice(1,-1);if(x in s)return s[x];var ps=x.split(/\s*\+\s*/);if(ps.length>1){var vs=ps.map(function(p){return evalExpr(p,s);});if(vs.some(function(v){return typeof v==="string";}))return vs.join("");return vs.reduce(function(a,b){return Number(a||0)+Number(b||0);},0);}return x;}function stateFor(code){var k=key(cp,cf),s=componentState[k]||(componentState[k]={}),m,r=/\b(?:private|public|protected|internal)?\s*([\w<>?]+)\s+(\w+)\s*\{\s*get\s*;\s*set\s*;\s*\}/g;while((m=r.exec(code)))if(!(m[2]in s))s[m[2]]=defaultValue(m[1]);r=/\b(?:private|public|protected|internal)?\s*([\w<>?]+)\s+(\w+)\s*=\s*([^;]+);/g;while((m=r.exec(code)))if(!(m[2]in s))s[m[2]]=evalExpr(m[3],s);return s;}function methodBody(code,n){var safe=n.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),m=new RegExp("(?:private|public|protected|internal)?\\s*(?:async\\s+)?(?:Task(?:<[^>]+>)?|void|[\\w<>?]+)\\s+"+safe+"\\s*\\([^)]*\\)\\s*\\{","m").exec(code);if(!m){var e=new RegExp("(?:private|public|protected|internal)?\\s*(?:async\\s+)?(?:void|[\\w<>?]+)\\s+"+safe+"\\s*\\([^)]*\\)\\s*=>\\s*([^;]+);","m").exec(code);return e?e[1]:null;}var op=code.indexOf("{",m.index),d=0;for(var i=op;i<code.length;i++){if(code[i]==="{")d++;else if(code[i]==="}"&&!--d)return code.slice(op+1,i);}return null;}function execute(n,c,s){var b=methodBody(c,n);if(b===null)throw Error("Method '"+n+"' was not found in @code.");(b.match(/(?:this\.)?\w+\s*(?:\+\+|--|\+=|-=|=)\s*[^;]+;?/g)||[]).forEach(function(x){x=x.replace(/;$/g,"").trim();var m=x.match(/^(?:this\.)?(\w+)\s*(\+\+|--)$/);if(m){s[m[1]]=Number(s[m[1]]||0)+(m[2]==="++"?1:-1);return;}m=x.match(/^(?:this\.)?(\w+)\s*(\+=|-=)\s*(.+)$/);if(m){var n=Number(evalExpr(m[3],s)||0);s[m[1]]=Number(s[m[1]]||0)+(m[2]==="+="?n:-n);return;}m=x.match(/^(?:this\.)?(\w+)\s*=\s*(.+)$/);if(m)s[m[1]]=evalExpr(m[2],s);});}
-function validate(s){var e=[];Object.keys(recipes).forEach(function(id){var r=recipes[id];Object.keys(r.components).forEach(function(c){if(new RegExp("<"+c+"\\b","i").test(s)){if(!installedPackages[id])e.push("Runtime error: "+c+" requires NuGet package "+id+".");else{var pr=projects[r.project]&&projects[r.project]["Program.cs"]||"";if(pr.indexOf(r.registration)<0)e.push("Runtime error: "+c+" is not registered in Program.cs. Expected: "+r.registration);}}});});return e;}function renderComponents(s){var o=s;Object.keys(recipes).forEach(function(id){var r=recipes[id];Object.keys(r.components).forEach(function(c){var re=new RegExp("<"+c+"\\b([^>]*)>([\\s\\S]*?)<\\/"+c+">|<"+c+"\\b([^>]*)\\/>","gi");o=o.replace(re,function(_,a,i,b){return r.components[c](attrs(a||b||""),i||"");});});});return o;}function razor(s){var b=codeBlock(s),c=b?b.code:"",m=b?s.slice(0,b.start)+s.slice(b.end):s,rm=m.match(/@page\s+["']([^"']+)["']/i),route=rm?rm[1]:"/";m=m.replace(/@page\s+["'][^"']+["']/gi,"");var er=validate(m);if(er.length)return{route:route,html:'<div class="maui-runtime-error"><strong>Runtime error</strong><pre>'+esc(er.join("\n\n"))+'</pre></div>'};var st=stateFor(c);m=renderComponents(m);m=m.replace(/@onclick\s*=\s*["']([^"']+)["']/gi,'data-playground-click="$1"');m=m.replace(/@([A-Za-z_]\w*)/g,function(a,n){return n in st?esc(st[n]):a;});m=m.replace(/<a\b([^>]*href=["'](\/[^"']*)["'][^>]*)>([\s\S]*?)<\/a>/gi,function(_,a,h,t){return'<a '+a+' data-playground-route="'+esc(h)+'">'+t+'</a>';});return{route:route,html:m,code:c};}function findRoute(path){var f=null;Object.keys(projects).some(function(p){return Object.keys(projects[p]).some(function(file){if(!/\.razor$/i.test(file))return false;var op=cp,of=cf;cp=p;cf=file;var r=razor(projects[p][file]);cp=op;cf=of;if(r.route===path){f={project:p,file:file};return true;}return false;});});return f;}function xaml(s){var o=[],r=/<Label\b([^>]*?)(?:\/>|>)/gi,m;while((m=r.exec(s))){var a=attrs(m[1]);if(a.Text)o.push('<div style="font-size:'+(parseFloat(a.FontSize)||16)+'px;margin-bottom:16px">'+esc(a.Text)+'</div>');}return o.join("")||"<p>No previewable Label was found.</p>";}
-function render(){sync();var body=cp==="1. MyMauiApp"&&cf==="MainPage.xaml"?xaml(files()[cf]):/\.razor$/i.test(cf)?razor(files()[cf]).html:"<p>This source file is editable but has no browser renderer yet.</p>";prev.innerHTML='<div class="maui-browser-toolbar"><span>●</span><span>●</span><span>●</span><code>https://preview.algolassi.local/</code></div><div class="maui-browser-content">'+body+'</div>';prev.querySelectorAll("[data-playground-click]").forEach(function(el){el.onclick=function(e){e.preventDefault();try{var b=codeBlock(files()[cf]||"");execute(el.getAttribute("data-playground-click").replace(/\(.*\)$/,""),b?b.code:"",stateFor(b?b.code:""));render();}catch(err){out.textContent="Runtime error:\n\n"+err.message;prev.querySelector(".maui-browser-content").insertAdjacentHTML("afterbegin",'<div class="maui-runtime-error"><strong>Runtime error</strong><pre>'+esc(err.message)+'</pre></div>');}};});prev.querySelectorAll("a[data-playground-route]").forEach(function(a){a.onclick=function(e){var h=a.getAttribute("href");if(h&&h.charAt(0)==="/"){e.preventDefault();var t=findRoute(h);if(t){saveCurrent();load(t.project,t.file);renderTree();renderTabs();render();}}};});out.textContent="Preview refreshed.\n\nCurrent file: "+cp+" / "+cf;}
-function addSaveButton(){var b=document.getElementById("maui-save-project");if(!b&&run&&run.parentElement){b=document.createElement("button");b.id="maui-save-project";b.type="button";b.textContent="💾 Save";run.parentElement.insertBefore(b,run.nextSibling);}if(b)b.onclick=saveAll;}
-function setupNuget(){if(document.getElementById("maui-nuget-panel"))return;var host=tree.parentElement||tree.parentNode,t=document.createElement("button"),p=document.createElement("section");t.id="maui-nuget-toggle";t.type="button";t.textContent="📦 NuGet";t.className="maui-nuget-toggle";p.id="maui-nuget-panel";p.className="maui-nuget-panel";p.innerHTML='<div class="maui-nuget-title"><strong>📦 NuGet Package Manager</strong><button type="button" id="maui-nuget-close">Hide</button></div><div class="maui-nuget-search"><input id="maui-nuget-query" type="search" placeholder="Search NuGet packages…"><button type="button" id="maui-nuget-search-btn">Search</button></div><div id="maui-nuget-status"></div><div id="maui-nuget-results"></div><div class="maui-installed-box"><strong>Installed Packages</strong><div id="maui-installed-packages"></div></div>';host.appendChild(t);host.appendChild(p);function installed(){var b=document.getElementById("maui-installed-packages"),ids=Object.keys(installedPackages);b.innerHTML=ids.length?ids.map(function(id){return'<div class="maui-installed-item">📦 <strong>'+esc(id)+'</strong><span>Installed</span></div>';}).join(""):"<div class="maui-installed-empty">No packages installed yet.</div>";}installed();var q=p.querySelector("#maui-nuget-query"),res=p.querySelector("#maui-nuget-results"),status=p.querySelector("#maui-nuget-status");function search(){var term=q.value.trim();if(!term){status.textContent="Enter a package name.";res.innerHTML="";return;}status.textContent="Searching NuGet.org…";res.innerHTML="";fetch("https://azuresearch-usnc.nuget.org/query?q="+encodeURIComponent(term)+"&prerelease=false&take=20").then(function(r){if(!r.ok)throw Error();return r.json();}).then(function(data){var items=data.data||[];status.textContent=items.length+" package"+(items.length===1?"":"s")+" found";res.innerHTML=items.map(function(x){var on=!!installedPackages[x.id];return'<article class="maui-nuget-result"><div class="maui-nuget-result-head"><strong>'+esc(x.id)+'</strong><button type="button" class="maui-nuget-install" data-id="'+esc(x.id)+'">'+(on?"Installed":"Install")+'</button></div><p>'+esc(x.description||"No description available.")+'</p><small>v'+esc(x.version||"")+" · Downloads: "+Number(x.totalDownloads||0).toLocaleString()+'</small></article>';}).join("")||"<div>No packages found.</div>";res.querySelectorAll(".maui-nuget-install").forEach(function(b){b.onclick=function(){var x=items.find(function(z){return z.id===b.dataset.id;});if(!x||installedPackages[x.id])return;installedPackages[x.id]=x;var r=recipes[x.id];if(r){var pr=projects[r.project],program=pr["Program.cs"]||"";if(program.indexOf(r.registration)<0)pr["Program.cs"]=program.replace(/var app =/,r.registration+"\nvar app =");}installed();renderTree();renderTabs();render();};});}).catch(function(){status.textContent="NuGet search is unavailable right now.";res.innerHTML="<div>Could not reach NuGet.org.</div>";});}t.onclick=function(){p.classList.toggle("open");if(p.classList.contains("open"))q.focus();};p.querySelector("#maui-nuget-close").onclick=function(){p.classList.remove("open");};p.querySelector("#maui-nuget-search-btn").onclick=search;q.onkeydown=function(e){if(e.key==="Enter")search();};}
-function addStyles(){if(document.getElementById("maui-playground-runtime-style"))return;var s=document.createElement("style");s.id="maui-playground-runtime-style";s.textContent='.maui-project-tree li{list-style:none;margin:0;padding:0}.maui-project-tree .maui-tree-link{display:block;width:100%;box-sizing:border-box;color:inherit;text-decoration:none;padding:4px 8px;border-radius:4px;cursor:pointer}.maui-project-tree .maui-tree-link:hover{background:rgba(127,127,127,.12)}.maui-project-tree .maui-tree-link.active{background:rgba(0,120,212,.16)}.maui-tree-folder-row{display:flex;align-items:center}.maui-tree-folder-link{flex:1;font-weight:600}.maui-tree-add-link{width:auto!important}.maui-tree-children{margin:0;padding-left:14px}.maui-file-dirty{font-weight:800}.maui-nuget-toggle{display:block;width:100%;margin:10px 0 6px;padding:8px;border:1px solid rgba(127,127,127,.2);border-radius:8px;background:rgba(127,127,127,.06);color:inherit;cursor:pointer;text-align:left}.maui-nuget-panel{display:none;margin-bottom:12px;padding:12px;border:1px solid rgba(127,127,127,.2);border-radius:12px;box-sizing:border-box;width:100%;max-width:100%;overflow:hidden}.maui-nuget-panel.open{display:block}.maui-nuget-title,.maui-nuget-search,.maui-nuget-result-head,.maui-installed-item{display:flex;align-items:center;justify-content:space-between;gap:8px}.maui-nuget-search{width:100%;box-sizing:border-box;min-width:0}.maui-nuget-search input{flex:1 1 auto;min-width:0;width:100%;box-sizing:border-box;padding:8px;border:1px solid #aaa;border-radius:7px}.maui-nuget-search button{flex:0 0 auto;white-space:nowrap;padding:6px 10px;border:1px solid #aaa;border-radius:7px;background:transparent;color:inherit;cursor:pointer}.maui-nuget-title button,.maui-nuget-install{padding:6px 10px;border:1px solid #aaa;border-radius:7px;background:transparent;color:inherit;cursor:pointer}.maui-nuget-result{padding:10px 0;border-bottom:1px solid rgba(127,127,127,.15)}.maui-nuget-result p{margin:5px 0}.maui-nuget-result small{opacity:.7}.maui-installed-box{margin-top:12px;padding-top:10px;border-top:1px solid rgba(127,127,127,.2)}.maui-installed-item{padding:7px;margin-top:5px;border-radius:8px;background:rgba(0,120,212,.07)}.maui-installed-item span{font-size:.75em}.maui-runtime-error{margin:10px 0;padding:12px;border-left:4px solid #dc3545;border-radius:7px;background:rgba(220,53,69,.08)}.maui-runtime-error pre{white-space:pre-wrap;margin:6px 0}.playground-radzen-button,.playground-mud-button{padding:8px 16px;border-radius:5px;color:#fff;cursor:pointer}.playground-radzen-button{border:1px solid #1677ff;background:#1677ff}.playground-mud-button{border:1px solid #594ae2;background:#594ae2}.playground-radzen-input,.playground-mud-input{padding:8px 10px;border:1px solid #aaa;border-radius:4px}.playground-radzen-label{display:inline-block;padding:4px 0}#maui-nuget-results{max-height:360px;overflow:auto}';document.head.appendChild(s);}
-ed.oninput=function(){sync();dirtyFiles[key(cp,cf)]=true;renderTabs();renderTree();out.textContent="Unsaved changes in "+cp+" / "+cf+". Click Save to clear the *.";};if(run)run.onclick=function(){sync();render();};if(create)create.onclick=function(){saveCurrent();load("1. MyMauiApp","MainPage.xaml");renderTree();renderTabs();render();};load(cp,cf);renderTree();renderTabs();render();}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();})();
+(function () {
+  "use strict";
+
+  var projects = {
+    "1. MyMauiApp": {
+      "MainPage.xaml": '<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"><VerticalStackLayout Padding="30"><Label Text="Hello from MAUI Hybrid!" FontSize="24" /></VerticalStackLayout></ContentPage>',
+      "MainPage.xaml.cs": 'namespace MyMauiApp;\n\npublic partial class MainPage : ContentPage\n{\n    public MainPage() { InitializeComponent(); }\n}',
+      "MauiProgram.cs": 'namespace MyMauiApp;\n\npublic static class MauiProgram\n{\n    public static MauiApp CreateMauiApp()\n    {\n        var builder = MauiApp.CreateBuilder();\n        builder.UseMauiApp<App>();\n        return builder.Build();\n    }\n}'
+    },
+    "2. MyMauiApp.Shared": {
+      "Home.razor": '@page "/home"\n\n<h1>Hello from Shared!</h1>\n<p>This Home.razor belongs to the Shared project.</p>\n<a href="/home">Go Home</a>',
+      "Models/AppMessage.cs": 'namespace MyMauiApp.Shared.Models;\n\npublic record AppMessage(string Text);'
+    },
+    "3. MyMauiApp.Web": {
+      "Program.cs": 'var builder = WebApplication.CreateBuilder(args);\nbuilder.Services.AddRazorComponents().AddInteractiveServerComponents();\nvar app = builder.Build();\napp.MapRazorComponents<App>().AddInteractiveServerRenderMode();\napp.Run();'
+    },
+    "4. MyMauiApp.Web.Client": {
+      "Home.razor": '@page "/"\n\n<h1>@message</h1>\n<button @onclick="ChangeMessage">Click Me</button>\n\n@code {\n    private string message = "Hello from Web Client!";\n    private void ChangeMessage() => message = "You clicked the button!";\n}'
+    }
+  };
+
+  var installedPackages = {};
+  var dirtyFiles = {};
+  var componentState = {};
+  var packageRecipes = {
+    "Radzen.Blazor": {
+      project: "3. MyMauiApp.Web",
+      registration: "builder.Services.AddRadzenComponents();",
+      components: {
+        RadzenButton: function (a, inner) { return '<button class="playground-radzen-button"' + clickAttr(a) + '>' + esc(inner || a.Text || "Radzen Button") + '</button>'; },
+        RadzenTextBox: function (a) { return '<input class="playground-radzen-input" placeholder="' + esc(a.Placeholder || "") + '" value="' + esc(a.Value || "") + '">'; },
+        RadzenLabel: function (a, inner) { return '<span class="playground-radzen-label">' + esc(inner || a.Text || "") + '</span>'; }
+      }
+    },
+    "MudBlazor": {
+      project: "3. MyMauiApp.Web",
+      registration: "builder.Services.AddMudServices();",
+      components: {
+        MudButton: function (a, inner) { return '<button class="playground-mud-button"' + clickAttr(a) + '>' + esc(inner || a.Text || "MudButton") + '</button>'; },
+        MudTextField: function (a) { return '<input class="playground-mud-input" placeholder="' + esc(a.Label || a.Placeholder || "") + '">'; }
+      }
+    },
+    "Blazored.LocalStorage": {
+      project: "3. MyMauiApp.Web",
+      registration: "builder.Services.AddBlazoredLocalStorage();",
+      components: {}
+    },
+    "Microsoft.Extensions.Http": {
+      project: "3. MyMauiApp.Web",
+      registration: "builder.Services.AddHttpClient();",
+      components: {}
+    }
+  };
+
+  function esc(v) {
+    return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function clickAttr(a) {
+    var n = a["@onclick"] || a.onclick || "";
+    return n ? ' data-playground-click="' + esc(n) + '"' : "";
+  }
+
+  function start() {
+    var currentProject = "1. MyMauiApp";
+    var currentFile = "MainPage.xaml";
+    var editor = document.getElementById("maui-code-editor");
+    var output = document.getElementById("maui-console-output");
+    var preview = document.getElementById("maui-browser-preview");
+    var tabs = document.getElementById("maui-editor-tabs");
+    var tree = document.querySelector(".maui-project-tree");
+    var run = document.getElementById("maui-run-preview");
+    var create = document.getElementById("maui-create-project");
+
+    if (!editor || !output || !preview || !tabs || !tree) return;
+
+    addStyles();
+    setupNuget();
+    addSaveButton();
+
+    function fileMap(project) { return projects[project || currentProject] || {}; }
+    function fileKey(project, file) { return project + "::" + file; }
+    function isDirty(project, file) { return !!dirtyFiles[fileKey(project, file)]; }
+
+    function syncEditor() {
+      if (currentProject && currentFile && Object.prototype.hasOwnProperty.call(fileMap(), currentFile)) {
+        fileMap()[currentFile] = editor.value;
+      }
+    }
+
+    function load(project, file) {
+      if (!projects[project] || !Object.prototype.hasOwnProperty.call(projects[project], file)) return;
+      currentProject = project;
+      currentFile = file;
+      editor.value = projects[project][file];
+      editor.dataset.project = project;
+      editor.dataset.file = file;
+    }
+
+    function markDirty() {
+      dirtyFiles[fileKey(currentProject, currentFile)] = true;
+      renderTree();
+      renderTabs();
+    }
+
+    function saveCurrentView() {
+      syncEditor();
+      renderTree();
+      renderTabs();
+    }
+
+    function saveProject() {
+      syncEditor();
+      dirtyFiles = {};
+      renderTree();
+      renderTabs();
+      output.textContent = "Project saved successfully.\n\nAll modified files are now saved.";
+    }
+
+    function renderTabs() {
+      tabs.innerHTML = "";
+      Object.keys(fileMap()).forEach(function (name) {
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "maui-editor-tab" + (name === currentFile ? " active" : "");
+        button.appendChild(document.createTextNode(name));
+        if (isDirty(currentProject, name)) {
+          var star = document.createElement("span");
+          star.className = "maui-file-dirty";
+          star.textContent = " *";
+          button.appendChild(star);
+        }
+        button.onclick = function (e) {
+          e.preventDefault();
+          saveCurrentView();
+          load(currentProject, name);
+          renderTree();
+          renderTabs();
+          render();
+        };
+        tabs.appendChild(button);
+      });
+    }
+
+    function renderTree() {
+      tree.innerHTML = "";
+      Object.keys(projects).forEach(function (project) {
+        var root = document.createElement("li");
+        var row = document.createElement("div");
+        var folder = document.createElement("a");
+        var plus = document.createElement("a");
+        var children = document.createElement("ul");
+
+        row.className = "maui-tree-folder-row";
+        folder.href = "#";
+        folder.className = "maui-tree-link maui-tree-folder-link";
+        folder.innerHTML = "▾ 📁 <strong>" + esc(project) + "</strong>";
+        plus.href = "#";
+        plus.className = "maui-tree-link maui-tree-add-link";
+        plus.textContent = "+";
+        plus.title = "Add file";
+        row.append(folder, plus);
+        children.className = "maui-tree-children";
+        root.append(row, children);
+
+        Object.keys(projects[project]).forEach(function (file) {
+          var li = document.createElement("li");
+          var link = document.createElement("a");
+          link.href = "#";
+          link.className = "maui-tree-link" + (project === currentProject && file === currentFile ? " active" : "");
+          link.appendChild(document.createTextNode("📄 " + file));
+          if (isDirty(project, file)) {
+            var star = document.createElement("span");
+            star.className = "maui-file-dirty";
+            star.textContent = " *";
+            link.appendChild(star);
+          }
+          link.onclick = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            saveCurrentView();
+            load(project, file);
+            renderTree();
+            renderTabs();
+            render();
+          };
+          li.appendChild(link);
+          children.appendChild(li);
+        });
+
+        plus.onclick = function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var name = prompt("New file name", "NewFile.razor");
+          if (!name) return;
+          name = name.trim();
+          if (!name || Object.prototype.hasOwnProperty.call(projects[project], name)) return;
+          saveCurrentView();
+          projects[project][name] = "";
+          dirtyFiles[fileKey(project, name)] = true;
+          load(project, name);
+          renderTree();
+          renderTabs();
+          render();
+        };
+
+        folder.onclick = function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          saveCurrentView();
+          var first = Object.keys(projects[project])[0];
+          if (first) load(project, first);
+          renderTree();
+          renderTabs();
+          render();
+        };
+
+        tree.appendChild(root);
+      });
+    }
+
+    function attrs(text) {
+      var result = {};
+      var re = /([:@\w-]+)\s*=\s*["']([^"']*)["']/g;
+      var match;
+      while ((match = re.exec(text || ""))) result[match[1]] = match[2];
+      return result;
+    }
+
+    function codeBlock(source) {
+      var start = source.search(/@code\s*\{/i);
+      if (start < 0) return null;
+      var open = source.indexOf("{", start);
+      var depth = 0;
+      var quote = null;
+      for (var i = open; i < source.length; i++) {
+        var ch = source[i];
+        if (quote) {
+          if (ch === quote && source[i - 1] !== "\\") quote = null;
+          continue;
+        }
+        if (ch === '"' || ch === "'") { quote = ch; continue; }
+        if (ch === "{") depth++;
+        if (ch === "}" && --depth === 0) return { start: start, end: i + 1, code: source.slice(open + 1, i) };
+      }
+      return null;
+    }
+
+    function defaultValue(type) {
+      type = String(type || "").toLowerCase();
+      if (type === "string") return "";
+      if (/^(int|long|short|double|float|decimal)$/.test(type)) return 0;
+      if (type === "bool") return false;
+      return null;
+    }
+
+    function evalExpr(expression, state) {
+      var value = String(expression || "").trim().replace(/;$/, "").replace(/^await\s+/i, "");
+      if (value === "true") return true;
+      if (value === "false") return false;
+      if (value === "null") return null;
+      if (/^-?\d+(\.\d+)?$/.test(value)) return Number(value);
+      if ((value[0] === '"' && value[value.length - 1] === '"') || (value[0] === "'" && value[value.length - 1] === "'")) return value.slice(1, -1);
+      if (Object.prototype.hasOwnProperty.call(state, value)) return state[value];
+      var parts = value.split(/\s*\+\s*/);
+      if (parts.length > 1) {
+        var values = parts.map(function (part) { return evalExpr(part, state); });
+        if (values.some(function (v) { return typeof v === "string"; })) return values.join("");
+        return values.reduce(function (a, b) { return Number(a || 0) + Number(b || 0); }, 0);
+      }
+      return value;
+    }
+
+    function stateFor(code) {
+      var key = fileKey(currentProject, currentFile);
+      var state = componentState[key] || (componentState[key] = {});
+      var match;
+      var properties = /\b(?:private|public|protected|internal)?\s*([\w<>?]+)\s+(\w+)\s*\{\s*get\s*;\s*set\s*;\s*\}/g;
+      while ((match = properties.exec(code))) if (!(match[2] in state)) state[match[2]] = defaultValue(match[1]);
+      var fields = /\b(?:private|public|protected|internal)?\s*([\w<>?]+)\s+(\w+)\s*=\s*([^;]+);/g;
+      while ((match = fields.exec(code))) if (!(match[2] in state)) state[match[2]] = evalExpr(match[3], state);
+      return state;
+    }
+
+    function methodBody(code, name) {
+      var safe = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      var re = new RegExp("(?:private|public|protected|internal)?\\s*(?:async\\s+)?(?:Task(?:<[^>]+>)?|void|[\\w<>?]+)\\s+" + safe + "\\s*\\([^)]*\\)\\s*\\{", "m");
+      var match = re.exec(code);
+      if (!match) {
+        var expression = new RegExp("(?:private|public|protected|internal)?\\s*(?:async\\s+)?(?:void|[\\w<>?]+)\\s+" + safe + "\\s*\\([^)]*\\)\\s*=>\\s*([^;]+);", "m").exec(code);
+        return expression ? expression[1] : null;
+      }
+      var open = code.indexOf("{", match.index);
+      var depth = 0;
+      for (var i = open; i < code.length; i++) {
+        if (code[i] === "{") depth++;
+        if (code[i] === "}" && --depth === 0) return code.slice(open + 1, i);
+      }
+      return null;
+    }
+
+    function executeMethod(name, code, state) {
+      var body = methodBody(code, name);
+      if (body === null) throw new Error("Method '" + name + "' was not found in @code.");
+      var statements = body.match(/(?:this\.)?\w+\s*(?:\+\+|--|\+=|-=|=)\s*[^;]+;?/g) || [];
+      statements.forEach(function (statement) {
+        statement = statement.replace(/;$/, "").trim();
+        var match = statement.match(/^(?:this\.)?(\w+)\s*(\+\+|--)$/);
+        if (match) { state[match[1]] = Number(state[match[1]] || 0) + (match[2] === "++" ? 1 : -1); return; }
+        match = statement.match(/^(?:this\.)?(\w+)\s*(\+=|-=)\s*(.+)$/);
+        if (match) { var n = Number(evalExpr(match[3], state) || 0); state[match[1]] = Number(state[match[1]] || 0) + (match[2] === "+=" ? n : -n); return; }
+        match = statement.match(/^(?:this\.)?(\w+)\s*=\s*(.+)$/);
+        if (match) state[match[1]] = evalExpr(match[2], state);
+      });
+    }
+
+    function validate(markup) {
+      var errors = [];
+      Object.keys(packageRecipes).forEach(function (id) {
+        var recipe = packageRecipes[id];
+        Object.keys(recipe.components).forEach(function (component) {
+          if (!new RegExp("<" + component + "\\b", "i").test(markup)) return;
+          if (!installedPackages[id]) {
+            errors.push("Runtime error: " + component + " requires NuGet package " + id + ".");
+            return;
+          }
+          var program = projects[recipe.project] && projects[recipe.project]["Program.cs"] || "";
+          if (program.indexOf(recipe.registration) < 0) errors.push("Runtime error: " + component + " is not registered in Program.cs. Expected: " + recipe.registration);
+        });
+      });
+      return errors;
+    }
+
+    function renderComponents(markup) {
+      var result = markup;
+      Object.keys(packageRecipes).forEach(function (id) {
+        var recipe = packageRecipes[id];
+        Object.keys(recipe.components).forEach(function (component) {
+          var re = new RegExp("<" + component + "\\b([^>]*)>([\\s\\S]*?)</" + component + ">|<" + component + "\\b([^>]*)/>", "gi");
+          result = result.replace(re, function (_, a, inner, b) { return recipe.components[component](attrs(a || b || ""), inner || ""); });
+        });
+      });
+      return result;
+    }
+
+    function razorPage(source) {
+      var block = codeBlock(source);
+      var code = block ? block.code : "";
+      var markup = block ? source.slice(0, block.start) + source.slice(block.end) : source;
+      var routeMatch = markup.match(/@page\s+["']([^"']+)["']/i);
+      var route = routeMatch ? routeMatch[1] : "/";
+      markup = markup.replace(/@page\s+["'][^"']+["']/gi, "");
+      var errors = validate(markup);
+      if (errors.length) return { route: route, html: '<div class="maui-runtime-error"><strong>Runtime error</strong><pre>' + esc(errors.join("\n\n")) + '</pre></div>' };
+      var state = stateFor(code);
+      markup = renderComponents(markup);
+      markup = markup.replace(/@onclick\s*=\s*["']([^"']+)["']/gi, 'data-playground-click="$1"');
+      markup = markup.replace(/@([A-Za-z_]\w*)/g, function (all, name) { return Object.prototype.hasOwnProperty.call(state, name) ? esc(state[name]) : all; });
+      markup = markup.replace(/<a\b([^>]*href=["'](\/[^"']*)["'][^>]*)>([\s\S]*?)<\/a>/gi, function (_, attributes, href, text) { return '<a ' + attributes + ' data-playground-route="' + esc(href) + '">' + text + '</a>'; });
+      return { route: route, html: markup, code: code };
+    }
+
+    function findRoute(path) {
+      var found = null;
+      Object.keys(projects).some(function (project) {
+        return Object.keys(projects[project]).some(function (file) {
+          if (!/\.razor$/i.test(file)) return false;
+          var oldProject = currentProject, oldFile = currentFile;
+          currentProject = project;
+          currentFile = file;
+          var page = razorPage(projects[project][file]);
+          currentProject = oldProject;
+          currentFile = oldFile;
+          if (page.route === path) { found = { project: project, file: file }; return true; }
+          return false;
+        });
+      });
+      return found;
+    }
+
+    function renderXaml(source) {
+      var outputHtml = [];
+      var re = /<Label\b([^>]*?)(?:\/>|>)/gi;
+      var match;
+      while ((match = re.exec(source))) {
+        var a = attrs(match[1]);
+        if (a.Text) outputHtml.push('<div style="font-size:' + (parseFloat(a.FontSize) || 16) + 'px;margin-bottom:16px">' + esc(a.Text) + '</div>');
+      }
+      return outputHtml.join("") || "<p>No previewable Label was found.</p>";
+    }
+
+    function render() {
+      syncEditor();
+      var source = fileMap()[currentFile] || "";
+      var body;
+      if (currentProject === "1. MyMauiApp" && currentFile === "MainPage.xaml") body = renderXaml(source);
+      else if (/\.razor$/i.test(currentFile)) body = razorPage(source).html;
+      else body = "<p>This source file is editable but has no browser renderer yet.</p>";
+      preview.innerHTML = '<div class="maui-browser-toolbar"><span>●</span><span>●</span><span>●</span><code>https://preview.algolassi.local/</code></div><div class="maui-browser-content">' + body + '</div>';
+
+      preview.querySelectorAll("[data-playground-click]").forEach(function (element) {
+        element.onclick = function (e) {
+          e.preventDefault();
+          try {
+            var block = codeBlock(fileMap()[currentFile] || "");
+            executeMethod(element.getAttribute("data-playground-click").replace(/\(.*\)$/, ""), block ? block.code : "", stateFor(block ? block.code : ""));
+            render();
+          } catch (error) {
+            output.textContent = "Runtime error:\n\n" + error.message;
+            var content = preview.querySelector(".maui-browser-content");
+            if (content) content.insertAdjacentHTML("afterbegin", '<div class="maui-runtime-error"><strong>Runtime error</strong><pre>' + esc(error.message) + '</pre></div>');
+          }
+        };
+      });
+
+      preview.querySelectorAll("a[data-playground-route]").forEach(function (link) {
+        link.onclick = function (e) {
+          var href = link.getAttribute("href");
+          if (href && href.charAt(0) === "/") {
+            e.preventDefault();
+            var target = findRoute(href);
+            if (target) {
+              saveCurrentView();
+              load(target.project, target.file);
+              renderTree();
+              renderTabs();
+              render();
+            }
+          }
+        };
+      });
+      output.textContent = "Preview refreshed.\n\nCurrent file: " + currentProject + " / " + currentFile;
+    }
+
+    function packageReference(id, version, project) {
+      var name = project.split(".").pop() + ".csproj";
+      var file = projects[project][name] || '<Project Sdk="Microsoft.NET.Sdk.Web">\n  <PropertyGroup><TargetFramework>net9.0</TargetFramework></PropertyGroup>\n</Project>';
+      if (file.indexOf('PackageReference Include="' + id + '"') < 0) file = file.replace(/<\/Project>\s*$/, '  <ItemGroup>\n    <PackageReference Include="' + id + '" Version="' + (version || "latest") + '" />\n  </ItemGroup>\n</Project>');
+      projects[project][name] = file;
+    }
+
+    function installPackage(pkg) {
+      if (installedPackages[pkg.id]) return;
+      installedPackages[pkg.id] = pkg;
+      var recipe = packageRecipes[pkg.id];
+      var target = recipe ? recipe.project : "3. MyMauiApp.Web";
+      packageReference(pkg.id, pkg.version, target);
+      if (recipe && recipe.registration) {
+        var program = projects[target]["Program.cs"] || "";
+        if (program.indexOf(recipe.registration) < 0) {
+          var marker = "var app =";
+          var pos = program.indexOf(marker);
+          program = pos >= 0 ? program.slice(0, pos) + recipe.registration + "\n" + program.slice(pos) : program + "\n" + recipe.registration + "\n";
+          projects[target]["Program.cs"] = program;
+        }
+      }
+      renderTree();
+      renderTabs();
+      renderNugetInstalled();
+      output.textContent = "NuGet package installed: " + pkg.id + "\nTarget project: " + target + (recipe ? "\nProgram.cs: " + recipe.registration : "");
+    }
+
+    function renderNugetInstalled() {
+      var list = document.getElementById("maui-installed-packages");
+      if (!list) return;
+      var ids = Object.keys(installedPackages);
+      list.innerHTML = ids.length ? ids.map(function (id) { var p = installedPackages[id]; return '<div class="maui-installed-package"><span>📦 <strong>' + esc(id) + '</strong><small>v' + esc(p.version || "latest") + '</small></span><span class="maui-installed-badge">Installed</span></div>'; }).join("") : '<div class="maui-installed-empty">No packages installed yet.</div>';
+    }
+
+    function setupNuget() {
+      if (document.getElementById("maui-nuget-panel")) { renderNugetInstalled(); return; }
+      var host = tree.parentElement || tree.parentNode;
+      var panel = document.createElement("section");
+      panel.id = "maui-nuget-panel";
+      panel.innerHTML = '<div class="maui-nuget-header"><strong>📦 NuGet Packages</strong><button type="button" id="maui-nuget-close">Hide</button></div>' +
+        '<div class="maui-nuget-search-row"><input id="maui-nuget-query" type="search" placeholder="Search NuGet packages…" autocomplete="off"><button type="button" id="maui-nuget-search-btn">Search</button></div>' +
+        '<div id="maui-nuget-status"></div><div id="maui-nuget-results"></div>' +
+        '<div class="maui-installed-section"><div class="maui-installed-title">Installed Packages</div><div id="maui-installed-packages"></div></div>';
+      host.appendChild(panel);
+      var q = panel.querySelector("#maui-nuget-query");
+      var results = panel.querySelector("#maui-nuget-results");
+      var status = panel.querySelector("#maui-nuget-status");
+      function search() {
+        var term = q.value.trim();
+        if (!term) { status.textContent = "Enter a package name."; results.innerHTML = ""; return; }
+        status.textContent = "Searching NuGet.org…";
+        results.innerHTML = "";
+        fetch("https://azuresearch-usnc.nuget.org/query?q=" + encodeURIComponent(term) + "&prerelease=false&take=20")
+          .then(function (r) { if (!r.ok) throw new Error("NuGet search failed"); return r.json(); })
+          .then(function (data) {
+            var items = data.data || [];
+            status.textContent = items.length + " package" + (items.length === 1 ? "" : "s") + " found";
+            results.innerHTML = items.map(function (p) {
+              var recipe = packageRecipes[p.id];
+              var installed = !!installedPackages[p.id];
+              return '<div class="maui-nuget-result"><div class="maui-nuget-result-head"><strong>' + esc(p.id || "") + '</strong><button type="button" class="maui-nuget-install ' + (installed ? "installed" : "") + '" data-id="' + esc(p.id || "") + '"' + (installed ? " disabled" : "") + '>' + (installed ? "Installed" : "Install") + '</button></div><div>' + esc(p.description || "No description available.") + '</div><small>v' + esc(p.version || "") + ' · Downloads: ' + Number(p.totalDownloads || 0).toLocaleString() + '</small>' + (recipe ? '<div class="maui-package-setup">✓ Setup available<br>Program.cs: <code>' + esc(recipe.registration) + '</code><br>Target: ' + esc(recipe.project) + '</div>' : '') + '</div>';
+            }).join("") || "<div>No packages found.</div>";
+            results.querySelectorAll(".maui-nuget-install:not([disabled])").forEach(function (button) {
+              button.onclick = function () {
+                var pkg = items.find(function (item) { return item.id === button.dataset.id; });
+                if (pkg) installPackage(pkg);
+                search();
+              };
+            });
+          })
+          .catch(function () { status.textContent = "NuGet search is unavailable right now."; results.innerHTML = "<div>Could not reach NuGet.org.</div>"; });
+      }
+      var close = panel.querySelector("#maui-nuget-close");
+      close.onclick = function () { panel.style.display = "none"; };
+      panel.querySelector("#maui-nuget-search-btn").onclick = search;
+      q.onkeydown = function (e) { if (e.key === "Enter") { e.preventDefault(); search(); } };
+      renderNugetInstalled();
+    }
+
+    function addSaveButton() {
+      if (document.getElementById("maui-save-project") || !run || !run.parentElement) return;
+      var button = document.createElement("button");
+      button.type = "button";
+      button.id = "maui-save-project";
+      button.textContent = "Save Project";
+      button.onclick = saveProject;
+      run.parentElement.insertBefore(button, run.nextSibling);
+    }
+
+    function addStyles() {
+      if (document.getElementById("maui-playground-runtime-style")) return;
+      var style = document.createElement("style");
+      style.id = "maui-playground-runtime-style";
+      style.textContent = '.maui-project-tree li{list-style:none;margin:0;padding:0}.maui-project-tree .maui-tree-link{display:block;width:100%;box-sizing:border-box;border:0;background:transparent;color:inherit;text-decoration:none;text-align:left;font:inherit;cursor:pointer;padding:4px 8px;border-radius:4px;line-height:1.35}.maui-project-tree .maui-tree-link:hover{background:rgba(127,127,127,.12)}.maui-project-tree .maui-tree-link.active{background:rgba(0,120,212,.16)}.maui-project-tree .maui-tree-folder-row{display:flex;align-items:center;gap:2px}.maui-project-tree .maui-tree-folder-link{flex:1;font-weight:600}.maui-project-tree .maui-tree-add-link{width:auto;flex:0 0 auto;padding:2px 7px;opacity:.65}.maui-project-tree .maui-tree-children{margin:0;padding-left:14px}.maui-editor-tab{margin-right:4px}.maui-file-dirty{font-weight:700}.maui-runtime-error{margin:12px;padding:12px;border:1px solid #d33;border-radius:6px;background:rgba(220,50,50,.08);color:inherit}.maui-runtime-error pre{white-space:pre-wrap;margin:8px 0 0}.playground-radzen-button,.playground-mud-button{padding:8px 16px;border-radius:4px;color:#fff;cursor:pointer}.playground-radzen-button{border:1px solid #1677ff;background:#1677ff}.playground-mud-button{border:1px solid #594ae2;background:#594ae2}.playground-radzen-input,.playground-mud-input{padding:8px 10px;border:1px solid #aaa;border-radius:4px;box-sizing:border-box}.playground-radzen-label{display:inline-block;padding:4px 0}.maui-nuget-panel{box-sizing:border-box}.maui-nuget-search-row{display:flex;gap:8px;width:100%;box-sizing:border-box}.maui-nuget-search-row input{min-width:0;flex:1;box-sizing:border-box}.maui-nuget-search-row button{flex:0 0 auto;box-sizing:border-box;white-space:nowrap}.maui-nuget-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.maui-nuget-header button,.maui-nuget-install,#maui-save-project{cursor:pointer}.maui-nuget-result{padding:10px 0;border-bottom:1px solid rgba(127,127,127,.18)}.maui-nuget-result-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.maui-nuget-install{border:1px solid rgba(127,127,127,.45);border-radius:4px;padding:3px 9px;background:transparent;color:inherit}.maui-nuget-install.installed{opacity:.7}.maui-package-setup{margin-top:7px;padding:7px;border-left:3px solid rgba(0,120,212,.55);font-size:.85em}.maui-installed-section{margin-top:14px;padding-top:12px;border-top:1px solid rgba(127,127,127,.25)}.maui-installed-title{font-weight:700;margin-bottom:7px}.maui-installed-package{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 9px;margin:5px 0;border:1px solid rgba(127,127,127,.2);border-radius:6px;background:rgba(127,127,127,.05)}.maui-installed-package small{display:block;opacity:.7}.maui-installed-badge{font-size:.75em;padding:3px 7px;border-radius:10px;background:rgba(0,120,212,.12)}.maui-installed-empty{opacity:.65;font-size:.85em}.maui-nuget-panel{margin-top:16px;padding:12px;border-top:1px solid rgba(127,127,127,.25);font-size:.9rem}.maui-nuget-panel #maui-nuget-results{max-height:360px;overflow-y:auto;overflow-x:hidden;padding-right:4px}';
+      document.head.appendChild(style);
+    }
+
+    if (run) run.onclick = function () { syncEditor(); render(); };
+    if (create) create.onclick = function () { saveCurrentView(); load("1. MyMauiApp", "MainPage.xaml"); renderTree(); renderTabs(); render(); };
+    editor.oninput = function () { syncEditor(); markDirty(); output.textContent = "Unsaved changes in " + currentProject + " / " + currentFile + ". Click Save Project to save."; };
+
+    load(currentProject, currentFile);
+    renderTree();
+    renderTabs();
+    renderNugetInstalled();
+    render();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
