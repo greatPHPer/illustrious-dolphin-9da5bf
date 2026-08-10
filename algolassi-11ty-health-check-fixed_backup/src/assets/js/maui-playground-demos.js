@@ -16,7 +16,12 @@
     "maui-label-styling": { title: "MAUI Label font sizes", files: [{ project: "MyMauiApp", file: "MainPage.xaml", code: '<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">\n    <VerticalStackLayout Padding="30" Spacing="12">\n        <Label Text="Heading" FontSize="32" />\n        <Label Text="Subheading" FontSize="22" />\n        <Label Text="Normal body text" FontSize="16" />\n        <Label Text="Small helper text" FontSize="12" />\n    </VerticalStackLayout>\n</ContentPage>' }] },
     "razor-two-way-binding": { title: "Blazor two-way binding", files: [{ project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>Two-way Binding</h1>\n<p>Edit the text below and the value updates automatically.</p>\n<input @bind="name" />\n<p>Hello, <strong>@name</strong>!</p>\n\n@code {\n    private string name = "Dhilip";\n}' }] },
     "razor-two-buttons": { title: "Blazor multiple event handlers", files: [{ project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>Event Handlers</h1>\n<p>Current choice: <strong>@choice</strong></p>\n<button @onclick="ChooseFirst">Choose A</button>\n<button @onclick="ChooseSecond">Choose B</button>\n\n@code {\n    private string choice = "Nothing selected";\n\n    private void ChooseFirst()\n    {\n        choice = "A";\n    }\n\n    private void ChooseSecond()\n    {\n        choice = "B";\n    }\n}' }] },
-    "razor-calculator": { title: "Blazor simple calculated value", files: [{ project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>Calculated Value</h1>\n<p>Click the buttons to change the value.</p>\n<p>Value: <strong>@value</strong></p>\n<button @onclick="AddFive">Add 5</button>\n<button @onclick="SubtractTwo">Subtract 2</button>\n\n@code {\n    private int value = 10;\n\n    private void AddFive()\n    {\n        value += 5;\n    }\n\n    private void SubtractTwo()\n    {\n        value -= 2;\n    }\n}' }] }
+    "razor-calculator": { title: "Blazor simple calculated value", files: [{ project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>Calculated Value</h1>\n<p>Click the buttons to change the value.</p>\n<p>Value: <strong>@value</strong></p>\n<button @onclick="AddFive">Add 5</button>\n<button @onclick="SubtractTwo">Subtract 2</button>\n\n@code {\n    private int value = 10;\n\n    private void AddFive()\n    {\n        value += 5;\n    }\n\n    private void SubtractTwo()\n    {\n        value -= 2;\n    }\n}' }] },
+    "razor-conditional-rendering": { title: "Razor conditional rendering", files: [{ project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>Conditional Rendering</h1>\n<p>Click the button to show or hide content with <code>@if</code>.</p>\n<button @onclick="ToggleMessage">Toggle message</button>\n\n@if (showMessage)\n{\n    <p><strong>The message is visible.</strong></p>\n}\nelse\n{\n    <p>The message is hidden.</p>\n}\n\n@code {\n    private bool showMessage = true;\n\n    private void ToggleMessage()\n    {\n        showMessage = !showMessage;\n    }\n}' }] },
+    "razor-list-rendering": { title: "Razor list rendering", files: [{ project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>List Rendering</h1>\n<p>This list is rendered with <code>@foreach</code>.</p>\n<ul>\n@foreach (var item in items)\n{\n    <li>@item</li>\n}\n</ul>\n\n@code {\n    private string[] items = { "Apple", "Banana", "Orange" };\n}' }] },
+    "razor-event-handling": { title: "Razor event handling", files: [{ project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>Event Handling</h1>\n<p>Last action: <strong>@message</strong></p>\n<button @onclick="SayHello">Say Hello</button>\n<button @onclick="ResetMessage">Reset</button>\n\n@code {\n    private string message = "No action yet";\n\n    private void SayHello()\n    {\n        message = "Hello from @onclick!";\n    }\n\n    private void ResetMessage()\n    {\n        message = "No action yet";\n    }\n}' }] },
+    "razor-component-parameters": { title: "Razor component parameters", files: [{ project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>Component Parameters</h1>\n<p>A parent component passes a value to a child component with <code>[Parameter]</code>.</p>\n<div class="child-card">\n    <strong>Child component</strong>\n    <p>Hello, @name!</p>\n</div>\n\n@code {\n    private string name = "Dhilip";\n\n    // Child component example:\n    // [Parameter] public string Name { get; set; }\n}' }] },
+    "razor-form-validation": { title: "Razor form validation", files: [{ project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>Form Validation</h1>\n<EditForm Model="model" OnValidSubmit="Submit">\n    <DataAnnotationsValidator />\n    <InputText @bind-Value="model.Name" />\n    <ValidationMessage For="@(() => model.Name)" />\n    <button type="submit">Submit</button>\n</EditForm>\n\n@code {\n    private FormModel model = new();\n\n    private void Submit()\n    {\n        message = "Form submitted successfully.";\n    }\n\n    private string message = "Enter a name and submit.";\n\n    private class FormModel\n    {\n        [System.ComponentModel.DataAnnotations.Required]\n        public string Name { get; set; } = "";\n    }\n}' }] }
   };
 
   function cleanProjectLabels() {
@@ -89,6 +94,67 @@
         strong.textContent = String(value);
       });
     }
+
+    if (demoName === "razor-conditional-rendering") {
+      var content = preview.querySelector(".maui-browser-content");
+      if (!content) return;
+      content.innerHTML = '<h2>Conditional Rendering</h2><p>Click the button to show or hide content with <code>@if</code>.</p><button type="button" id="conditional-toggle">Hide message</button><p id="conditional-message"><strong>The message is visible.</strong></p>';
+      var toggle = content.querySelector("#conditional-toggle");
+      var message = content.querySelector("#conditional-message");
+      toggle.addEventListener("click", function () {
+        var visible = message.style.display !== "none";
+        message.style.display = visible ? "none" : "block";
+        toggle.textContent = visible ? "Show message" : "Hide message";
+      });
+    }
+
+    if (demoName === "razor-list-rendering") {
+      var listContent = preview.querySelector(".maui-browser-content");
+      if (!listContent) return;
+      listContent.innerHTML = '<h2>List Rendering</h2><p>This list is rendered with <code>@foreach</code>.</p><ul id="demo-list"><li>Apple</li><li>Banana</li><li>Orange</li></ul><button type="button" id="list-add">Add item</button>';
+      var items = ["Apple", "Banana", "Orange"];
+      listContent.querySelector("#list-add").addEventListener("click", function () {
+        items.push("Item " + (items.length + 1));
+        listContent.querySelector("#demo-list").innerHTML = items.map(function (item) { return "<li>" + escDemo(item) + "</li>"; }).join("");
+      });
+    }
+
+    if (demoName === "razor-event-handling") {
+      var eventContent = preview.querySelector(".maui-browser-content");
+      if (!eventContent) return;
+      eventContent.innerHTML = '<h2>Event Handling</h2><p>Last action: <strong id="event-message">No action yet</strong></p><button type="button" id="event-hello">Say Hello</button> <button type="button" id="event-reset">Reset</button>';
+      var eventMessage = eventContent.querySelector("#event-message");
+      eventContent.querySelector("#event-hello").addEventListener("click", function () { eventMessage.textContent = "Hello from @onclick!"; });
+      eventContent.querySelector("#event-reset").addEventListener("click", function () { eventMessage.textContent = "No action yet"; });
+    }
+
+    if (demoName === "razor-component-parameters") {
+      var parameterContent = preview.querySelector(".maui-browser-content");
+      if (!parameterContent) return;
+      parameterContent.innerHTML = '<h2>Component Parameters</h2><p>A parent component passes a value to a child component with <code>[Parameter]</code>.</p><label>Parent value <input id="parameter-name" value="Dhilip"></label><div class="child-card" style="margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:8px"><strong>Child component</strong><p>Hello, <strong id="child-name">Dhilip</strong>!</p></div>';
+      var parameterInput = parameterContent.querySelector("#parameter-name");
+      var childName = parameterContent.querySelector("#child-name");
+      parameterInput.addEventListener("input", function () { childName.textContent = parameterInput.value || ""; });
+    }
+
+    if (demoName === "razor-form-validation") {
+      var formContent = preview.querySelector(".maui-browser-content");
+      if (!formContent) return;
+      formContent.innerHTML = '<h2>Form Validation</h2><p>Enter a name. The field is required.</p><form id="demo-form"><input id="form-name" placeholder="Name"><button type="submit">Submit</button><p id="form-error" style="display:none">Name is required.</p><p id="form-success" style="display:none"><strong>Form submitted successfully.</strong></p></form>';
+      var form = formContent.querySelector("#demo-form");
+      var formName = formContent.querySelector("#form-name");
+      var formError = formContent.querySelector("#form-error");
+      var formSuccess = formContent.querySelector("#form-success");
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        formError.style.display = formName.value.trim() ? "none" : "block";
+        formSuccess.style.display = formName.value.trim() ? "block" : "none";
+      });
+    }
+  }
+
+  function escDemo(value) {
+    return String(value == null ? "" : value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
   function loadDemo() {
