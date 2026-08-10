@@ -56,22 +56,3 @@ contentType: page
 </style>
 
 <script src="/assets/js/maui-hybrid-playground.js?v=20260810-1" defer></script>
-<script>
-(function () {
-  function removeProjectNumbers() {
-    var tree = document.querySelector('.maui-project-tree');
-    if (!tree) return;
-    tree.querySelectorAll('.maui-tree-folder-link strong').forEach(function (strong) {
-      strong.textContent = strong.textContent.trim().replace(/^\d+\.\s*/, '');
-    });
-  }
-
-  window.addEventListener('load', function () {
-    removeProjectNumbers();
-    var tree = document.querySelector('.maui-project-tree');
-    if (!tree) return;
-    var observer = new MutationObserver(removeProjectNumbers);
-    observer.observe(tree, { childList: true, subtree: true });
-  });
-})();
-</script>
