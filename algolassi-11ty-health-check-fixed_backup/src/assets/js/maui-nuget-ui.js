@@ -25,7 +25,14 @@
     if (!list || !count) return;
     var packages = Object.keys(installed).map(function (key) { return installed[key]; });
     packages.sort(function (a, b) { return a.id.localeCompare(b.id); });
-    list.innerHTML = packages.map(function (pkg) { return '<div class="maui-package"><span>📦 ' + esc(pkg.id) + '</span><code>' + esc(pkg.version) + '</code></div>'; }).join("");
+    //list.innerHTML = packages.map(function (pkg) { return '<div class="maui-package"><span>📦 ' + esc(pkg.id) + '</span><code>' + esc(pkg.version) + '</code></div>'; }).join("");
+    list.innerHTML = packages.map(function (pkg) {
+  return '<div class="maui-package"><span>📦 ' +
+    esc(pkg.id) +
+    '</span><code>' +
+    esc(pkg.version) +
+    '</code></div>';
+}).join("");
     count.textContent = packages.length + (packages.length === 1 ? " package" : " packages");
   }
   function renderResults(query) {
@@ -35,16 +42,44 @@
     if (!q) { results.innerHTML = ""; return; }
     var matches = catalog.filter(function (pkg) { return pkg.id.toLowerCase().indexOf(q) >= 0 || pkg.description.toLowerCase().indexOf(q) >= 0; }).slice(0, 6);
     results.innerHTML = matches.length ? matches.map(function (pkg) {
-      var action = installed[pkg.id] ? '<span class="maui-nuget-installed">Installed</span>' : '<button type="button" data-nuget-id="' + esc(pkg.id) + '">Install</button>';
+      //var action = installed[pkg.id] ? '<span class="maui-nuget-installed">Installed</span>' : '<button type="button" data-nuget-id="' + esc(pkg.id) + '">Install</button>';//removed installed label dhilip 20260810
+      var action = installed[pkg.id]
+  ? '<button type="button" class="maui-nuget-remove" data-nuget-id="' + esc(pkg.id) + '">Remove</button>'
+  : '<button type="button" data-nuget-id="' + esc(pkg.id) + '">Install</button>';
       return '<div class="maui-nuget-result"><div><strong>' + esc(pkg.id) + '</strong><small>' + esc(pkg.description) + ' · ' + esc(pkg.version) + '</small></div>' + action + '</div>';
     }).join("") : '<div class="maui-nuget-empty">No matching packages.</div>';
     results.querySelectorAll("button[data-nuget-id]").forEach(function (button) {
       button.addEventListener("click", function () {
         var id = button.getAttribute("data-nuget-id");
         var pkg = catalog.find(function (item) { return item.id === id; });
-        if (!pkg || installed[id]) return;
+        /*if (!pkg || installed[id]) return;
         installed[id] = pkg;
-        renderInstalled();
+        renderInstalled();*/
+        if (!pkg) return;
+
+if (installed[id]) {
+  delete installed[id];
+  renderInstalled();
+  renderResults(
+    document.getElementById("maui-nuget-input")?.value || ""
+  );
+
+  var status = document.getElementById("maui-nuget-status");
+  if (status) {
+    status.textContent = id + " removed from this playground session.";
+  }
+
+  return;
+}
+
+installed[id] = pkg;
+renderInstalled();
+renderResults("");
+
+var status = document.getElementById("maui-nuget-status");
+if (status) {
+  status.textContent = id + " installed for this playground session.";
+}
         var input = document.getElementById("maui-nuget-input");
         if (input) input.value = "";
         renderResults("");
