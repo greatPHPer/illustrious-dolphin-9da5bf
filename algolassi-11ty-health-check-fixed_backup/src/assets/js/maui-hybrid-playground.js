@@ -381,31 +381,147 @@
         var childRe = /<(Label|Entry|Button)\b([^>]*?)(?:\/>|>([\s\S]*?)<\/\1>)/gi;
         var match;
 
-        while ((match = childRe.exec(body))) {
-          var tag = match[1].toLowerCase();
-          var a = attrs(match[2]);
-          var inner = (match[3] || "").trim();
-          var row = parseInt(a["Grid.Row"], 10);
-          var column = parseInt(a["Grid.Column"], 10);
-          var rowSpan = parseInt(a["Grid.RowSpan"], 10);
-          var columnSpan = parseInt(a["Grid.ColumnSpan"], 10);
-          if (isNaN(row)) row = 0;
-          if (isNaN(column)) column = 0;
-          if (isNaN(rowSpan) || rowSpan < 1) rowSpan = 1;
-          if (isNaN(columnSpan) || columnSpan < 1) columnSpan = 1;
+       while ((match = childRe.exec(body))) {
+  var tag = match[1].toLowerCase();
+  var a = attrs(match[2]);
+  var inner = (match[3] || "").trim();
 
-          var style = 'grid-row:' + (row + 1) + ' / span ' + rowSpan + ';' +
-            'grid-column:' + (column + 1) + ' / span ' + columnSpan + ';' +
-            'min-width:0;box-sizing:border-box;';
+  if (tag === "grid") {
+    var gridChildren = [];
+    var gridChildRe = /<([A-Za-z][\w.]*)\b([^>]*)>([\s\S]*?)<\/\1>|<([A-Za-z][\w.]*)\b([^>]*)\/>/gi;
+    var gm;
 
-          if (tag === "label") {
-            children.push('<div style="' + style + 'font-size:' + (parseFloat(a.FontSize) || 16) + 'px;align-self:center;">' + esc(a.Text || inner) + '</div>');
-          } else if (tag === "entry") {
-            children.push('<input type="text" value="' + esc(a.Text || "") + '" placeholder="' + esc(a.Placeholder || "") + '" style="' + style + 'width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;">');
-          } else if (tag === "button") {
-            children.push('<button type="button" style="' + style + 'padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;">' + esc(a.Text || inner || "Button") + '</button>');
-          }
-        }
+    while ((gm = gridChildRe.exec(inner))) {
+      var childTag = (gm[1] || gm[4] || "").toLowerCase();
+      var childAttrs = attrs(gm[2] || gm[5] || "");
+      var childInner = (gm[3] || "").trim();
+
+      var row = parseInt(childAttrs["Grid.Row"], 10);
+      var column = parseInt(childAttrs["Grid.Column"], 10);
+      var rowSpan = parseInt(childAttrs["Grid.RowSpan"], 10);
+      var columnSpan = parseInt(childAttrs["Grid.ColumnSpan"], 10);
+
+      if (isNaN(row)) row = 0;
+      if (isNaN(column)) column = 0;
+      if (isNaN(rowSpan) || rowSpan < 1) rowSpan = 1;
+      if (isNaN(columnSpan) || columnSpan < 1) columnSpan = 1;
+
+      var style = 'grid-row:' + (row + 1) + ' / span ' + rowSpan + ';' +
+        'grid-column:' + (column + 1) + ' / span ' + columnSpan + ';' +
+        'min-width:0;box-sizing:border-box;';
+
+      if (childTag === "label") {
+        gridChildren.push('<div style="' + style + 'font-size:' +
+          (parseFloat(childAttrs.FontSize) || 16) +
+          'px;align-self:center;">' +
+          esc(childAttrs.Text || childInner) + '</div>');
+      } else if (childTag === "entry") {
+        gridChildren.push('<input type="text" value="' +
+          esc(childAttrs.Text || "") +
+          '" placeholder="' +
+          esc(childAttrs.Placeholder || "") +
+          '" style="' + style +
+          'width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;">');
+      } else if (childTag === "button") {
+        gridChildren.push('<button type="button" style="' +
+          style +
+          'padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;">' +
+          esc(childAttrs.Text || childInner || "Button") +
+          '</button>');
+      }
+    }
+
+    children.push(
+      '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:20px;align-items:start;box-sizing:border-box;width:100%;">' +
+      gridChildren.join("") +
+      '</div>'
+    );
+
+  } else if (tag === "verticalstacklayout") {
+
+    var spacing = parseFloat(a.Spacing);
+    if (isNaN(spacing)) spacing = 8;
+
+    children.push(
+      '<div style="display:flex;flex-direction:column;gap:' +
+      spacing +
+      'px;padding:20px;box-sizing:border-box;width:100%;">' +
+      renderSimpleChildren(inner) +
+      '</div>'
+    );
+
+  } else if (tag === "horizontalstacklayout") {
+
+    var hSpacing = parseFloat(a.Spacing);
+    if (isNaN(hSpacing)) hSpacing = 8;
+
+    children.push(
+      '<div style="display:flex;flex-direction:row;align-items:center;gap:' +
+      hSpacing +
+      'px;padding:20px;box-sizing:border-box;width:100%;flex-wrap:wrap;">' +
+      renderSimpleChildren(inner) +
+      '</div>'
+    );
+
+  } else if (tag === "scrollview") {
+
+    children.push(
+      '<div style="overflow-y:auto;max-height:100%;width:100%;box-sizing:border-box;">' +
+      renderSimpleChildren(inner) +
+      '</div>'
+    );
+
+  } else if (tag === "border") {
+
+    var stroke = a.Stroke || "#d0d5dd";
+    var strokeThickness = parseFloat(a.StrokeThickness);
+    if (isNaN(strokeThickness)) strokeThickness = 1;
+
+    var radius = 0;
+    var shape = a.StrokeShape || "";
+    var radiusMatch = shape.match(/RoundRectangle\s+([\d.]+)/i);
+    if (radiusMatch) radius = parseFloat(radiusMatch[1]) || 0;
+
+    children.push(
+      '<div style="border:' +
+      strokeThickness + 'px solid ' +
+      esc(stroke) +
+      ';border-radius:' +
+      radius +
+      'px;padding:16px;box-sizing:border-box;width:100%;">' +
+      renderSimpleChildren(inner) +
+      '</div>'
+    );
+
+  } else if (tag === "label") {
+
+    children.push(
+      '<div style="' +
+      'font-size:' + (parseFloat(a.FontSize) || 16) +
+      'px;align-self:center;">' +
+      esc(a.Text || inner) +
+      '</div>'
+    );
+
+  } else if (tag === "entry") {
+
+    children.push(
+      '<input type="text" value="' +
+      esc(a.Text || "") +
+      '" placeholder="' +
+      esc(a.Placeholder || "") +
+      '" style="width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;box-sizing:border-box;">'
+    );
+
+  } else if (tag === "button") {
+
+    children.push(
+      '<button type="button" style="padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;">' +
+      esc(a.Text || inner || "Button") +
+      '</button>'
+    );
+  }
+}
 
         if (children.length) {
           return '<div style="display:grid;grid-template-columns:repeat(' + cols + ',minmax(0,1fr));grid-template-rows:repeat(' + rows + ',auto);gap:' + cssValue(rowGap, '0') + 'px ' + cssValue(colGap, '0') + 'px;padding:' + cssValue(padding, '0') + 'px;align-items:start;box-sizing:border-box;width:100%;">' + children.join("") + '</div>';
@@ -436,7 +552,43 @@
 
       return outputHtml.join("") || '<p>No web-compatible XAML content was found.</p>';
     }
+function renderSimpleChildren(body) {
+  var result = [];
+  var re = /<([A-Za-z][\w.]*)\b([^>]*)>([\s\S]*?)<\/\1>|<([A-Za-z][\w.]*)\b([^>]*)\/>/gi;
+  var match;
 
+  while ((match = re.exec(body))) {
+    var tag = (match[1] || match[4] || "").toLowerCase();
+    var a = attrs(match[2] || match[5] || "");
+    var inner = (match[3] || "").trim();
+
+    if (tag === "label") {
+      result.push(
+        '<div style="font-size:' +
+        (parseFloat(a.FontSize) || 16) +
+        'px;">' +
+        esc(a.Text || inner) +
+        '</div>'
+      );
+    } else if (tag === "entry") {
+      result.push(
+        '<input type="text" value="' +
+        esc(a.Text || "") +
+        '" placeholder="' +
+        esc(a.Placeholder || "") +
+        '" style="width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;box-sizing:border-box;">'
+      );
+    } else if (tag === "button") {
+      result.push(
+        '<button type="button" style="padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;">' +
+        esc(a.Text || inner || "Button") +
+        '</button>'
+      );
+    }
+  }
+
+  return result.join("");
+}
     function render() {
       syncEditor();
       var source = fileMap()[currentFile] || "";
