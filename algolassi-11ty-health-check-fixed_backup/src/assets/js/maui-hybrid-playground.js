@@ -22,18 +22,25 @@
 
     function files() { return projects[currentProject] || {}; }
     function saveEditor() { var f = files(); if (currentFile && Object.prototype.hasOwnProperty.call(f, currentFile)) f[currentFile] = editor.value; }
-    function setEditor(name) {
-      saveEditor(); currentFile = name;
+    function loadSelectedFile() {
       var f = files();
-      editor.value = Object.prototype.hasOwnProperty.call(f, name) ? f[name] : "";
-      tabs.querySelectorAll("button").forEach(function (b) { b.classList.toggle("active", b.dataset.file === name); });
+      editor.value = currentFile && Object.prototype.hasOwnProperty.call(f, currentFile) ? f[currentFile] : "";
+      editor.dataset.project = currentProject;
+      editor.dataset.file = currentFile;
+      tabs.querySelectorAll("button").forEach(function (b) { b.classList.toggle("active", b.dataset.file === currentFile); });
     }
+    function setEditor(name) { saveEditor(); currentFile = name; loadSelectedFile(); }
     function renderTabs() {
-      saveEditor(); tabs.innerHTML = "";
+      tabs.innerHTML = "";
       var names = Object.keys(files());
-      names.forEach(function (name) { var b = document.createElement("button"); b.type="button"; b.dataset.file=name; b.textContent=name; b.addEventListener("click",function(){setEditor(name);}); tabs.appendChild(b); });
-      if (!names.length) { currentFile=""; editor.value=""; return; }
-      setEditor(names.indexOf(currentFile) !== -1 ? currentFile : names[0]);
+      if (!names.length) { currentFile = ""; editor.value = ""; return; }
+      if (names.indexOf(currentFile) === -1) currentFile = names[0];
+      names.forEach(function (name) {
+        var b = document.createElement("button"); b.type="button"; b.dataset.file=name; b.textContent=name;
+        b.addEventListener("click", function () { setEditor(name); }); tabs.appendChild(b);
+      });
+      /* Important: load from the NEW project's file map only. */
+      loadSelectedFile();
     }
     function esc(v) { return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;"); }
     function renderXaml(source) {
@@ -51,7 +58,7 @@
     }
     document.querySelectorAll(".maui-tree-project").forEach(function(button){button.addEventListener("click",function(){saveEditor();var s=button.querySelector("span"),name=s?s.textContent.trim():button.textContent.replace(/^\s*📁\s*/,"").trim();if(!projects[name])return;currentProject=name;currentFile="";document.querySelectorAll(".maui-tree-project").forEach(function(x){x.classList.remove("active")});button.classList.add("active");renderTabs();});});
     var create=document.getElementById("maui-create-project"),run=document.getElementById("maui-run-preview");
-    if(create)create.addEventListener("click",function(){currentProject="1. MyMauiApp";currentFile="MainPage.xaml";renderTabs();renderPreview();});
+    if(create)create.addEventListener("click",function(){saveEditor();currentProject="1. MyMauiApp";currentFile="MainPage.xaml";renderTabs();renderPreview();});
     if(run)run.addEventListener("click",renderPreview);
     editor.addEventListener("input",function(){output.textContent="Unsaved changes in "+currentProject+" / "+currentFile+". Click Run Preview to apply them.";});
     renderTabs(); renderPreview();
