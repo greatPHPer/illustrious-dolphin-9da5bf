@@ -27,12 +27,34 @@
     packages.sort(function (a, b) { return a.id.localeCompare(b.id); });
     //list.innerHTML = packages.map(function (pkg) { return '<div class="maui-package"><span>📦 ' + esc(pkg.id) + '</span><code>' + esc(pkg.version) + '</code></div>'; }).join("");
     list.innerHTML = packages.map(function (pkg) {
-  return '<div class="maui-package"><span>📦 ' +
-    esc(pkg.id) +
-    '</span><code>' +
-    esc(pkg.version) +
-    '</code></div>';
+  return '<div class="maui-package">' +
+    '<span>📦 ' + esc(pkg.id) + '</span>' +
+    '<code>' + esc(pkg.version) + '</code>' +
+    '<button type="button" class="maui-package-remove" data-nuget-id="' + esc(pkg.id) + '">Remove</button>' +
+    '</div>';
 }).join("");
+
+list.querySelectorAll(".maui-package-remove").forEach(function (button) {
+  button.addEventListener("click", function () {
+    var id = button.getAttribute("data-nuget-id");
+
+    if (!installed[id]) return;
+
+    delete installed[id];
+
+    renderInstalled();
+
+    var input = document.getElementById("maui-nuget-input");
+    if (input) {
+      renderResults(input.value);
+    }
+
+    var status = document.getElementById("maui-nuget-status");
+    if (status) {
+      status.textContent = id + " removed from this playground session.";
+    }
+  });
+});
     count.textContent = packages.length + (packages.length === 1 ? " package" : " packages");
   }
   function renderResults(query) {
