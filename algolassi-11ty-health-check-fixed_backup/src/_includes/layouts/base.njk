@@ -10,6 +10,27 @@
   <link rel="stylesheet" href="/assets/css/site.css"><link rel="stylesheet" href="/assets/css/algolassi-assistant.css"><link rel="stylesheet" href="/assets/css/algolassi-assistant-radio.css"><link rel="stylesheet" href="/assets/css/algolassi-assistant-phase5.css">
   {% if permalink %}<link rel="canonical" href="https://algolassi.online{{ permalink }}">{% endif %}
   <script async src="https://pagead2.googlesyndication.com/pagead/js?id=ca-pub-4185133949320759" crossorigin="anonymous"></script>
+  <style>
+    /* Global code readability protection.
+       Keep inline code dark on light article backgrounds while preserving
+       light code text inside dark <pre> blocks. */
+    .article-content :not(pre)>code,
+    .page-content :not(pre)>code {
+      color: #24292f !important;
+    }
+
+    .article-content pre,
+    .page-content pre {
+      color: #f8fafc;
+      background: #101828;
+    }
+
+    .article-content pre code,
+    .page-content pre code {
+      color: #f8fafc !important;
+      background: transparent !important;
+    }
+  </style>
 </head>
 <body>
 <header class="site-header"><div class="site-header-inner"><a class="brand" href="/"><img src="/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png" alt="Algolassi" width="32" height="32"><span>Algolassi</span></a><nav class="site-nav" aria-label="Main navigation"><a href="/tutorials/">Tutorials</a><a href="/csharp-tutorials/">C#</a><a href="/net-tutorials/">.NET</a><a href="/asp-net-core-tutorials/">ASP.NET Core</a><a href="/blazor-tutorials/">Blazor</a><a href="/sql-server-tutorials/">SQL Server</a><a href="/about-algolassi/">About</a></nav></div></header>
