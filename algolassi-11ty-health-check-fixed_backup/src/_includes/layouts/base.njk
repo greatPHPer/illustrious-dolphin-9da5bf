@@ -14,8 +14,8 @@
     .article-content :not(pre)>code,.page-content :not(pre)>code{color:#24292f!important}
     .article-content pre,.page-content pre{color:#f8fafc;background:#101828}
     .article-content pre code,.page-content pre code{color:#f8fafc!important;background:transparent!important}
-    /* Reading progress bar */
     #algolassi-reading-progress{position:fixed;top:0;left:0;width:0;height:4px;background:#0d6efd;z-index:2147483647;transition:width .08s linear;pointer-events:none}
+    .algolassi-section-target{outline:3px solid rgba(13,110,253,.35);outline-offset:8px;transition:outline-color .2s ease}
   </style>
 </head>
 <body>
@@ -28,7 +28,7 @@
 </main>
 <footer class="site-footer"><div class="footer-inner"><div><strong>Algolassi</strong><p>Practical software development tutorials.</p></div><nav><a href="/tutorials/">Tutorials</a><a href="/197-2/">Portfolio</a><a href="/about-algolassi/">About</a><a href="/contact-algolassi/">Contact</a><a href="/privacy-policy-2/">Privacy</a></nav></div><p class="copyright">© {{ currentYear }} Algolassi. All rights reserved.</p></footer>
 <script>window.ALGOLASSI_ASSISTANT_NEWS_ENDPOINT="";</script>
-<script src="/assets/js/algolassi-assistant-country-fix.js" defer></script><script src="/assets/js/algolassi-assistant.js" defer></script><script src="/assets/js/algolassi-assistant-radio.js?v=20260809-4" defer></script><script src="/assets/js/algolassi-assistant-phase5.js" defer></script>
+<script src="/assets/js/algolassi-assistant-country-fix.js" defer></script><script src="/assets/js/algolassi-assistant.js" defer></script><script src="/assets/js/algolassi-assistant-radio.js?v=20260809-4" defer></script><script src="/assets/js/algolassi-assistant-phase5.js" defer></script><script src="/assets/js/algolassi-get-link.js" defer></script>
 <script>
 (function(){"use strict";
 function updateReadingProgress(){var bar=document.getElementById("algolassi-reading-progress");if(!bar)return;var scrollTop=window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop||0;var doc=document.documentElement;var scrollHeight=Math.max(doc.scrollHeight,document.body.scrollHeight);var viewport=window.innerHeight||doc.clientHeight;var total=Math.max(1,scrollHeight-viewport);var progress=Math.min(100,Math.max(0,(scrollTop/total)*100));bar.style.width=progress+"%";}
@@ -38,7 +38,7 @@ window.AlgolassiCommentsInit();
 if(window.__algolassiSpaRouter)return;window.__algolassiSpaRouter=true;var mainSelector=".site-main",navigating=false;
 function shouldHandle(link,event){if(!link||!link.href||!event||event.defaultPrevented||event.button!==0)return false;if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return false;if(link.target&&link.target!=="_self")return false;if(link.hasAttribute("download")||link.hasAttribute("data-no-spa"))return false;if(link.closest&&link.closest("#algolassi-radio-host,#algolassi-assistant-host,[data-no-spa='true']"))return false;if(link.protocol!==location.protocol||link.host!==location.host)return false;if(link.hash&&link.pathname===location.pathname&&link.search===location.search)return false;return true;}
 function updateMeta(doc){if(doc.title)document.title=doc.title;var a=document.querySelector('meta[name="description"]'),b=doc.querySelector('meta[name="description"]');if(a&&b)a.setAttribute("content",b.getAttribute("content")||"");else if(!a&&b)document.head.appendChild(b.cloneNode(true));else if(a&&!b)a.remove();var c=document.querySelector('link[rel="canonical"]'),d=doc.querySelector('link[rel="canonical"]');if(c&&d)c.setAttribute("href",d.getAttribute("href")||"");else if(!c&&d)c.remove();}
-function init(){if(typeof window.AlgolassiCommentsInit==="function")window.AlgolassiCommentsInit();if(typeof window.AlgolassiRadioInit==="function")window.AlgolassiRadioInit();}
+function init(){if(typeof window.AlgolassiCommentsInit==="function")window.AlgolassiCommentsInit();if(typeof window.AlgolassiRadioInit==="function")window.AlgolassiRadioInit();if(typeof window.AlgolassiGetLinkInit==="function")window.AlgolassiGetLinkInit();}
 function loadPage(url,push){if(navigating)return;navigating=true;fetch(url.href,{credentials:"same-origin"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.text();}).then(function(html){var doc=new DOMParser().parseFromString(html,"text/html"),cur=document.querySelector(mainSelector),next=doc.querySelector(mainSelector);if(!cur||!next)throw new Error("site-main not found");cur.innerHTML=next.innerHTML;updateMeta(doc);if(push)history.pushState({algolassiSpa:true},"",url.href);window.scrollTo(0,0);init();window.dispatchEvent(new Event("algolassi:spa-navigation"));}).catch(function(){location.href=url.href;}).finally(function(){navigating=false;});}
 document.addEventListener("click",function(event){var target=event.target;if(target&&target.closest&&target.closest("#algolassi-radio-host,#algolassi-assistant-host,[data-no-spa='true']"))return;var link=target&&target.closest?target.closest("a"):null;if(!shouldHandle(link,event))return;event.preventDefault();loadPage(new URL(link.href),true);},false);window.addEventListener("popstate",function(){loadPage(new URL(location.href),false);});})();
 </script>
