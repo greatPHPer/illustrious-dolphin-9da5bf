@@ -111,16 +111,81 @@
     }, 100);
   }
 
+  function installMudCardDemo() {
+    var params = new URLSearchParams(window.location.search || "");
+    if ((params.get("demo") || "").toLowerCase().trim() !== "mudcard") return false;
+
+    var editor = document.getElementById("maui-code-editor");
+    var output = document.getElementById("maui-console-output");
+    var preview = document.getElementById("maui-browser-preview");
+    if (!editor || !preview) return false;
+
+    var link = findFileLink("MyMauiApp.Web.Client", "Home.razor");
+    if (!link) return false;
+
+    var code = '@page "/"\n@using MudBlazor\n\n<h1>MudCard Demo</h1>\n<p>A simple card-style container using MudBlazor.</p>\n\n<MudCard Class="pa-4">\n    <MudCardContent>\n        <MudText Typo="Typo.h6">Hello from MudCard</MudText>\n        <MudText Typo="Typo.body2">This content is displayed inside a MudCard component.</MudText>\n    </MudCardContent>\n    <MudCardActions>\n        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ShowMessage">Click me</MudButton>\n    </MudCardActions>\n</MudCard>\n\n<p>@message</p>\n\n@code {\n    private string message = "Ready";\n\n    private void ShowMessage()\n    {\n        message = "MudCard button clicked!";\n    }\n}';
+
+    link.click();
+    setTimeout(function () {
+      editor.value = code;
+      editor.dispatchEvent(new Event("input", { bubbles: true }));
+      if (output) output.textContent = "Demo loaded: MudCard\n\nMudCard rendering and button interaction are simulated in the browser preview.";
+      setTimeout(renderMudCard, 100);
+    }, 120);
+    return true;
+  }
+
+  function renderMudCard() {
+    var preview = document.getElementById("maui-browser-preview");
+    if (!preview) return;
+    var content = preview.querySelector(".maui-browser-content");
+    if (!content || content.__algolassiMudCardFixed) return;
+
+    content.innerHTML = '<div class="p3c-mudcard-demo"><div class="p3c-mudcard"><div class="p3c-mudcard-content"><h2>Hello from MudCard</h2><p>This content is displayed inside a MudCard component.</p></div><div class="p3c-mudcard-actions"><button type="button" id="p3c-mudcard-button">Click me</button></div></div><p id="p3c-mudcard-message">Ready</p></div>';
+    content.__algolassiMudCardFixed = true;
+    addMudCardStyles();
+
+    var button = content.querySelector("#p3c-mudcard-button");
+    var message = content.querySelector("#p3c-mudcard-message");
+    if (button && message) {
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        message.textContent = "MudCard button clicked!";
+      });
+    }
+  }
+
+  function addMudCardStyles() {
+    if (document.getElementById("algolassi-phase3c-mudcard-styles")) return;
+    var style = document.createElement("style");
+    style.id = "algolassi-phase3c-mudcard-styles";
+    style.textContent = ".p3c-mudcard-demo{max-width:760px}.p3c-mudcard{max-width:520px;border:1px solid #d0d5dd;border-radius:12px;background:#fff;box-shadow:0 5px 18px rgba(16,24,40,.12);overflow:hidden}.p3c-mudcard-content{padding:20px}.p3c-mudcard-content h2{margin:0 0 8px}.p3c-mudcard-content p{margin:0;color:#475467}.p3c-mudcard-actions{padding:12px 20px;border-top:1px solid #eaecf0;background:#f8fafc}.p3c-mudcard-actions button{border:0;border-radius:7px;background:#0d6efd;color:#fff;padding:9px 14px;font-weight:700;cursor:pointer}.p3c-mudcard-demo>#p3c-mudcard-message{font-weight:700;color:#0d6efd}";
+    document.head.appendChild(style);
+  }
+
+  function startMudCard() {
+    var attempts = 0;
+    var timer = setInterval(function () {
+      attempts++;
+      if (installMudCardDemo()) clearInterval(timer);
+      else if (attempts > 100) clearInterval(timer);
+    }, 100);
+  }
+
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () {
     start();
     startCounterFix();
+    startMudCard();
   });
   else {
     start();
     startCounterFix();
+    startMudCard();
   }
   window.addEventListener("algolassi:spa-navigation", function () {
     start();
     startCounterFix();
+    startMudCard();
   });
 })();
