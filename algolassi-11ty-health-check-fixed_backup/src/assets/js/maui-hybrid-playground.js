@@ -469,49 +469,206 @@
     }
 
     function setupNuget() {
-      if (document.getElementById("maui-nuget-panel")) { renderNugetInstalled(); return; }
-      var host = tree.parentElement || tree.parentNode;
-      var panel = document.createElement("section");
-      panel.id = "maui-nuget-panel";
-      panel.innerHTML = '<div class="maui-nuget-header"><strong>📦 NuGet Packages</strong><button type="button" id="maui-nuget-close">Hide</button></div>' +
-        '<div class="maui-nuget-search-row"><input id="maui-nuget-query" type="search" placeholder="Search NuGet packages…" autocomplete="off"><button type="button" id="maui-nuget-search-btn">Search</button></div>' +
-        '<div id="maui-nuget-status"></div><div id="maui-nuget-results"></div>' +
-        '<div class="maui-installed-section"><div class="maui-installed-title">Installed Packages</div><div id="maui-installed-packages"></div></div>';
-      host.appendChild(panel);
-      var q = panel.querySelector("#maui-nuget-query");
-      var results = panel.querySelector("#maui-nuget-results");
-      var status = panel.querySelector("#maui-nuget-status");
-      function search() {
-        var term = q.value.trim();
-        if (!term) { status.textContent = "Enter a package name."; results.innerHTML = ""; return; }
-        status.textContent = "Searching NuGet.org…";
-        results.innerHTML = "";
-        fetch("https://azuresearch-usnc.nuget.org/query?q=" + encodeURIComponent(term) + "&prerelease=false&take=20")
-          .then(function (r) { if (!r.ok) throw new Error("NuGet search failed"); return r.json(); })
-          .then(function (data) {
-            var items = data.data || [];
-            status.textContent = items.length + " package" + (items.length === 1 ? "" : "s") + " found";
-            results.innerHTML = items.map(function (p) {
-              var recipe = packageRecipes[p.id];
-              var installed = !!installedPackages[p.id];
-              return '<div class="maui-nuget-result"><div class="maui-nuget-result-head"><strong>' + esc(p.id || "") + '</strong><button type="button" class="maui-nuget-install ' + (installed ? "installed" : "") + '" data-id="' + esc(p.id || "") + '"' + (installed ? " disabled" : "") + '>' + (installed ? "Installed" : "Install") + '</button></div><div>' + esc(p.description || "No description available.") + '</div><small>v' + esc(p.version || "") + ' · Downloads: ' + Number(p.totalDownloads || 0).toLocaleString() + '</small>' + (recipe ? '<div class="maui-package-setup">✓ Setup available<br>Program.cs: <code>' + esc(recipe.registration) + '</code><br>Target: ' + esc(recipe.project) + '</div>' : '') + '</div>';
-            }).join("") || "<div>No packages found.</div>";
-            results.querySelectorAll(".maui-nuget-install:not([disabled])").forEach(function (button) {
-              button.onclick = function () {
-                var pkg = items.find(function (item) { return item.id === button.dataset.id; });
-                if (pkg) installPackage(pkg);
-                search();
-              };
-            });
-          })
-          .catch(function () { status.textContent = "NuGet search is unavailable right now."; results.innerHTML = "<div>Could not reach NuGet.org.</div>"; });
-      }
-      var close = panel.querySelector("#maui-nuget-close");
-      close.onclick = function () { panel.style.display = "none"; };
-      panel.querySelector("#maui-nuget-search-btn").onclick = search;
-      q.onkeydown = function (e) { if (e.key === "Enter") { e.preventDefault(); search(); } };
-      renderNugetInstalled();
+  var existingPanel = document.getElementById("maui-nuget-panel");
+  var existingToggle = document.getElementById("maui-nuget-toggle");
+
+  if (existingPanel && existingToggle) {
+    renderNugetInstalled();
+    return;
+  }
+
+  var host = tree.parentElement || tree.parentNode;
+
+  var toggle = existingToggle || document.createElement("button");
+  toggle.type = "button";
+  toggle.id = "maui-nuget-toggle";
+  toggle.textContent = "📦 NuGet";
+  toggle.style.cssText =
+    "display:block;width:100%;box-sizing:border-box;margin-top:12px;padding:8px 10px;" +
+    "border:1px solid rgba(127,127,127,.3);border-radius:6px;" +
+    "background:rgba(127,127,127,.06);color:inherit;text-align:left;cursor:pointer;";
+
+  if (!existingToggle) {
+    host.appendChild(toggle);
+  }
+
+  var panel = existingPanel || document.createElement("section");
+
+  if (!existingPanel) {
+    panel.id = "maui-nuget-panel";
+
+    panel.innerHTML =
+      '<div class="maui-nuget-header">' +
+        '<strong>📦 NuGet Packages</strong>' +
+        '<button type="button" id="maui-nuget-close">Hide</button>' +
+      '</div>' +
+
+      '<div class="maui-nuget-search-row">' +
+        '<input id="maui-nuget-query" type="search" ' +
+        'placeholder="Search NuGet packages…" autocomplete="off">' +
+        '<button type="button" id="maui-nuget-search-btn">Search</button>' +
+      '</div>' +
+
+      '<div id="maui-nuget-status"></div>' +
+      '<div id="maui-nuget-results"></div>' +
+
+      '<div class="maui-installed-section">' +
+        '<div class="maui-installed-title">Installed Packages</div>' +
+        '<div id="maui-installed-packages"></div>' +
+      '</div>';
+
+    host.appendChild(panel);
+  }
+
+  var q = panel.querySelector("#maui-nuget-query");
+  var results = panel.querySelector("#maui-nuget-results");
+  var status = panel.querySelector("#maui-nuget-status");
+  var close = panel.querySelector("#maui-nuget-close");
+  var searchButton = panel.querySelector("#maui-nuget-search-btn");
+
+  function search() {
+    var term = q.value.trim();
+
+    if (!term) {
+      status.textContent = "Enter a package name.";
+      results.innerHTML = "";
+      return;
     }
+
+    status.textContent = "Searching NuGet.org…";
+    results.innerHTML = "";
+
+    fetch(
+      "https://azuresearch-usnc.nuget.org/query?q=" +
+      encodeURIComponent(term) +
+      "&prerelease=false&take=20"
+    )
+      .then(function (r) {
+        if (!r.ok) throw new Error("NuGet search failed");
+        return r.json();
+      })
+      .then(function (data) {
+        var items = data.data || [];
+
+        status.textContent =
+          items.length +
+          " package" +
+          (items.length === 1 ? "" : "s") +
+          " found";
+
+        results.innerHTML = items.map(function (p) {
+          var recipe = packageRecipes[p.id];
+          var installed = !!installedPackages[p.id];
+
+          return (
+            '<div class="maui-nuget-result">' +
+
+              '<div class="maui-nuget-result-head">' +
+                '<strong>' + esc(p.id || "") + '</strong>' +
+
+                '<button type="button" ' +
+                  'class="maui-nuget-install ' +
+                  (installed ? "installed" : "") +
+                  '" ' +
+                  'data-id="' + esc(p.id || "") + '"' +
+                  (installed ? " disabled" : "") +
+                '>' +
+                  (installed ? "Installed" : "Install") +
+                '</button>' +
+
+              '</div>' +
+
+              '<div>' +
+                esc(p.description || "No description available.") +
+              '</div>' +
+
+              '<small>v' +
+                esc(p.version || "") +
+                ' · Downloads: ' +
+                Number(p.totalDownloads || 0).toLocaleString() +
+              '</small>' +
+
+              (
+                recipe
+                  ? '<div class="maui-package-setup">' +
+                      '✓ Setup available<br>' +
+                      'Program.cs: <code>' +
+                      esc(recipe.registration) +
+                      '</code><br>' +
+                      'Target: ' +
+                      esc(recipe.project) +
+                    '</div>'
+                  : ""
+              ) +
+
+            '</div>'
+          );
+        }).join("") || "<div>No packages found.</div>";
+
+        results
+          .querySelectorAll(".maui-nuget-install:not([disabled])")
+          .forEach(function (button) {
+
+            button.onclick = function () {
+              var pkg = items.find(function (item) {
+                return item.id === button.dataset.id;
+              });
+
+              if (pkg) {
+                installPackage(pkg);
+                search();
+              }
+            };
+
+          });
+      })
+      .catch(function () {
+        status.textContent =
+          "NuGet search is unavailable right now.";
+
+        results.innerHTML =
+          "<div>Could not reach NuGet.org.</div>";
+      });
+  }
+
+  /*
+   * 📦 NuGet button
+   * This button stays visible even when the panel is hidden.
+   */
+  toggle.onclick = function () {
+    var hidden = panel.style.display === "none";
+
+    panel.style.display = hidden ? "block" : "none";
+
+    if (hidden && q) {
+      q.focus();
+    }
+  };
+
+  /*
+   * Hide only the panel.
+   * The 📦 NuGet button remains visible.
+   */
+  close.onclick = function () {
+    panel.style.display = "none";
+  };
+
+  searchButton.onclick = search;
+
+  q.onkeydown = function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      search();
+    }
+  };
+
+  renderNugetInstalled();
+
+  /*
+   * Start with the panel open.
+   */
+  panel.style.display = "block";
+}
 
     function addSaveButton() {
       if (document.getElementById("maui-save-project") || !run || !run.parentElement) return;
