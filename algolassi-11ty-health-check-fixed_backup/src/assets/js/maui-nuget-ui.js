@@ -126,6 +126,22 @@ if (status) {
     var bar = document.querySelector(".maui-nuget-bar");
     if (!bar || bar.dataset.enhanced === "true") return false;
     bar.dataset.enhanced = "true";
+
+    if (!document.getElementById("maui-nuget-ui-layout-style")) {
+      var style = document.createElement("style");
+      style.id = "maui-nuget-ui-layout-style";
+      style.textContent =
+        ".maui-nuget-search-wrap{width:100%;max-width:100%;box-sizing:border-box;}" +
+        "#maui-nuget-input{width:100%;max-width:100%;box-sizing:border-box;}" +
+        ".maui-nuget-results{width:100%;max-width:100%;box-sizing:border-box;overflow:hidden;}" +
+        ".maui-nuget-result{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;min-width:0!important;}" +
+        ".maui-nuget-result>div:first-child{flex:1 1 auto!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;}" +
+        ".maui-nuget-result strong{display:block!important;max-width:100%;overflow-wrap:anywhere;word-break:break-word;}" +
+        ".maui-nuget-result small{display:block!important;max-width:100%;overflow-wrap:anywhere;word-break:break-word;}" +
+        ".maui-nuget-result button{flex:0 0 auto!important;position:static!important;white-space:nowrap!important;margin:0!important;}";
+      document.head.appendChild(style);
+    }
+
     bar.innerHTML = '<div class="maui-nuget-search-wrap"><input id="maui-nuget-input" autocomplete="off" placeholder="Search NuGet packages..."><div id="maui-nuget-results" class="maui-nuget-results"></div></div><span class="maui-nuget-status" id="maui-nuget-status">Search for a package to install it.</span>';
     var input = document.getElementById("maui-nuget-input");
     input.addEventListener("input", function () { renderResults(input.value); });
