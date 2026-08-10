@@ -52,7 +52,7 @@
     if (!preview) return;
 
     if (demoName === "razor-two-way-binding") {
-      var input = preview.querySelector('input[\@bind="name"]');
+      var input = preview.querySelector("input");
       var valueNode = preview.querySelector("p strong");
       if (input && valueNode) {
         input.value = valueNode.textContent.trim();
@@ -67,17 +67,15 @@
       var buttons = preview.querySelectorAll("button");
       if (!strong || buttons.length < 2) return;
       var value = Number(strong.textContent.trim()) || 0;
-      buttons.forEach(function (button) {
-        button.addEventListener("click", function (e) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-        }, true);
-      });
-      buttons[0].addEventListener("click", function () {
+      buttons[0].addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
         value += 5;
         strong.textContent = String(value);
       });
-      buttons[1].addEventListener("click", function () {
+      buttons[1].addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
         value -= 2;
         strong.textContent = String(value);
       });
