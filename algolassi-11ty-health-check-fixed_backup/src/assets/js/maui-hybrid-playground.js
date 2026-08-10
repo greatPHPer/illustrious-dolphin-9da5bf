@@ -3,19 +3,19 @@
   "use strict";
 
   var projects = {
-    "1. MyMauiApp": {
+    "MyMauiApp": {
       "MainPage.xaml": '<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"><VerticalStackLayout Padding="30"><Label Text="Hello from MAUI Hybrid!" FontSize="24" /></VerticalStackLayout></ContentPage>',
       "MainPage.xaml.cs": 'namespace MyMauiApp;\n\npublic partial class MainPage : ContentPage\n{\n    public MainPage() { InitializeComponent(); }\n}',
       "MauiProgram.cs": 'namespace MyMauiApp;\n\npublic static class MauiProgram\n{\n    public static MauiApp CreateMauiApp()\n    {\n        var builder = MauiApp.CreateBuilder();\n        builder.UseMauiApp<App>();\n        return builder.Build();\n    }\n}'
     },
-    "2. MyMauiApp.Shared": {
+    "MyMauiApp.Shared": {
       "Home.razor": '@page "/home"\n\n<h1>Hello from Shared!</h1>\n<p>This Home.razor belongs to the Shared project.</p>\n<a href="/home">Go Home</a>',
       "Models/AppMessage.cs": 'namespace MyMauiApp.Shared.Models;\n\npublic record AppMessage(string Text);'
     },
-    "3. MyMauiApp.Web": {
+    "MyMauiApp.Web": {
       "Program.cs": 'var builder = WebApplication.CreateBuilder(args);\nbuilder.Services.AddRazorComponents().AddInteractiveServerComponents();\nvar app = builder.Build();\napp.MapRazorComponents<App>().AddInteractiveServerRenderMode();\napp.Run();'
     },
-    "4. MyMauiApp.Web.Client": {
+    "MyMauiApp.Web.Client": {
       "Home.razor": '@page "/"\n\n<h1>@message</h1>\n<button @onclick="ChangeMessage">Click Me</button>\n\n@code {\n    private string message = "Hello from Web Client!";\n    private void ChangeMessage() => message = "You clicked the button!";\n}'
     }
   };
@@ -25,7 +25,7 @@
   var componentState = {};
   var packageRecipes = {
     "Radzen.Blazor": {
-      project: "3. MyMauiApp.Web",
+      project: "MyMauiApp.Web",
       registration: "builder.Services.AddRadzenComponents();",
       components: {
         RadzenButton: function (a, inner) { return '<button class="playground-radzen-button"' + clickAttr(a) + '>' + esc(inner || a.Text || "Radzen Button") + '</button>'; },
@@ -34,7 +34,7 @@
       }
     },
     "MudBlazor": {
-      project: "3. MyMauiApp.Web",
+      project: "MyMauiApp.Web",
       registration: "builder.Services.AddMudServices();",
       components: {
         MudButton: function (a, inner) { return '<button class="playground-mud-button"' + clickAttr(a) + '>' + esc(inner || a.Text || "MudButton") + '</button>'; },
@@ -42,12 +42,12 @@
       }
     },
     "Blazored.LocalStorage": {
-      project: "3. MyMauiApp.Web",
+      project: "MyMauiApp.Web",
       registration: "builder.Services.AddBlazoredLocalStorage();",
       components: {}
     },
     "Microsoft.Extensions.Http": {
-      project: "3. MyMauiApp.Web",
+      project: "MyMauiApp.Web",
       registration: "builder.Services.AddHttpClient();",
       components: {}
     }
@@ -63,7 +63,7 @@
   }
 
   function start() {
-    var currentProject = "1. MyMauiApp";
+    var currentProject = "MyMauiApp";
     var currentFile = "MainPage.xaml";
     var editor = document.getElementById("maui-code-editor");
     var output = document.getElementById("maui-console-output");
@@ -395,7 +395,7 @@
       syncEditor();
       var source = fileMap()[currentFile] || "";
       var body;
-      if (currentProject === "1. MyMauiApp" && currentFile === "MainPage.xaml") body = renderXaml(source);
+      if (currentProject === "MyMauiApp" && currentFile === "MainPage.xaml") body = renderXaml(source);
       else if (/\.razor$/i.test(currentFile)) body = razorPage(source).html;
       else body = "<p>This source file is editable but has no browser renderer yet.</p>";
       preview.innerHTML = '<div class="maui-browser-toolbar"><span>●</span><span>●</span><span>●</span><code>https://preview.algolassi.local/</code></div><div class="maui-browser-content">' + body + '</div>';
@@ -441,7 +441,7 @@
 
       var demos = {
         "razor-counter": {
-          project: "4. MyMauiApp.Web.Client",
+          project: "MyMauiApp.Web.Client",
           file: "Home.razor",
           source: '@page "/"\n\n<h1>Razor Counter Demo</h1>\n<p>Current count: @count</p>\n<button @onclick="Increment">Increment</button>\n\n@code {\n    private int count { get; set; }\n\n    private void Increment()\n    {\n        count++;\n    }\n}'
         }
@@ -479,7 +479,7 @@
       if (installedPackages[pkg.id]) return;
       installedPackages[pkg.id] = pkg;
       var recipe = packageRecipes[pkg.id];
-      var target = recipe ? recipe.project : "3. MyMauiApp.Web";
+      var target = recipe ? recipe.project : "MyMauiApp.Web";
       packageReference(pkg.id, pkg.version, target);
       if (recipe && recipe.registration) {
         var program = projects[target]["Program.cs"] || "";
@@ -592,7 +592,7 @@
     }
 
     if (run) run.onclick = function () { syncEditor(); render(); };
-    if (create) create.onclick = function () { saveCurrentView(); load("1. MyMauiApp", "MainPage.xaml"); renderTree(); renderTabs(); render(); };
+    if (create) create.onclick = function () { saveCurrentView(); load("MyMauiApp", "MainPage.xaml"); renderTree(); renderTabs(); render(); };
     editor.oninput = function () { syncEditor(); markDirty(); output.textContent = "Unsaved changes in " + currentProject + " / " + currentFile + ". Click Save Project to save."; };
 
     load(currentProject, currentFile);
