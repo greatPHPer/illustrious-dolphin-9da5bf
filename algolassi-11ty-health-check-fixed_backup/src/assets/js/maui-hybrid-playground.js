@@ -433,6 +433,40 @@
       output.textContent = "Preview refreshed.\n\nCurrent file: " + currentProject + " / " + currentFile;
     }
 
+    function loadDemoFromQuery() {
+      var params = new URLSearchParams(window.location.search || "");
+      var demo = (params.get("demo") || "").toLowerCase().trim();
+      if (!demo) return false;
+
+      var demos = {
+        "razor-counter": {
+          project: "4. MyMauiApp.Web.Client",
+          file: "Home.razor",
+          source: '@page "/"\n\n<h1>Razor Counter Demo</h1>\n<p>Current count: @count</p>\n<button @onclick="Increment">Increment</button>\n\n@code {\n    private int count { get; set; }\n\n    private void Increment()\n    {\n        count++;\n    }\n}'
+        }
+      };
+
+      var selected = demos[demo];
+      if (!selected || !projects[selected.project]) {
+        output.textContent = "Demo not found: " + demo;
+        return false;
+      }
+
+      if (!Object.prototype.hasOwnProperty.call(projects[selected.project], selected.file)) {
+        projects[selected.project][selected.file] = "";
+      }
+
+      projects[selected.project][selected.file] = selected.source;
+      delete dirtyFiles[fileKey(selected.project, selected.file)];
+      componentState = {};
+      load(selected.project, selected.file);
+      renderTree();
+      renderTabs();
+      render();
+      output.textContent = "Demo loaded: " + demo + "\n\n" + selected.project + " / " + selected.file + "\n\nThe demo was loaded automatically from the URL.";
+      return true;
+    }
+
     function packageReference(id, version, project) {
       var name = project.split(".").pop() + ".csproj";
       var file = projects[project][name] || '<Project Sdk="Microsoft.NET.Sdk.Web">\n  <PropertyGroup><TargetFramework>net9.0</TargetFramework></PropertyGroup>\n</Project>';
@@ -469,214 +503,81 @@
     }
 
     function setupNuget() {
-  var existingPanel = document.getElementById("maui-nuget-panel");
-  var existingToggle = document.getElementById("maui-nuget-toggle");
+      var existingPanel = document.getElementById("maui-nuget-panel");
+      var existingToggle = document.getElementById("maui-nuget-toggle");
 
-  if (existingPanel && existingToggle) {
-    renderNugetInstalled();
-    return;
-  }
+      if (existingPanel && existingToggle) {
+        renderNugetInstalled();
+        return;
+      }
 
-  var host = tree.parentElement || tree.parentNode;
+      var host = tree.parentElement || tree.parentNode;
 
-  var toggle = existingToggle || document.createElement("button");
-  toggle.type = "button";
-  toggle.id = "maui-nuget-toggle";
-  toggle.textContent = "📦 NuGet";
-  toggle.style.cssText =
-    "display:block;width:100%;box-sizing:border-box;margin-top:12px;padding:8px 10px;" +
-    "border:1px solid rgba(127,127,127,.3);border-radius:6px;" +
-    "background:rgba(127,127,127,.06);color:inherit;text-align:left;cursor:pointer;";
+      var toggle = existingToggle || document.createElement("button");
+      toggle.type = "button";
+      toggle.id = "maui-nuget-toggle";
+      toggle.textContent = "📦 NuGet";
+      toggle.style.cssText = "display:block;width:100%;box-sizing:border-box;margin-top:12px;padding:8px 10px;border:1px solid rgba(127,127,127,.3);border-radius:6px;background:rgba(127,127,127,.06);color:inherit;text-align:left;cursor:pointer;";
 
-  if (!existingToggle) {
-    host.appendChild(toggle);
-  }
+      if (!existingToggle) host.appendChild(toggle);
 
-  var panel = existingPanel || document.createElement("section");
+      var panel = existingPanel || document.createElement("section");
 
-  if (!existingPanel) {
-    panel.id = "maui-nuget-panel";
+      if (!existingPanel) {
+        panel.id = "maui-nuget-panel";
+        panel.innerHTML = '<div class="maui-nuget-header"><strong>📦 NuGet Packages</strong><button type="button" id="maui-nuget-close">Hide</button></div><div class="maui-nuget-search-row"><input id="maui-nuget-query" type="search" placeholder="Search NuGet packages…" autocomplete="off"><button type="button" id="maui-nuget-search-btn">Search</button></div><div id="maui-nuget-status"></div><div id="maui-nuget-results"></div><div class="maui-installed-section"><div class="maui-installed-title">Installed Packages</div><div id="maui-installed-packages"></div></div>';
+        host.appendChild(panel);
+      }
 
-    panel.innerHTML =
-      '<div class="maui-nuget-header">' +
-        '<strong>📦 NuGet Packages</strong>' +
-        '<button type="button" id="maui-nuget-close">Hide</button>' +
-      '</div>' +
+      var q = panel.querySelector("#maui-nuget-query");
+      var results = panel.querySelector("#maui-nuget-results");
+      var status = panel.querySelector("#maui-nuget-status");
+      var close = panel.querySelector("#maui-nuget-close");
+      var searchButton = panel.querySelector("#maui-nuget-search-btn");
 
-      '<div class="maui-nuget-search-row">' +
-        '<input id="maui-nuget-query" type="search" ' +
-        'placeholder="Search NuGet packages…" autocomplete="off">' +
-        '<button type="button" id="maui-nuget-search-btn">Search</button>' +
-      '</div>' +
+      function search() {
+        var term = q.value.trim();
+        if (!term) { status.textContent = "Enter a package name."; results.innerHTML = ""; return; }
+        status.textContent = "Searching NuGet.org…";
+        results.innerHTML = "";
+        fetch("https://azuresearch-usnc.nuget.org/query?q=" + encodeURIComponent(term) + "&prerelease=false&take=20")
+          .then(function (r) { if (!r.ok) throw new Error("NuGet search failed"); return r.json(); })
+          .then(function (data) {
+            var items = data.data || [];
+            status.textContent = items.length + " package" + (items.length === 1 ? "" : "s") + " found";
+            results.innerHTML = items.map(function (p) {
+              var recipe = packageRecipes[p.id];
+              var installed = !!installedPackages[p.id];
+              return '<div class="maui-nuget-result"><div class="maui-nuget-result-head"><strong>' + esc(p.id || "") + '</strong><button type="button" class="maui-nuget-install ' + (installed ? "installed" : "") + '" data-id="' + esc(p.id || "") + '"' + (installed ? " disabled" : "") + '>' + (installed ? "Installed" : "Install") + '</button></div><div>' + esc(p.description || "No description available.") + '</div><small>v' + esc(p.version || "") + ' · Downloads: ' + Number(p.totalDownloads || 0).toLocaleString() + '</small>' + (recipe ? '<div class="maui-package-setup">✓ Setup available<br>Program.cs: <code>' + esc(recipe.registration) + '</code><br>Target: ' + esc(recipe.project) + '</div>' : "") + '</div>';
+            }).join("") || "<div>No packages found.</div>";
+            results.querySelectorAll(".maui-nuget-install:not([disabled])").forEach(function (button) {
+              button.onclick = function () {
+                var pkg = items.find(function (item) { return item.id === button.dataset.id; });
+                if (pkg) { installPackage(pkg); search(); }
+              };
+            });
+          })
+          .catch(function () { status.textContent = "NuGet search is unavailable right now."; results.innerHTML = "<div>Could not reach NuGet.org.</div>"; });
+      }
 
-      '<div id="maui-nuget-status"></div>' +
-      '<div id="maui-nuget-results"></div>' +
-
-      '<div class="maui-installed-section">' +
-        '<div class="maui-installed-title">Installed Packages</div>' +
-        '<div id="maui-installed-packages"></div>' +
-      '</div>';
-
-    host.appendChild(panel);
-  }
-
-  var q = panel.querySelector("#maui-nuget-query");
-  var results = panel.querySelector("#maui-nuget-results");
-  var status = panel.querySelector("#maui-nuget-status");
-  var close = panel.querySelector("#maui-nuget-close");
-  var searchButton = panel.querySelector("#maui-nuget-search-btn");
-
-  function search() {
-    var term = q.value.trim();
-
-    if (!term) {
-      status.textContent = "Enter a package name.";
-      results.innerHTML = "";
-      return;
+      toggle.onclick = function () {
+        var hidden = panel.style.display === "none";
+        panel.style.display = hidden ? "block" : "none";
+        if (hidden && q) q.focus();
+      };
+      close.onclick = function () { panel.style.display = "none"; };
+      searchButton.onclick = search;
+      q.onkeydown = function (e) { if (e.key === "Enter") { e.preventDefault(); search(); } };
+      renderNugetInstalled();
+      panel.style.display = "block";
     }
-
-    status.textContent = "Searching NuGet.org…";
-    results.innerHTML = "";
-
-    fetch(
-      "https://azuresearch-usnc.nuget.org/query?q=" +
-      encodeURIComponent(term) +
-      "&prerelease=false&take=20"
-    )
-      .then(function (r) {
-        if (!r.ok) throw new Error("NuGet search failed");
-        return r.json();
-      })
-      .then(function (data) {
-        var items = data.data || [];
-
-        status.textContent =
-          items.length +
-          " package" +
-          (items.length === 1 ? "" : "s") +
-          " found";
-
-        results.innerHTML = items.map(function (p) {
-          var recipe = packageRecipes[p.id];
-          var installed = !!installedPackages[p.id];
-
-          return (
-            '<div class="maui-nuget-result">' +
-
-              '<div class="maui-nuget-result-head">' +
-                '<strong>' + esc(p.id || "") + '</strong>' +
-
-                '<button type="button" ' +
-                  'class="maui-nuget-install ' +
-                  (installed ? "installed" : "") +
-                  '" ' +
-                  'data-id="' + esc(p.id || "") + '"' +
-                  (installed ? " disabled" : "") +
-                '>' +
-                  (installed ? "Installed" : "Install") +
-                '</button>' +
-
-              '</div>' +
-
-              '<div>' +
-                esc(p.description || "No description available.") +
-              '</div>' +
-
-              '<small>v' +
-                esc(p.version || "") +
-                ' · Downloads: ' +
-                Number(p.totalDownloads || 0).toLocaleString() +
-              '</small>' +
-
-              (
-                recipe
-                  ? '<div class="maui-package-setup">' +
-                      '✓ Setup available<br>' +
-                      'Program.cs: <code>' +
-                      esc(recipe.registration) +
-                      '</code><br>' +
-                      'Target: ' +
-                      esc(recipe.project) +
-                    '</div>'
-                  : ""
-              ) +
-
-            '</div>'
-          );
-        }).join("") || "<div>No packages found.</div>";
-
-        results
-          .querySelectorAll(".maui-nuget-install:not([disabled])")
-          .forEach(function (button) {
-
-            button.onclick = function () {
-              var pkg = items.find(function (item) {
-                return item.id === button.dataset.id;
-              });
-
-              if (pkg) {
-                installPackage(pkg);
-                search();
-              }
-            };
-
-          });
-      })
-      .catch(function () {
-        status.textContent =
-          "NuGet search is unavailable right now.";
-
-        results.innerHTML =
-          "<div>Could not reach NuGet.org.</div>";
-      });
-  }
-
-  /*
-   * 📦 NuGet button
-   * This button stays visible even when the panel is hidden.
-   */
-  toggle.onclick = function () {
-    var hidden = panel.style.display === "none";
-
-    panel.style.display = hidden ? "block" : "none";
-
-    if (hidden && q) {
-      q.focus();
-    }
-  };
-
-  /*
-   * Hide only the panel.
-   * The 📦 NuGet button remains visible.
-   */
-  close.onclick = function () {
-    panel.style.display = "none";
-  };
-
-  searchButton.onclick = search;
-
-  q.onkeydown = function (e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      search();
-    }
-  };
-
-  renderNugetInstalled();
-
-  /*
-   * Start with the panel open.
-   */
-  panel.style.display = "block";
-}
 
     function addSaveButton() {
       if (document.getElementById("maui-save-project") || !run || !run.parentElement) return;
       var button = document.createElement("button");
       button.type = "button";
       button.id = "maui-save-project";
-      //button.textContent = "Save Project";//20260810
-      button.innerHTML = "💾 <span>Save Project</span>";//20260810 from chatgpt
+      button.innerHTML = "💾 <span>Save Project</span>";
       button.onclick = saveProject;
       run.parentElement.insertBefore(button, run.nextSibling);
     }
@@ -685,8 +586,7 @@
       if (document.getElementById("maui-playground-runtime-style")) return;
       var style = document.createElement("style");
       style.id = "maui-playground-runtime-style";
-      //style.textContent = '.maui-project-tree li{list-style:none;margin:0;padding:0}.maui-project-tree .maui-tree-link{display:block;width:100%;box-sizing:border-box;border:0;background:transparent;color:inherit;text-decoration:none;text-align:left;font:inherit;cursor:pointer;padding:4px 8px;border-radius:4px;line-height:1.35}.maui-project-tree .maui-tree-link:hover{background:rgba(127,127,127,.12)}.maui-project-tree .maui-tree-link.active{background:rgba(0,120,212,.16)}.maui-project-tree .maui-tree-folder-row{display:flex;align-items:center;gap:2px}.maui-project-tree .maui-tree-folder-link{flex:1;font-weight:600}.maui-project-tree .maui-tree-add-link{width:auto;flex:0 0 auto;padding:2px 7px;opacity:.65}.maui-project-tree .maui-tree-children{margin:0;padding-left:14px}.maui-editor-tab{margin-right:4px}.maui-file-dirty{font-weight:700}.maui-runtime-error{margin:12px;padding:12px;border:1px solid #d33;border-radius:6px;background:rgba(220,50,50,.08);color:inherit}.maui-runtime-error pre{white-space:pre-wrap;margin:8px 0 0}.playground-radzen-button,.playground-mud-button{padding:8px 16px;border-radius:4px;color:#fff;cursor:pointer}.playground-radzen-button{border:1px solid #1677ff;background:#1677ff}.playground-mud-button{border:1px solid #594ae2;background:#594ae2}.playground-radzen-input,.playground-mud-input{padding:8px 10px;border:1px solid #aaa;border-radius:4px;box-sizing:border-box}.playground-radzen-label{display:inline-block;padding:4px 0}.maui-nuget-panel{box-sizing:border-box}.maui-nuget-search-row{display:flex;gap:8px;width:100%;box-sizing:border-box}.maui-nuget-search-row input{min-width:0;flex:1;box-sizing:border-box}.maui-nuget-search-row button{flex:0 0 auto;box-sizing:border-box;white-space:nowrap}.maui-nuget-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.maui-nuget-header button,.maui-nuget-install,#maui-save-project{cursor:pointer}.maui-nuget-result{padding:10px 0;border-bottom:1px solid rgba(127,127,127,.18)}.maui-nuget-result-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.maui-nuget-install{border:1px solid rgba(127,127,127,.45);border-radius:4px;padding:3px 9px;background:transparent;color:inherit}.maui-nuget-install.installed{opacity:.7}.maui-package-setup{margin-top:7px;padding:7px;border-left:3px solid rgba(0,120,212,.55);font-size:.85em}.maui-installed-section{margin-top:14px;padding-top:12px;border-top:1px solid rgba(127,127,127,.25)}.maui-installed-title{font-weight:700;margin-bottom:7px}.maui-installed-package{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 9px;margin:5px 0;border:1px solid rgba(127,127,127,.2);border-radius:6px;background:rgba(127,127,127,.05)}.maui-installed-package small{display:block;opacity:.7}.maui-installed-badge{font-size:.75em;padding:3px 7px;border-radius:10px;background:rgba(0,120,212,.12)}.maui-installed-empty{opacity:.65;font-size:.85em}.maui-nuget-panel{margin-top:16px;padding:12px;border-top:1px solid rgba(127,127,127,.25);font-size:.9rem}.maui-nuget-panel #maui-nuget-results{max-height:360px;overflow-y:auto;overflow-x:hidden;padding-right:4px}';
-      style.textContent = ".maui-project-tree li{list-style:none;margin:0;padding:0}.maui-project-tree .maui-tree-link{display:block;width:100%;box-sizing:border-box;border:0;background:transparent;color:inherit;text-decoration:none;text-align:left;font:inherit;cursor:pointer;padding:4px 8px;border-radius:4px;line-height:1.35}.maui-project-tree .maui-tree-link:hover{background:rgba(127,127,127,.12)}.maui-project-tree .maui-tree-link.active{background:rgba(0,120,212,.16)}.maui-project-tree .maui-tree-folder-row{display:flex;align-items:center;gap:2px}.maui-project-tree .maui-tree-folder-link{flex:1;font-weight:600}.maui-project-tree .maui-tree-add-link{width:auto;flex:0 0 auto;padding:2px 7px;opacity:.65}.maui-project-tree .maui-tree-children{margin:0;padding-left:14px}.maui-nuget-toggle{display:flex;align-items:center;gap:6px;width:100%;box-sizing:border-box;padding:8px 10px;margin:8px 0;border:1px solid rgba(127,127,127,.25);border-radius:6px;background:rgba(127,127,127,.06);text-decoration:none;color:inherit;font-weight:600;cursor:pointer}.maui-nuget-toggle:hover{background:rgba(127,127,127,.12)}#maui-nuget-panel{box-sizing:border-box;width:100%;max-width:100%;overflow:hidden}.maui-nuget-search-row{display:flex;gap:6px;width:100%;box-sizing:border-box}.maui-nuget-search-row input{min-width:0;flex:1;box-sizing:border-box}.maui-nuget-search-row a{flex:0 0 auto;box-sizing:border-box;white-space:nowrap}.maui-nuget-result{padding:10px 0;border-bottom:1px solid rgba(127,127,127,.18)}.maui-nuget-result-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.maui-nuget-install{display:inline-block;border:1px solid rgba(127,127,127,.45);border-radius:4px;padding:3px 9px;text-decoration:none;font-size:.85em;cursor:pointer;background:transparent;color:inherit}.maui-nuget-install:hover{background:rgba(0,120,212,.12)}.maui-nuget-install.installed{opacity:.7;cursor:default}.maui-package-setup{margin-top:7px;padding:7px;border-left:3px solid rgba(0,120,212,.55);font-size:.85em}.playground-radzen-button,.playground-mud-button{padding:8px 16px;border-radius:4px;color:#fff;cursor:pointer}.playground-radzen-button{border:1px solid #1677ff;background:#1677ff}.playground-mud-button{border:1px solid #594ae2;background:#594ae2}.playground-radzen-input,.playground-mud-input{padding:8px 10px;border:1px solid #aaa;border-radius:4px}.playground-radzen-label{display:inline-block;padding:4px 0}#maui-nuget-results{max-height:420px;overflow-y:auto;overflow-x:hidden;padding-right:6px;scrollbar-width:thin}#maui-nuget-results::-webkit-scrollbar{width:8px}#maui-nuget-results::-webkit-scrollbar-thumb{border-radius:8px;background:rgba(127,127,127,.45)}#maui-nuget-results::-webkit-scrollbar-track{background:transparent}.maui-save-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:8px 14px;border:1px solid #1677ff;border-radius:6px;background:#1677ff;color:#fff;font-weight:600;cursor:pointer;box-sizing:border-box}.maui-save-button:hover{background:#0f65d6}.maui-save-button:active{transform:translateY(1px)}";
+      style.textContent = ".maui-project-tree li{list-style:none;margin:0;padding:0}.maui-project-tree .maui-tree-link{display:block;width:100%;box-sizing:border-box;border:0;background:transparent;color:inherit;text-decoration:none;text-align:left;font:inherit;cursor:pointer;padding:4px 8px;border-radius:4px;line-height:1.35}.maui-project-tree .maui-tree-link:hover{background:rgba(127,127,127,.12)}.maui-project-tree .maui-tree-link.active{background:rgba(0,120,212,.16)}.maui-project-tree .maui-tree-folder-row{display:flex;align-items:center;gap:2px}.maui-project-tree .maui-tree-folder-link{flex:1;font-weight:600}.maui-project-tree .maui-tree-add-link{width:auto;flex:0 0 auto;padding:2px 7px;opacity:.65}.maui-project-tree .maui-tree-children{margin:0;padding-left:14px}.maui-nuget-toggle{display:flex;align-items:center;gap:6px;width:100%;box-sizing:border-box;padding:8px 10px;margin:8px 0;border:1px solid rgba(127,127,127,.25);border-radius:6px;background:rgba(127,127,127,.06);text-decoration:none;color:inherit;font-weight:600;cursor:pointer}.maui-nuget-toggle:hover{background:rgba(127,127,127,.12)}#maui-nuget-panel{box-sizing:border-box;width:100%;max-width:100%;overflow:hidden}.maui-nuget-search-row{display:flex;gap:6px;width:100%;box-sizing:border-box}.maui-nuget-search-row input{min-width:0;flex:1;box-sizing:border-box}.maui-nuget-search-row button{flex:0 0 auto;box-sizing:border-box;white-space:nowrap}.maui-nuget-result{padding:10px 0;border-bottom:1px solid rgba(127,127,127,.18)}.maui-nuget-result-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.maui-nuget-install{display:inline-block;border:1px solid rgba(127,127,127,.45);border-radius:4px;padding:3px 9px;text-decoration:none;font-size:.85em;cursor:pointer;background:transparent;color:inherit}.maui-nuget-install:hover{background:rgba(0,120,212,.12)}.maui-nuget-install.installed{opacity:.7;cursor:default}.maui-package-setup{margin-top:7px;padding:7px;border-left:3px solid rgba(0,120,212,.55);font-size:.85em}.playground-radzen-button,.playground-mud-button{padding:8px 16px;border-radius:4px;color:#fff;cursor:pointer}.playground-radzen-button{border:1px solid #1677ff;background:#1677ff}.playground-mud-button{border:1px solid #594ae2;background:#594ae2}.playground-radzen-input,.playground-mud-input{padding:8px 10px;border:1px solid #aaa;border-radius:4px}.playground-radzen-label{display:inline-block;padding:4px 0}#maui-nuget-results{max-height:420px;overflow-y:auto;overflow-x:hidden;padding-right:6px;scrollbar-width:thin}#maui-nuget-results::-webkit-scrollbar{width:8px}#maui-nuget-results::-webkit-scrollbar-thumb{border-radius:8px;background:rgba(127,127,127,.45)}#maui-nuget-results::-webkit-scrollbar-track{background:transparent}.maui-save-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:8px 14px;border:1px solid #1677ff;border-radius:6px;background:#1677ff;color:#fff;font-weight:600;cursor:pointer;box-sizing:border-box}.maui-save-button:hover{background:#0f65d6}.maui-save-button:active{transform:translateY(1px)}.maui-runtime-error{margin:12px;padding:12px;border:1px solid #d33;border-radius:6px;background:rgba(220,50,50,.08);color:inherit}.maui-runtime-error pre{white-space:pre-wrap;margin:8px 0 0}#maui-nuget-panel{margin-top:16px;padding:12px;border-top:1px solid rgba(127,127,127,.25);font-size:.9rem}.maui-nuget-panel #maui-nuget-results{max-height:360px;overflow-y:auto;overflow-x:hidden;padding-right:4px}";
       document.head.appendChild(style);
     }
 
@@ -698,7 +598,7 @@
     renderTree();
     renderTabs();
     renderNugetInstalled();
-    render();
+    if (!loadDemoFromQuery()) render();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
