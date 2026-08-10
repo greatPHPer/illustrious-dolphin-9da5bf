@@ -473,25 +473,31 @@
 
   } else if (tag === "border") {
 
-    var stroke = a.Stroke || "#d0d5dd";
-    var strokeThickness = parseFloat(a.StrokeThickness);
-    if (isNaN(strokeThickness)) strokeThickness = 1;
+  var stroke = a.Stroke || "#0d6efd";
+  var strokeThickness = parseFloat(a.StrokeThickness);
+  if (isNaN(strokeThickness)) strokeThickness = 2;
 
-    var radius = 0;
-    var shape = a.StrokeShape || "";
-    var radiusMatch = shape.match(/RoundRectangle\s+([\d.]+)/i);
-    if (radiusMatch) radius = parseFloat(radiusMatch[1]) || 0;
+  var radius = 12;
+  var shape = a.StrokeShape || "";
+  var radiusMatch = shape.match(/RoundRectangle\s+([\d.]+)/i);
+  if (radiusMatch) radius = parseFloat(radiusMatch[1]) || 12;
 
-    children.push(
-      '<div style="border:' +
-      strokeThickness + 'px solid ' +
-      esc(stroke) +
-      ';border-radius:' +
-      radius +
-      'px;padding:16px;box-sizing:border-box;width:100%;">' +
-      renderSimpleChildren(inner) +
-      '</div>'
-    );
+  var borderPadding = a.Padding || "16";
+
+  children.push(
+    '<div style="' +
+    'display:block;' +
+    'width:100%;' +
+    'box-sizing:border-box;' +
+    'border:' + strokeThickness + 'px solid ' + esc(stroke) + ';' +
+    'border-radius:' + radius + 'px;' +
+    'padding:' + parseFloat(borderPadding) + 'px;' +
+    'margin:4px 0;' +
+    'background:#fff;' +
+    '">' +
+    renderSimpleChildren(inner) +
+    '</div>'
+  );
 
   } else if (tag === "label") {
 
