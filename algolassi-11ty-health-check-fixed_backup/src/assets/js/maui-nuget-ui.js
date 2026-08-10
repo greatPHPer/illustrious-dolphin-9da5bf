@@ -18,6 +18,11 @@
   ];
   var installed = {};
   basePackages.forEach(function (pkg) { installed[pkg.id] = pkg; });
+  function isRequiredPackage(id) {
+    return id === "Microsoft.Maui.Controls" ||
+      id === "Microsoft.AspNetCore.Components" ||
+      id === "Microsoft.AspNetCore.Components.Web";
+  }
   function esc(value) { return String(value == null ? "" : value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
   function renderInstalled() {
     var list = document.getElementById("maui-packages-list");
@@ -25,45 +30,36 @@
     if (!list || !count) return;
     var packages = Object.keys(installed).map(function (key) { return installed[key]; });
     packages.sort(function (a, b) { return a.id.localeCompare(b.id); });
-    //list.innerHTML = packages.map(function (pkg) { return '<div class="maui-package"><span>📦 ' + esc(pkg.id) + '</span><code>' + esc(pkg.version) + '</code></div>'; }).join("");
     list.innerHTML = packages.map(function (pkg) {
-  var isRequiredPackage =
-  pkg.id === "Microsoft.Maui.Controls" ||
-  pkg.id === "Microsoft.AspNetCore.Components" ||
-  pkg.id === "Microsoft.AspNetCore.Components.Web";
+      var isRequired = isRequiredPackage(pkg.id);
 
-return '<div class="maui-package">' +
-  '<span>📦 ' + esc(pkg.id) + '</span>' +
-  '<code>' + esc(pkg.version) + '</code>' +
-  (isRequiredPackage
-    ? '<span class="maui-package-required">Required</span>'
-    : '<button type="button" class="maui-package-remove" data-nuget-id="' +
-      esc(pkg.id) +
-      '">Remove</button>') +
-  '</div>';
-}).join("");
+      return '<div class="maui-package">' +
+        '<span>📦 ' + esc(pkg.id) + '</span>' +
+        '<code>' + esc(pkg.version) + '</code>' +
+        (isRequired
+          ? '<span class="maui-package-required">Required</span>'
+          : '<button type="button" class="maui-package-remove" data-nuget-id="' +
+            esc(pkg.id) +
+            '">Remove</button>') +
+        '</div>';
+    }).join("");
 
-list.querySelectorAll(".maui-package-remove").forEach(function (button) {
-  button.addEventListener("click", function () {
-    var id = button.getAttribute("data-nuget-id");
+    list.querySelectorAll(".maui-package-remove").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var id = button.getAttribute("data-nuget-id");
+        if (!installed[id] || isRequiredPackage(id)) return;
 
-    if (!installed[id]) return;
+        delete installed[id];
+        renderInstalled();
 
-    delete installed[id];
+        var input = document.getElementById("maui-nuget-input");
+        if (input) renderResults(input.value);
 
-    renderInstalled();
+        var status = document.getElementById("maui-nuget-status");
+        if (status) status.textContent = id + " removed from this playground session.";
+      });
+    });
 
-    var input = document.getElementById("maui-nuget-input");
-    if (input) {
-      renderResults(input.value);
-    }
-
-    var status = document.getElementById("maui-nuget-status");
-    if (status) {
-      status.textContent = id + " removed from this playground session.";
-    }
-  });
-});
     count.textContent = packages.length + (packages.length === 1 ? " package" : " packages");
   }
   function renderResults(query) {
@@ -73,49 +69,41 @@ list.querySelectorAll(".maui-package-remove").forEach(function (button) {
     if (!q) { results.innerHTML = ""; return; }
     var matches = catalog.filter(function (pkg) { return pkg.id.toLowerCase().indexOf(q) >= 0 || pkg.description.toLowerCase().indexOf(q) >= 0; }).slice(0, 6);
     results.innerHTML = matches.length ? matches.map(function (pkg) {
-      //var action = installed[pkg.id] ? '<span class="maui-nuget-installed">Installed</span>' : '<button type="button" data-nuget-id="' + esc(pkg.id) + '">Install</button>';//removed installed label dhilip 20260810
-      var action = installed[pkg.id]
-  ? '<button type="button" class="maui-nuget-remove" data-nuget-id="' + esc(pkg.id) + '">Remove</button>'
-  : '<button type="button" data-nuget-id="' + esc(pkg.id) + '">Install</button>';
+      var isRequired = isRequiredPackage(pkg.id);
+      var action = isRequired
+        ? '<span class="maui-nuget-installed maui-nuget-required">Required</span>'
+        : installed[pkg.id]
+          ? '<button type="button" class="maui-nuget-remove" data-nuget-id="' + esc(pkg.id) + '">Remove</button>'
+          : '<button type="button" data-nuget-id="' + esc(pkg.id) + '">Install</button>';
+
       return '<div class="maui-nuget-result"><div><strong>' + esc(pkg.id) + '</strong><small>' + esc(pkg.description) + ' · ' + esc(pkg.version) + '</small></div>' + action + '</div>';
     }).join("") : '<div class="maui-nuget-empty">No matching packages.</div>';
     results.querySelectorAll("button[data-nuget-id]").forEach(function (button) {
       button.addEventListener("click", function () {
         var id = button.getAttribute("data-nuget-id");
         var pkg = catalog.find(function (item) { return item.id === id; });
-        /*if (!pkg || installed[id]) return;
+        if (!pkg || isRequiredPackage(id)) return;
+
+        if (installed[id]) {
+          delete installed[id];
+          renderInstalled();
+          renderResults(document.getElementById("maui-nuget-input")?.value || "");
+
+          var status = document.getElementById("maui-nuget-status");
+          if (status) status.textContent = id + " removed from this playground session.";
+          return;
+        }
+
         installed[id] = pkg;
-        renderInstalled();*/
-        if (!pkg) return;
+        renderInstalled();
+        renderResults("");
 
-if (installed[id]) {
-  delete installed[id];
-  renderInstalled();
-  renderResults(
-    document.getElementById("maui-nuget-input")?.value || ""
-  );
+        var status = document.getElementById("maui-nuget-status");
+        if (status) status.textContent = id + " installed for this playground session.";
 
-  var status = document.getElementById("maui-nuget-status");
-  if (status) {
-    status.textContent = id + " removed from this playground session.";
-  }
-
-  return;
-}
-
-installed[id] = pkg;
-renderInstalled();
-renderResults("");
-
-var status = document.getElementById("maui-nuget-status");
-if (status) {
-  status.textContent = id + " installed for this playground session.";
-}
         var input = document.getElementById("maui-nuget-input");
         if (input) input.value = "";
         renderResults("");
-        var status = document.getElementById("maui-nuget-status");
-        if (status) status.textContent = id + " installed for this playground session.";
         var legacyButton = document.getElementById("maui-nuget-install");
         var legacyInput = document.querySelector(".maui-nuget-bar input#maui-nuget-input");
         if (legacyButton && legacyInput && legacyButton !== button) { legacyInput.value = id; legacyButton.click(); legacyInput.value = ""; }
@@ -138,7 +126,10 @@ if (status) {
         ".maui-nuget-result>div:first-child{flex:1 1 auto!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;}" +
         ".maui-nuget-result strong{display:block!important;max-width:100%;overflow-wrap:anywhere;word-break:break-word;}" +
         ".maui-nuget-result small{display:block!important;max-width:100%;overflow-wrap:anywhere;word-break:break-word;}" +
-        ".maui-nuget-result button{flex:0 0 auto!important;position:static!important;white-space:nowrap!important;margin:0!important;}";
+        ".maui-nuget-result button{flex:0 0 auto!important;position:static!important;white-space:nowrap!important;margin:0!important;}" +
+        ".maui-package-remove,.maui-nuget-remove{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:4px 10px;border:1px solid rgba(127,127,127,.45);border-radius:6px;background:transparent;font:inherit;line-height:1.2;white-space:nowrap;cursor:pointer;}" +
+        ".maui-package-remove:hover,.maui-nuget-remove:hover{background:rgba(127,127,127,.12);}" +
+        ".maui-package-required,.maui-nuget-required{white-space:nowrap;opacity:.75;}";
       document.head.appendChild(style);
     }
 
