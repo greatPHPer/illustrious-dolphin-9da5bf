@@ -45,6 +45,45 @@
     tree.__algolassiProjectLabelObserver = observer;
   }
 
+  function wireDemoInteractions() {
+    var params = new URLSearchParams(window.location.search || "");
+    var demoName = (params.get("demo") || "").toLowerCase().trim();
+    var preview = document.getElementById("maui-browser-preview");
+    if (!preview) return;
+
+    if (demoName === "razor-two-way-binding") {
+      var input = preview.querySelector('input[\@bind="name"]');
+      var valueNode = preview.querySelector("p strong");
+      if (input && valueNode) {
+        input.value = valueNode.textContent.trim();
+        input.addEventListener("input", function () {
+          valueNode.textContent = input.value;
+        });
+      }
+    }
+
+    if (demoName === "razor-calculator") {
+      var strong = preview.querySelector("p strong");
+      var buttons = preview.querySelectorAll("button");
+      if (!strong || buttons.length < 2) return;
+      var value = Number(strong.textContent.trim()) || 0;
+      buttons.forEach(function (button) {
+        button.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }, true);
+      });
+      buttons[0].addEventListener("click", function () {
+        value += 5;
+        strong.textContent = String(value);
+      });
+      buttons[1].addEventListener("click", function () {
+        value -= 2;
+        strong.textContent = String(value);
+      });
+    }
+  }
+
   function loadDemo() {
     var params = new URLSearchParams(window.location.search);
     var demoName = params.get("demo");
@@ -85,6 +124,7 @@
       if (run) run.click();
       var output = document.getElementById("maui-console-output");
       if (output) output.textContent = "Demo loaded: " + demo.title + "\n\nThe example was loaded automatically and Run Preview was clicked.";
+      setTimeout(wireDemoInteractions, 50);
       return;
     }
     var item = files[index];
