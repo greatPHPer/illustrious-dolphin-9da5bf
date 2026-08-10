@@ -303,7 +303,8 @@
     function executeMethod(name, code, state) {
       var body = methodBody(code, name);
       if (body === null) throw new Error("Method '" + name + "' was not found in @code.");
-      var statements = body.match(/(?:this\.)?\w+\s*(?:\+\+|--|\+=|-=|=)\s*[^;]+;?/g) || [];
+      //var statements = body.match(/(?:this\.)?\w+\s*(?:\+\+|--|\+=|-=|=)\s*[^;]+;?/g) || [];
+      var statements = body.match(/(?:this\.)?\w+\s*(?:\+\+|--|\\+=|-=|=)(?:\s*[^;]+)?;?/g) || [];
       statements.forEach(function (statement) {
         statement = statement.replace(/;$/, "").trim();
         var match = statement.match(/^(?:this\.)?(\w+)\s*(\+\+|--)$/);
