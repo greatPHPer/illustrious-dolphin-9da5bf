@@ -29,15 +29,8 @@ contentType: page
 
     <section class="maui-code-panel">
       <div class="maui-panel-title">EDITOR</div>
-      <div class="maui-file-tabs"><button type="button" class="active">MainPage.xaml</button><button type="button">MainPage.xaml.cs</button><button type="button">MauiProgram.cs</button></div>
-      <textarea id="maui-code-editor" spellcheck="false"><ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MyMauiApp.MainPage">
-    <VerticalStackLayout Padding="30">
-        <Label Text="Hello from MAUI Hybrid!"
-               FontSize="24" />
-    </VerticalStackLayout>
-</ContentPage></textarea>
+      <div class="maui-file-tabs" id="maui-editor-tabs"></div>
+      <textarea id="maui-code-editor" spellcheck="false"></textarea>
     </section>
 
     <section class="maui-preview-panel">
@@ -62,22 +55,4 @@ contentType: page
 .maui-playground{max-width:1200px;margin:0 auto}.maui-playground-header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:24px}.maui-playground-header h1{margin:.2em 0;line-height:1.15}.maui-playground-header p:not(.eyebrow){color:#667085}.maui-create-project,#maui-run-preview{border:0;border-radius:8px;background:#0d6efd;color:#fff;font-weight:700;padding:10px 16px;cursor:pointer}.maui-playground-grid{display:grid;grid-template-columns:240px minmax(300px,1fr) minmax(300px,1fr);border:1px solid #d0d5dd;border-radius:12px;overflow:hidden;background:#fff;min-height:520px}.maui-project-explorer,.maui-code-panel,.maui-preview-panel{min-width:0}.maui-project-explorer{border-right:1px solid #d0d5dd;background:#f8fafc}.maui-code-panel{border-right:1px solid #d0d5dd}.maui-panel-title{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#f2f4f7;border-bottom:1px solid #d0d5dd;font-size:11px;font-weight:800;letter-spacing:.08em;color:#475467}.maui-solution-name{padding:14px 12px 8px;font-weight:700}.maui-project-tree{list-style:none;margin:0;padding:0 8px}.maui-project-tree li{margin:2px 0}.maui-tree-project{width:100%;text-align:left;border:0;background:transparent;padding:9px 6px;border-radius:6px;cursor:pointer;color:#344054}.maui-tree-project:hover,.maui-tree-project.active{background:#e8f1ff;color:#0d6efd}.maui-tree-note{font-size:12px;color:#667085;padding:12px;line-height:1.5}.maui-file-tabs{display:flex;overflow:auto;background:#fff;border-bottom:1px solid #d0d5dd}.maui-file-tabs button{border:0;border-right:1px solid #d0d5dd;background:#f8fafc;padding:10px 12px;white-space:nowrap;color:#475467}.maui-file-tabs button.active{background:#fff;color:#101828;font-weight:700}.maui-code-panel textarea{display:block;width:100%;height:475px;resize:none;border:0;outline:0;padding:18px;background:#101828;color:#f8fafc;font:14px/1.55 "Fira Code",Consolas,monospace}.maui-browser-frame{margin:16px;border:1px solid #d0d5dd;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 4px 16px rgba(16,24,40,.08)}.maui-browser-toolbar{height:34px;background:#f2f4f7;border-bottom:1px solid #d0d5dd;display:flex;align-items:center;gap:6px;padding:0 10px;color:#98a2b3;font-size:10px}.maui-browser-toolbar code{margin-left:8px;color:#667085}.maui-browser-content{min-height:400px;padding:28px}.maui-browser-content h2{margin-top:0}.maui-browser-content button{padding:9px 14px;border:0;border-radius:7px;background:#0d6efd;color:#fff;cursor:pointer}.maui-demo-output{font-weight:700;color:#0d6efd}.maui-console{margin-top:18px;border:1px solid #d0d5dd;border-radius:10px;overflow:hidden}.maui-console pre{margin:0;padding:14px;background:#101828;color:#f8fafc;min-height:60px;white-space:pre-wrap}.maui-playground-note{font-size:13px;color:#667085;margin-top:12px}@media(max-width:950px){.maui-playground-grid{grid-template-columns:1fr}.maui-project-explorer,.maui-code-panel{border-right:0;border-bottom:1px solid #d0d5dd}.maui-code-panel textarea{height:360px}.maui-playground-header{align-items:flex-start;flex-direction:column}.maui-browser-content{min-height:280px}}
 </style>
 
-<script>
-(function(){
-  var create=document.getElementById('maui-create-project');
-  var run=document.getElementById('maui-run-preview');
-  var editor=document.getElementById('maui-code-editor');
-  var output=document.getElementById('maui-console-output');
-  var demo=document.getElementById('maui-demo-button');
-  var demoOutput=document.getElementById('maui-demo-output');
-  if(!create)return;
-  create.addEventListener('click',function(){
-    output.textContent='Project created: MyMauiApp\n1. MyMauiApp\n2. MyMauiApp.Shared\n3. MyMauiApp.Web\n4. MyMauiApp.Web.Client';
-  });
-  run.addEventListener('click',function(){
-    output.textContent='Preview started.\nWeb-compatible preview refreshed from the current editor content.';
-    demoOutput.textContent='Preview running.';
-  });
-  demo.addEventListener('click',function(){demoOutput.textContent='You clicked the button!';});
-})();
-</script>
+<script src="/assets/js/maui-hybrid-playground.js?v=20260810-1" defer></script>
