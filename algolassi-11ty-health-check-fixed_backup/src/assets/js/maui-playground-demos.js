@@ -9,14 +9,8 @@
     "razor-code": { title: "Razor @code + @onclick", files: [{ project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>@message</h1>\n<p>Click the button to update the component state.</p>\n<button @onclick="SetMessage">Set A</button>\n\n@code {\n    private string message = "Initial value";\n\n    private void SetMessage()\n    {\n        message = "123";\n    }\n}' }] },
     "razor-counter": { title: "Razor counter and automatic re-rendering", files: [{ project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>Counter</h1>\n<p>Current value: <strong>@count</strong></p>\n<button @onclick="Increment">Increment</button>\n\n@code {\n    private int count = 0;\n\n    private void Increment()\n    {\n        count++;\n    }\n}' }] },
     "razor-routing": { title: "Blazor routing", files: [{ project: "MyMauiApp.Shared", file: "Home.razor", code: '@page "/home"\n\n<h1>Home Page</h1>\n<p>This page was loaded by the playground router.</p>\n<a href="/home">Reload Home</a>' }] },
-    "dependency-injection": { title: "ASP.NET Core dependency injection", files: [
-      { project: "MyMauiApp.Web", file: "Program.cs", code: 'var builder = WebApplication.CreateBuilder(args);\n\n// Register a service\nbuilder.Services.AddScoped<IGreetingService, GreetingService>();\nbuilder.Services.AddRazorComponents().AddInteractiveServerComponents();\n\nvar app = builder.Build();\napp.MapRazorComponents<App>().AddInteractiveServerRenderMode();\napp.Run();\n\npublic interface IGreetingService\n{\n    string GetGreeting();\n}\n\npublic class GreetingService : IGreetingService\n{\n    public string GetGreeting() => "Hello from Dependency Injection!";\n}' },
-      { project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>Dependency Injection Demo</h1>\n<p>The Web project contains a registered scoped service.</p>\n<p>Edit Program.cs and experiment with the registration.</p>' }
-    ] },
-    "radzen-button": { title: "Radzen Button", files: [
-      { project: "MyMauiApp.Web", file: "Program.cs", code: 'var builder = WebApplication.CreateBuilder(args);\nbuilder.Services.AddRadzenComponents();\nbuilder.Services.AddRazorComponents().AddInteractiveServerComponents();\nvar app = builder.Build();\napp.MapRazorComponents<App>().AddInteractiveServerRenderMode();\napp.Run();' },
-      { project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n@using Radzen\n@using Radzen.Blazor\n\n<h1>Radzen Button Demo</h1>\n<RadzenButton Text="Click me" />' }
-    ] },
+    "dependency-injection": { title: "ASP.NET Core dependency injection", files: [{ project: "MyMauiApp.Web", file: "Program.cs", code: 'var builder = WebApplication.CreateBuilder(args);\n\n// Register a service\nbuilder.Services.AddScoped<IGreetingService, GreetingService>();\nbuilder.Services.AddRazorComponents().AddInteractiveServerComponents();\n\nvar app = builder.Build();\napp.MapRazorComponents<App>().AddInteractiveServerRenderMode();\napp.Run();\n\npublic interface IGreetingService\n{\n    string GetGreeting();\n}\n\npublic class GreetingService : IGreetingService\n{\n    public string GetGreeting() => "Hello from Dependency Injection!";\n}' }, { project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n\n<h1>Dependency Injection Demo</h1>\n<p>The Web project contains a registered scoped service.</p>\n<p>Edit Program.cs and experiment with the registration.</p>' }] },
+    "radzen-button": { title: "Radzen Button", files: [{ project: "MyMauiApp.Web", file: "Program.cs", code: 'var builder = WebApplication.CreateBuilder(args);\nbuilder.Services.AddRadzenComponents();\nbuilder.Services.AddRazorComponents().AddInteractiveServerComponents();\nvar app = builder.Build();\napp.MapRazorComponents<App>().AddInteractiveServerRenderMode();\napp.Run();' }, { project: "MyMauiApp.Web.Client", file: "Home.razor", code: '@page "/"\n@using Radzen\n@using Radzen.Blazor\n\n<h1>Radzen Button Demo</h1>\n<RadzenButton Text="Click me" />' }] },
     "maui-xaml-label": { title: "MAUI XAML Label", files: [{ project: "MyMauiApp", file: "MainPage.xaml", code: '<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">\n    <VerticalStackLayout Padding="30">\n        <Label Text="Hello from the article demo!" FontSize="28" />\n    </VerticalStackLayout>\n</ContentPage>' }] },
     "maui-stacklayout": { title: "MAUI VerticalStackLayout spacing", files: [{ project: "MyMauiApp", file: "MainPage.xaml", code: '<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">\n    <VerticalStackLayout Padding="30" Spacing="20">\n        <Label Text="VerticalStackLayout" FontSize="28" />\n        <Label Text="First item" />\n        <Label Text="Second item" />\n        <Label Text="Third item" />\n    </VerticalStackLayout>\n</ContentPage>' }] },
     "maui-label-styling": { title: "MAUI Label font sizes", files: [{ project: "MyMauiApp", file: "MainPage.xaml", code: '<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">\n    <VerticalStackLayout Padding="30" Spacing="12">\n        <Label Text="Heading" FontSize="32" />\n        <Label Text="Subheading" FontSize="22" />\n        <Label Text="Normal body text" FontSize="16" />\n        <Label Text="Small helper text" FontSize="12" />\n    </VerticalStackLayout>\n</ContentPage>' }] },
@@ -50,6 +44,21 @@
     var demoName = (params.get("demo") || "").toLowerCase().trim();
     var preview = document.getElementById("maui-browser-preview");
     if (!preview) return;
+
+    if (demoName === "razor-routing") {
+      var routingLink = preview.querySelector(".maui-browser-content a[href=\"/home\"]");
+      if (routingLink && !routingLink.__algolassiRoutingBound) {
+        routingLink.__algolassiRoutingBound = true;
+        routingLink.addEventListener("click", function (event) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          var content = preview.querySelector(".maui-browser-content");
+          if (!content) return;
+          content.innerHTML = '<h2>Home Page</h2><p>This page was loaded by the playground router.</p><a href="/home">Reload Home</a>';
+          wireDemoInteractions();
+        }, true);
+      }
+    }
 
     if (demoName === "razor-two-way-binding") {
       var input = preview.querySelector("input");
