@@ -27,11 +27,19 @@
     packages.sort(function (a, b) { return a.id.localeCompare(b.id); });
     //list.innerHTML = packages.map(function (pkg) { return '<div class="maui-package"><span>📦 ' + esc(pkg.id) + '</span><code>' + esc(pkg.version) + '</code></div>'; }).join("");
     list.innerHTML = packages.map(function (pkg) {
-  return '<div class="maui-package">' +
-    '<span>📦 ' + esc(pkg.id) + '</span>' +
-    '<code>' + esc(pkg.version) + '</code>' +
-    '<button type="button" class="maui-package-remove" data-nuget-id="' + esc(pkg.id) + '">Remove</button>' +
-    '</div>';
+  var isBasePackage = basePackages.some(function (base) {
+  return base.id === pkg.id;
+});
+
+return '<div class="maui-package">' +
+  '<span>📦 ' + esc(pkg.id) + '</span>' +
+  '<code>' + esc(pkg.version) + '</code>' +
+  (isBasePackage
+    ? '<span class="maui-package-required">Required</span>'
+    : '<button type="button" class="maui-package-remove" data-nuget-id="' +
+      esc(pkg.id) +
+      '">Remove</button>') +
+  '</div>';
 }).join("");
 
 list.querySelectorAll(".maui-package-remove").forEach(function (button) {
