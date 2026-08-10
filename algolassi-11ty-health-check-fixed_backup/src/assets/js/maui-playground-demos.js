@@ -67,6 +67,26 @@
     }
   };
 
+  function cleanProjectLabels() {
+    var tree = document.querySelector(".maui-project-tree");
+    if (!tree) return;
+    tree.querySelectorAll(".maui-tree-folder-link strong").forEach(function (strong) {
+      strong.textContent = strong.textContent.trim().replace(/^\d+\.\s*/, "");
+    });
+  }
+
+  function watchProjectLabels() {
+    var tree = document.querySelector(".maui-project-tree");
+    if (!tree) return;
+    cleanProjectLabels();
+    if (tree.__algolassiProjectLabelObserver) return;
+    var observer = new MutationObserver(function () {
+      cleanProjectLabels();
+    });
+    observer.observe(tree, { childList: true, subtree: true });
+    tree.__algolassiProjectLabelObserver = observer;
+  }
+
   function loadDemo() {
     var params = new URLSearchParams(window.location.search);
     var demoName = params.get("demo");
@@ -85,15 +105,17 @@
       }
 
       clearInterval(timer);
+      watchProjectLabels();
       loadFiles(demo, 0);
     }, 100);
   }
 
   function findFileLink(project, file) {
     var roots = document.querySelectorAll(".maui-project-tree > li");
+    var expectedProject = project.replace(/^\d+\.\s*/, "");
     for (var i = 0; i < roots.length; i++) {
       var strong = roots[i].querySelector(".maui-tree-folder-link strong");
-      if (!strong || strong.textContent.trim() !== project) continue;
+      if (!strong || strong.textContent.trim().replace(/^\d+\.\s*/, "") !== expectedProject) continue;
 
       var links = roots[i].querySelectorAll(".maui-tree-link");
       for (var j = 0; j < links.length; j++) {
@@ -136,7 +158,17 @@
   }
 
   function start() {
-    loadDemo();
+    var attempts = 0;
+    var timer = setInterval(function () {
+      attempts++;
+      if (document.querySelector(".maui-project-tree")) {
+        clearInterval(timer);
+        watchProjectLabels();
+        loadDemo();
+      } else if (attempts > 100) {
+        clearInterval(timer);
+      }
+    }, 100);
   }
 
   if (document.readyState === "loading") {
@@ -145,5 +177,8 @@
     start();
   }
 
-  window.addEventListener("algolassi:spa-navigation", loadDemo);
+  window.addEventListener("algolassi:spa-navigation", function () {
+    watchProjectLabels();
+    loadDemo();
+  });
 })();
