@@ -34,7 +34,7 @@
     var link = findFileLink("MyMauiApp.Web.Client", "Home.razor");
     if (!link) return false;
 
-    var code = '@page "/"\n@using Radzen\n@using Radzen.Blazor\n\n<h1>Radzen DataGrid Demo</h1>\n<p>A browser simulation of a Radzen DataGrid with sorting, filtering and paging.</p>\n\n<RadzenDataGrid Data="@employees" AllowSorting="true" AllowFiltering="true" AllowPaging="true" PageSize="4">\n    <Columns>\n        <RadzenDataGridColumn Property="Id" Title="ID" />\n        <RadzenDataGridColumn Property="Name" Title="Name" />\n        <RadzenDataGridColumn Property="Department" Title="Department" />\n        <RadzenDataGridColumn Property="City" Title="City" />\n    </Columns>\n</RadzenDataGrid>\n\n@code {\n    private readonly Employee[] employees =\n    {\n        new(1, "Anand", "Development", "Chennai"),\n        new(2, "Bala", "QA", "Bengaluru"),\n        new(3, "Divya", "HR", "Chennai"),\n        new(4, "Karthik", "Development", "Hyderabad"),\n        new(5, "Meena", "Support", "Coimbatore"),\n        new(6, "Naveen", "Development", "Chennai"),\n        new(7, "Priya", "QA", "Madurai"),\n        new(8, "Rahul", "Support", "Bengaluru"),\n        new(9, "Sanjay", "Development", "Pune"),\n        new(10, "Swetha", "HR", "Chennai"),\n        new(11, "Vijay", "QA", "Hyderabad"),\n        new(12, "Yamini", "Support", "Coimbatore")\n    };\n\n    private record Employee(int Id, string Name, string Department, string City);\n}';
+    var code = '@page "/"\n@using Radzen\n@using Radzen.Blazor\n@inject DialogService DialogService\n\n<h1>Radzen Dialog Demo</h1>\n<p>Open a modal dialog from a Razor component using Radzen DialogService.</p>\n\n<RadzenButton Text="Open Dialog" Click="@OpenDialog" />\n\n@code {\n    private async Task OpenDialog()\n    {\n        await DialogService.OpenAsync("Hello", ds => @<div style="padding:20px">\n            <p>This dialog was opened by DialogService.</p>\n            <RadzenButton Text="Close" Click="@(() => ds.Close())" />\n        </div>);\n    }\n}';
 
     link.click();
     setTimeout(function () {
@@ -42,11 +42,48 @@
       editor.dispatchEvent(new Event("input", { bubbles: true }));
       setTimeout(function () {
         run.click();
-        if (output) output.textContent = "Demo loaded: Radzen DataGrid\n\nSorting, filtering and paging are simulated in the browser preview.";
-        setTimeout(renderDataGrid, 80);
+        if (output) output.textContent = "Demo loaded: Radzen Dialog\n\nDialogService.OpenAsync is simulated in the browser preview.";
+        setTimeout(renderDialog, 80);
       }, 120);
     }, 120);
     return true;
+  }
+
+  function renderDialog() {
+    var preview = document.getElementById("maui-browser-preview");
+    if (!preview) return;
+    var content = preview.querySelector(".maui-browser-content");
+    if (!content) return;
+
+    content.innerHTML = '<div class="p3c-dialog-demo"><h2>Radzen Dialog</h2><p>Interactive browser preview of <code>DialogService.OpenAsync()</code>.</p><button type="button" id="p3c-dialog-open">Open Dialog</button><p id="p3c-dialog-status" class="p3c-dialog-status">No dialog is open.</p><div id="p3c-dialog-overlay" class="p3c-dialog-overlay" hidden><div class="p3c-dialog" role="dialog" aria-modal="true" aria-labelledby="p3c-dialog-title"><div class="p3c-dialog-header"><strong id="p3c-dialog-title">Hello</strong><button type="button" id="p3c-dialog-x" aria-label="Close dialog">×</button></div><div class="p3c-dialog-body"><p>This dialog was opened by <code>DialogService.OpenAsync()</code>.</p><p>You can close it with the button below or the × button.</p></div><div class="p3c-dialog-footer"><button type="button" id="p3c-dialog-close">Close</button></div></div></div></div>';
+
+    addStyles();
+
+    var open = content.querySelector("#p3c-dialog-open");
+    var overlay = content.querySelector("#p3c-dialog-overlay");
+    var close = content.querySelector("#p3c-dialog-close");
+    var closeX = content.querySelector("#p3c-dialog-x");
+    var status = content.querySelector("#p3c-dialog-status");
+
+    function closeDialog() {
+      overlay.hidden = true;
+      status.textContent = "Dialog closed.";
+      open.focus();
+    }
+
+    open.addEventListener("click", function () {
+      overlay.hidden = false;
+      status.textContent = "Dialog is open.";
+      close.focus();
+    });
+    close.addEventListener("click", closeDialog);
+    closeX.addEventListener("click", closeDialog);
+    overlay.addEventListener("click", function (event) {
+      if (event.target === overlay) closeDialog();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !overlay.hidden) closeDialog();
+    });
   }
 
   function renderDataGrid() {
@@ -153,19 +190,24 @@
     if (document.getElementById("algolassi-phase3c-styles")) return;
     var style = document.createElement("style");
     style.id = "algolassi-phase3c-styles";
-    style.textContent = ".p3c-grid-demo{max-width:760px}.p3c-grid-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0}.p3c-grid-toolbar input{width:100%;max-width:320px;box-sizing:border-box;padding:9px 11px;border:1px solid #d0d5dd;border-radius:7px}.p3c-grid-toolbar span{font-size:12px;color:#667085;white-space:nowrap}.p3c-grid-wrap{overflow:auto;border:1px solid #d0d5dd;border-radius:9px}.p3c-grid-table{width:100%;border-collapse:collapse;font-size:13px}.p3c-grid-table th{background:#f8fafc;text-align:left;border-bottom:1px solid #d0d5dd}.p3c-grid-table th,.p3c-grid-table td{padding:10px 12px;border-bottom:1px solid #eaecf0}.p3c-grid-table tbody tr:last-child td{border-bottom:0}.p3c-grid-table tbody tr:hover{background:#f8fafc}.p3c-grid-table th button{border:0;background:transparent;font:inherit;font-weight:700;color:#344054;padding:0;cursor:pointer}.p3c-grid-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;font-size:12px;color:#667085}.p3c-grid-footer button{border:1px solid #d0d5dd;background:#fff;color:#344054;border-radius:6px;padding:7px 10px;margin-left:6px;cursor:pointer}.p3c-grid-footer button:disabled{opacity:.45;cursor:not-allowed}";
+    style.textContent = ".p3c-grid-demo{max-width:760px}.p3c-grid-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0}.p3c-grid-toolbar input{width:100%;max-width:320px;box-sizing:border-box;padding:9px 11px;border:1px solid #d0d5dd;border-radius:7px}.p3c-grid-toolbar span{font-size:12px;color:#667085;white-space:nowrap}.p3c-grid-wrap{overflow:auto;border:1px solid #d0d5dd;border-radius:9px}.p3c-grid-table{width:100%;border-collapse:collapse;font-size:13px}.p3c-grid-table th{background:#f8fafc;text-align:left;border-bottom:1px solid #d0d5dd}.p3c-grid-table th,.p3c-grid-table td{padding:10px 12px;border-bottom:1px solid #eaecf0}.p3c-grid-table tbody tr:last-child td{border-bottom:0}.p3c-grid-table tbody tr:hover{background:#f8fafc}.p3c-grid-table th button{border:0;background:transparent;font:inherit;font-weight:700;color:#344054;padding:0;cursor:pointer}.p3c-grid-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;font-size:12px;color:#667085}.p3c-grid-footer button{border:1px solid #d0d5dd;background:#fff;color:#344054;border-radius:6px;padding:7px 10px;margin-left:6px;cursor:pointer}.p3c-grid-footer button:disabled{opacity:.45;cursor:not-allowed}.p3c-dialog-demo{max-width:760px}.p3c-dialog-status{font-size:13px;color:#667085;margin-top:14px}.p3c-dialog-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(16,24,40,.48)}.p3c-dialog-overlay[hidden]{display:none}.p3c-dialog{width:min(460px,calc(100vw - 40px));background:#fff;border-radius:10px;box-shadow:0 20px 50px rgba(16,24,40,.25);overflow:hidden}.p3c-dialog-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #eaecf0}.p3c-dialog-header button{border:0;background:transparent;color:#667085;font-size:24px;line-height:1;padding:2px 6px;cursor:pointer}.p3c-dialog-body{padding:18px 16px;color:#344054}.p3c-dialog-footer{display:flex;justify-content:flex-end;padding:12px 16px;border-top:1px solid #eaecf0}.p3c-dialog-footer button{border:0;border-radius:7px;background:#0d6efd;color:#fff;padding:8px 14px;font-weight:700;cursor:pointer}";
     document.head.appendChild(style);
   }
 
   function start() {
     var params = new URLSearchParams(window.location.search || "");
-    if ((params.get("demo") || "").toLowerCase().trim() !== "radzen-datagrid") return;
+    var demo = (params.get("demo") || "").toLowerCase().trim();
+    if (demo !== "radzen-datagrid" && demo !== "radzen-dialog") return;
     var attempts = 0;
     var timer = setInterval(function () {
       attempts++;
-      if (installDemoFiles()) clearInterval(timer);
+      if (demo === "radzen-dialog" ? installDialogFiles() : installDemoFiles()) clearInterval(timer);
       else if (attempts > 100) clearInterval(timer);
     }, 100);
+  }
+
+  function installDialogFiles() {
+    return installDemoFiles();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
