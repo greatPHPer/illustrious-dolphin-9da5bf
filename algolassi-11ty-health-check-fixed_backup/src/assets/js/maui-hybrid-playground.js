@@ -315,50 +315,31 @@
       });
     }
 
-    function validate(markup) {
-      var errors = [];
-      Object.keys(packageRecipes).forEach(function (id) {
-        var recipe = packageRecipes[id];
-        Object.keys(recipe.components).forEach(function (component) {
-          if (!new RegExp("<" + component + "\\b", "i").test(markup)) return;
-          if (!installedPackages[id]) {
-            errors.push("Runtime error: " + component + " requires NuGet package " + id + ".");
-            return;
-          }
-          var program = projects[recipe.project] && projects[recipe.project]["Program.cs"] || "";
-          if (program.indexOf(recipe.registration) < 0) errors.push("Runtime error: " + component + " is not registered in Program.cs. Expected: " + recipe.registration);
-        });
-      });
-      return errors;
-    }
-
-    function renderComponents(markup) {
-      var result = markup;
-      Object.keys(packageRecipes).forEach(function (id) {
-        var recipe = packageRecipes[id];
-        Object.keys(recipe.components).forEach(function (component) {
-          var re = new RegExp("<" + component + "\\b([^>]*)>([\\s\\S]*?)</" + component + ">|<" + component + "\\b([^>]*)/>", "gi");
-          result = result.replace(re, function (_, a, inner, b) { return recipe.components[component](attrs(a || b || ""), inner || ""); });
-        });
-      });
-      return result;
+    function renderRazorMarkup(markup, state) {
+      var html = markup;
+      html = html.replace(/@(\w+)/g, function (_, name) { return esc(state[name] == null ? "" : state[name]); });
+      html = html.replace(/@\(([^)]+)\)/g, function (_, expr) { return esc(evalExpr(expr, state)); });
+      html = html.replace(/@if\s*\(([^)]+)\)\s*\{([\s\S]*?)\}/g, function (_, expr, yes) { return evalExpr(expr, state) ? yes : ""; });
+      html = html.replace(/@foreach\s*\([^)]*\)\s*\{([\s\S]*?)\}/g, function (_, body) { return body; });
+      return html;
     }
 
     function razorPage(source) {
-      var block = codeBlock(source);
-      var code = block ? block.code : "";
-      var markup = block ? source.slice(0, block.start) + source.slice(block.end) : source;
-      var routeMatch = markup.match(/@page\s+["']([^"']+)["']/i);
-      var route = routeMatch ? routeMatch[1] : "/";
-      markup = markup.replace(/@page\s+["'][^"']+["']/gi, "");
-      var errors = validate(markup);
-      if (errors.length) return { route: route, html: '<div class="maui-runtime-error"><strong>Runtime error</strong><pre>' + esc(errors.join("\n\n")) + '</pre></div>' };
-      var state = stateFor(code);
-      markup = renderComponents(markup);
-      markup = markup.replace(/@onclick\s*=\s*["']([^"']+)["']/gi, 'data-playground-click="$1"');
-      markup = markup.replace(/@([A-Za-z_]\w*)/g, function (all, name) { return Object.prototype.hasOwnProperty.call(state, name) ? esc(state[name]) : all; });
-      markup = markup.replace(/<a\b([^>]*href=["'](\/[^"']*)["'][^>]*)>([\s\S]*?)<\/a>/gi, function (_, attributes, href, text) { return '<a ' + attributes + ' data-playground-route="' + esc(href) + '">' + text + '</a>'; });
-      return { route: route, html: markup, code: code };
+      var code = codeBlock(source);
+      var codeText = code ? code.code : "";
+      var state = stateFor(codeText);
+      var markup = code ? source.slice(0, code.start) + source.slice(code.end) : source;
+      var html = renderRazorMarkup(markup, state);
+      html = html.replace(/<button\b([^>]*)>([\s\S]*?)<\/button>/gi, function (_, attrsText, inner) {
+        var a = attrs(attrsText);
+        var click = a["@onclick"] || a.onclick || "";
+        return '<button' + clickAttr({ "@onclick": click }) + '>' + inner + '</button>';
+      });
+      html = html.replace(/<input\b([^>]*)>/gi, function (_, attrsText) {
+        var a = attrs(attrsText);
+        return '<input' + (a.Value != null ? ' value="' + esc(a.Value) + '"' : '') + '>'; 
+      });
+      return { html: html, state: state, code: codeText };
     }
 
     function findRoute(path) {
@@ -366,13 +347,9 @@
       Object.keys(projects).some(function (project) {
         return Object.keys(projects[project]).some(function (file) {
           if (!/\.razor$/i.test(file)) return false;
-          var oldProject = currentProject, oldFile = currentFile;
-          currentProject = project;
-          currentFile = file;
-          var page = razorPage(projects[project][file]);
-          currentProject = oldProject;
-          currentFile = oldFile;
-          if (page.route === path) { found = { project: project, file: file }; return true; }
+          var source = projects[project][file];
+          var page = source.match(/@page\s+["']([^"']+)["']/i);
+          if (page && page[1] === path) { found = { project: project, file: file }; return true; }
           return false;
         });
       });
@@ -380,47 +357,84 @@
     }
 
     function renderXaml(source) {
-  var outputHtml = [];
-  var re = /<(Label|Entry|Button)\b([^>]*?)(?:\/>|>([\s\S]*?)<\/\1>)/gi;
-  var match;
+      function cssValue(value, fallback) {
+        return value ? esc(value) : fallback;
+      }
 
-  while ((match = re.exec(source))) {
-    var tag = match[1].toLowerCase();
-    var a = attrs(match[2]);
-    var inner = (match[3] || "").trim();
+      function parseDefinitionCount(definition) {
+        if (!definition) return 1;
+        var parts = definition.split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+        return parts.length || 1;
+      }
 
-    if (tag === "label") {
-      outputHtml.push(
-        '<div style="font-size:' +
-        (parseFloat(a.FontSize) || 16) +
-        'px;margin-bottom:16px">' +
-        esc(a.Text || inner) +
-        '</div>'
-      );
+      var gridMatch = /<Grid\b([^>]*)>([\s\S]*?)<\/Grid>/i.exec(source);
+      if (gridMatch) {
+        var ga = attrs(gridMatch[1]);
+        var body = gridMatch[2];
+        var rows = parseDefinitionCount(ga.RowDefinitions);
+        var cols = parseDefinitionCount(ga.ColumnDefinitions);
+        var padding = ga.Padding || "0";
+        var rowGap = ga.RowSpacing || "0";
+        var colGap = ga.ColumnSpacing || "0";
+        var children = [];
+        var childRe = /<(Label|Entry|Button)\b([^>]*?)(?:\/>|>([\s\S]*?)<\/\1>)/gi;
+        var match;
+
+        while ((match = childRe.exec(body))) {
+          var tag = match[1].toLowerCase();
+          var a = attrs(match[2]);
+          var inner = (match[3] || "").trim();
+          var row = parseInt(a["Grid.Row"], 10);
+          var column = parseInt(a["Grid.Column"], 10);
+          var rowSpan = parseInt(a["Grid.RowSpan"], 10);
+          var columnSpan = parseInt(a["Grid.ColumnSpan"], 10);
+          if (isNaN(row)) row = 0;
+          if (isNaN(column)) column = 0;
+          if (isNaN(rowSpan) || rowSpan < 1) rowSpan = 1;
+          if (isNaN(columnSpan) || columnSpan < 1) columnSpan = 1;
+
+          var style = 'grid-row:' + (row + 1) + ' / span ' + rowSpan + ';' +
+            'grid-column:' + (column + 1) + ' / span ' + columnSpan + ';' +
+            'min-width:0;box-sizing:border-box;';
+
+          if (tag === "label") {
+            children.push('<div style="' + style + 'font-size:' + (parseFloat(a.FontSize) || 16) + 'px;align-self:center;">' + esc(a.Text || inner) + '</div>');
+          } else if (tag === "entry") {
+            children.push('<input type="text" value="' + esc(a.Text || "") + '" placeholder="' + esc(a.Placeholder || "") + '" style="' + style + 'width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;">');
+          } else if (tag === "button") {
+            children.push('<button type="button" style="' + style + 'padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;">' + esc(a.Text || inner || "Button") + '</button>');
+          }
+        }
+
+        if (children.length) {
+          return '<div style="display:grid;grid-template-columns:repeat(' + cols + ',minmax(0,1fr));grid-template-rows:repeat(' + rows + ',auto);gap:' + cssValue(rowGap, '0') + 'px ' + cssValue(colGap, '0') + 'px;padding:' + cssValue(padding, '0') + 'px;align-items:start;box-sizing:border-box;width:100%;">' + children.join("") + '</div>';
+        }
+      }
+
+      var outputHtml = [];
+      var re = /<(Label|Entry|Button)\b([^>]*?)(?:\/>|>([\s\S]*?)<\/\1>)/gi;
+      var match;
+
+      while ((match = re.exec(source))) {
+        var tag = match[1].toLowerCase();
+        var a = attrs(match[2]);
+        var inner = (match[3] || "").trim();
+
+        if (tag === "label") {
+          outputHtml.push('<div style="font-size:' + (parseFloat(a.FontSize) || 16) + 'px;margin-bottom:16px">' + esc(a.Text || inner) + '</div>');
+        }
+
+        if (tag === "entry") {
+          outputHtml.push('<input type="text" value="' + esc(a.Text || "") + '" placeholder="' + esc(a.Placeholder || "") + '" style="display:block;width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;margin-bottom:16px;">');
+        }
+
+        if (tag === "button") {
+          outputHtml.push('<button type="button" style="padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;margin-bottom:16px;">' + esc(a.Text || inner || "Button") + '</button>');
+        }
+      }
+
+      return outputHtml.join("") || '<p>No web-compatible XAML content was found.</p>';
     }
-
-    if (tag === "entry") {
-      outputHtml.push(
-        '<input type="text" value="' +
-        esc(a.Text || "") +
-        '" placeholder="' +
-        esc(a.Placeholder || "") +
-        '" style="display:block;width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;margin-bottom:16px;">'
-      );
-    }
-
-    if (tag === "button") {
-      outputHtml.push(
-        '<button type="button" style="padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;margin-bottom:16px;">' +
-        esc(a.Text || inner || "Button") +
-        '</button>'
-      );
-    }
-  }
-
-  return outputHtml.join("") ||
-    '<p>No web-compatible XAML content was found.</p>';
-}
 
     function render() {
       syncEditor();
