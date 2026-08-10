@@ -12,18 +12,18 @@
   };
   var currentProject="1. MyMauiApp", currentFile="MainPage.xaml";
   var editor=document.getElementById("maui-code-editor"), output=document.getElementById("maui-console-output"), preview=document.getElementById("maui-browser-preview");
-  if(!editor||!output)return;
+  if(!editor||!output||!preview)return;
   function files(){return projects[currentProject]||{};}
   function loadFile(name){currentFile=name;editor.value=files()[name]||"";document.querySelectorAll(".maui-file-tabs button").forEach(function(b){b.classList.toggle("active",b.dataset.file===name);});}
-  function renderTabs(){var tabs=document.querySelector(".maui-file-tabs");if(!tabs)return;tabs.innerHTML="";Object.keys(files()).forEach(function(name){var b=document.createElement("button");b.type="button";b.dataset.file=name;b.textContent=name;b.onclick=function(){save();loadFile(name);};tabs.appendChild(b);});loadFile(currentFile in files()?currentFile:Object.keys(files())[0]);}
-  function save(){if(currentFile)files()[currentFile]=editor.value;}
-  function renderPreview(){save();var source=projects["4. MyMauiApp.Web.Client"]["Home.razor"]||"";var match=source.match(/<h1>([\s\S]*?)<\\/h1>/);var text=match?match[1].replace(/@message/g,"Hello from MAUI Hybrid!"):"Hello from MAUI Hybrid!";var message=text.replace(/<[^>]+>/g,"");preview.innerHTML='<div class="maui-browser-toolbar"><span>●</span><span>●</span><span>●</span><code>https://preview.algolassi.local/</code></div><div class="maui-browser-content"><h2>'+escapeHtml(message)+'</h2><p>This is the web-compatible browser preview.</p><button type="button" id="maui-demo-button">Click Me</button><p id="maui-demo-output" class="maui-demo-output"></p></div>';var btn=document.getElementById("maui-demo-button"),msg=document.getElementById("maui-demo-output");if(btn)btn.onclick=function(){msg.textContent="You clicked the button!";};output.textContent="Preview refreshed from the current solution.\nWeb.Client is the executable preview target.";}
+  function renderTabs(){var tabs=document.querySelector(".maui-file-tabs");if(!tabs)return;tabs.innerHTML="";Object.keys(files()).forEach(function(name){var b=document.createElement("button");b.type="button";b.dataset.file=name;b.textContent=name;b.onclick=function(){save();loadFile(name);};tabs.appendChild(b);});var names=Object.keys(files());loadFile(names.indexOf(currentFile)>=0?currentFile:names[0]);}
+  function save(){if(currentFile&&files()[currentFile]!==undefined)files()[currentFile]=editor.value;}
+  function renderPreview(){save();var source=projects["4. MyMauiApp.Web.Client"]["Home.razor"]||"";var match=source.match(/<h1>([\s\S]*?)<\/h1>/i);var text=match?match[1].replace(/@message/g,"Hello from MAUI Hybrid!"):"Hello from MAUI Hybrid!";var message=text.replace(/<[^>]+>/g,"");preview.innerHTML='<div class="maui-browser-toolbar"><span>●</span><span>●</span><span>●</span><code>https://preview.algolassi.local/</code></div><div class="maui-browser-content"><h2>'+escapeHtml(message)+'</h2><p>This is the web-compatible browser preview.</p><button type="button" id="maui-demo-button">Click Me</button><p id="maui-demo-output" class="maui-demo-output"></p></div>';var btn=document.getElementById("maui-demo-button"),msg=document.getElementById("maui-demo-output");if(btn)btn.onclick=function(){msg.textContent="You clicked the button!";};output.textContent="Preview refreshed from the current solution.\nWeb.Client is the executable preview target.";}
   function escapeHtml(v){return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;");}
-  function createProject(){projects={"1. MyMauiApp":projects["1. MyMauiApp"],"2. MyMauiApp.Shared":projects["2. MyMauiApp.Shared"],"3. MyMauiApp.Web":projects["3. MyMauiApp.Web"],"4. MyMauiApp.Web.Client":projects["4. MyMauiApp.Web.Client"]};document.querySelectorAll(".maui-tree-project").forEach(function(b){b.disabled=false;});renderTabs();output.textContent="Project created successfully.\n\n1. MyMauiApp\n2. MyMauiApp.Shared\n3. MyMauiApp.Web\n4. MyMauiApp.Web.Client";renderPreview();}
-  document.getElementById("maui-create-project").onclick=createProject;
-  document.getElementById("maui-run-preview").onclick=renderPreview;
-  document.querySelectorAll(".maui-tree-project").forEach(function(b){b.onclick=function(){save();currentProject=b.textContent.trim();document.querySelectorAll(".maui-tree-project").forEach(function(x){x.classList.remove("active")});b.classList.add("active");currentFile="";renderTabs();};});
+  function createProject(){renderTabs();output.textContent="Project created successfully.\n\n1. MyMauiApp\n2. MyMauiApp.Shared\n3. MyMauiApp.Web\n4. MyMauiApp.Web.Client";renderPreview();}
+  var create=document.getElementById("maui-create-project"),run=document.getElementById("maui-run-preview");
+  if(create)create.addEventListener("click",createProject);
+  if(run)run.addEventListener("click",renderPreview);
+  document.querySelectorAll(".maui-tree-project").forEach(function(b){b.addEventListener("click",function(){save();var label=b.querySelector("span");currentProject=label?label.textContent.trim():b.textContent.replace(/^\s*📁\s*/,"").trim();document.querySelectorAll(".maui-tree-project").forEach(function(x){x.classList.remove("active")});b.classList.add("active");currentFile="";renderTabs();});});
   editor.addEventListener("input",function(){output.textContent="Unsaved changes in "+currentFile+".";});
-  document.addEventListener("DOMContentLoaded",function(){renderTabs();});
-  if(document.readyState!=="loading")renderTabs();
+  renderTabs();
 })();
