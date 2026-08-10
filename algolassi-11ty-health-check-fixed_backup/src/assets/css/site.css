@@ -20,9 +20,10 @@ a:hover{text-decoration:underline}
 .eyebrow{font-size:12px;letter-spacing:.12em;font-weight:800;color:var(--link);margin:0}
 .article-content,.page-content{font-size:17px}
 .article-content img,.page-content img{max-width:100%;height:auto}
-.article-content pre,.page-content pre{overflow:auto;background:#101828;color:#f8fafc;padding:18px;border-radius:10px;line-height:1.5}
+.article-content pre,.page-content pre{overflow:auto;background:#000;color:#fff;padding:18px;border-radius:10px;line-height:1.5}
 .article-content code,.page-content code{font-family:"Fira Code",Consolas,monospace}
-.article-content :not(pre)>code,.page-content :not(pre)>code{background:#f2f4f7;padding:2px 6px;border-radius:5px}
+.article-content :not(pre)>code,.page-content :not(pre)>code{background:#f2f4f7;padding:2px 6px;border-radius:5px;color:#24292f!important}
+.article-content pre code,.page-content pre code{background:transparent!important;color:#fff!important}
 .article-content table,.page-content table{display:block;overflow-x:auto;border-collapse:collapse;width:100%}
 .article-content th,.article-content td,.page-content th,.page-content td{border:1px solid var(--border);padding:9px 12px;text-align:left}
 .article-content blockquote,.page-content blockquote{border-left:4px solid var(--link);margin:24px 0;padding:8px 20px;background:var(--surface)}
@@ -45,7 +46,6 @@ a:hover{text-decoration:underline}
 .footer-inner nav{display:flex;gap:14px;flex-wrap:wrap}
 .copyright{max-width:var(--max);margin:25px auto 0;color:var(--muted);font-size:13px}
 @media(max-width:800px){.site-header-inner{align-items:flex-start;flex-direction:column;gap:10px}.site-nav{gap:10px}.site-main{padding-left:15px;padding-right:15px}.footer-inner{flex-direction:column}.article-content,.page-content{font-size:16px}}
-
 
 /* =========================================================
    ALGOLASSI BREADCRUMB
@@ -71,9 +71,7 @@ a:hover{text-decoration:underline}
 
 /* =========================================================
    CODE READABILITY
-   Keep code blocks readable even when an individual article supplies
-   a light code-block background.
    ========================================================= */
-.article-content pre,.page-content pre{background:#f6f8fa;color:#24292f}
-.article-content pre code,.page-content pre code{background:transparent;color:#24292f!important}
+.article-content pre,.page-content pre{background:#000!important;color:#fff!important}
+.article-content pre code,.page-content pre code{background:transparent!important;color:#fff!important}
 .article-content :not(pre)>code,.page-content :not(pre)>code{color:#24292f!important}
