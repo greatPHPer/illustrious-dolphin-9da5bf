@@ -4,19 +4,104 @@
 
   var demos = {
     "build-first-maui": {
-      project: "1. MyMauiApp",
-      file: "MainPage.xaml",
-      code: '<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">\n    <VerticalStackLayout Padding="30" Spacing="15">\n        <Label Text="Hello, MAUI!" FontSize="28" />\n        <Label Text="This is a live MAUI XAML playground demo." FontSize="18" />\n        <Label Text="You can edit this XAML and run the preview." />\n    </VerticalStackLayout>\n</ContentPage>'
+      title: "Build your first MAUI page",
+      files: [
+        {
+          project: "1. MyMauiApp",
+          file: "MainPage.xaml",
+          code: '<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">\n    <VerticalStackLayout Padding="30" Spacing="15">\n        <Label Text="Hello, MAUI!" FontSize="28" />\n        <Label Text="This is a live MAUI XAML playground demo." FontSize="18" />\n        <Label Text="You can edit this XAML and run the preview." />\n    </VerticalStackLayout>\n</ContentPage>'
+        }
+      ]
     },
     "blazor-hybrid-architecture": {
-      project: "2. MyMauiApp.Shared",
-      file: "Home.razor",
-      code: '@page "/home"\n\n<h1>Blazor Hybrid UI</h1>\n<p>This Razor component represents the UI hosted by a .NET MAUI BlazorWebView.</p>\n<p>Native MAUI code can host this Razor UI while shared services connect the layers.</p>\n<button @onclick="ChangeMessage">Change message</button>\n<p>@message</p>\n\n@code {\n    private string message = "Razor is running in the playground!";\n\n    private void ChangeMessage()\n    {\n        message = "The Hybrid UI re-rendered successfully!";\n    }\n}'
+      title: "Blazor Hybrid architecture",
+      files: [
+        {
+          project: "2. MyMauiApp.Shared",
+          file: "Home.razor",
+          code: '@page "/home"\n\n<h1>Blazor Hybrid UI</h1>\n<p>This Razor component represents the UI hosted by a .NET MAUI BlazorWebView.</p>\n<p>Native MAUI code can host this Razor UI while shared services connect the layers.</p>\n<button @onclick="ChangeMessage">Change message</button>\n<p>@message</p>\n\n@code {\n    private string message = "Razor is running in the playground!";\n\n    private void ChangeMessage()\n    {\n        message = "The Hybrid UI re-rendered successfully!";\n    }\n}'
+        }
+      ]
     },
     "maui-dependency-injection": {
-      project: "4. MyMauiApp.Web.Client",
-      file: "Home.razor",
-      code: '@page "/"\n\n<h1>Dependency Injection Demo</h1>\n<p>A Razor component can consume application state supplied by services.</p>\n<p>Current message: <strong>@message</strong></p>\n<button @onclick="ChangeMessage">Use service-like state</button>\n\n@code {\n    private string message = "Initial application state";\n\n    private void ChangeMessage()\n    {\n        message = "State was changed by the component method.";\n    }\n}'
+      title: "MAUI dependency injection",
+      files: [
+        {
+          project: "4. MyMauiApp.Web.Client",
+          file: "Home.razor",
+          code: '@page "/"\n\n<h1>Dependency Injection Demo</h1>\n<p>A Razor component can consume application state supplied by services.</p>\n<p>Current message: <strong>@message</strong></p>\n<button @onclick="ChangeMessage">Use service-like state</button>\n\n@code {\n    private string message = "Initial application state";\n\n    private void ChangeMessage()\n    {\n        message = "State was changed by the component method.";\n    }\n}'
+        }
+      ]
+    },
+    "razor-code": {
+      title: "Razor @code + @onclick",
+      files: [
+        {
+          project: "4. MyMauiApp.Web.Client",
+          file: "Home.razor",
+          code: '@page "/"\n\n<h1>@message</h1>\n<p>Click the button to update the component state.</p>\n<button @onclick="SetMessage">Set A</button>\n\n@code {\n    private string message = "Initial value";\n\n    private void SetMessage()\n    {\n        message = "123";\n    }\n}'
+        }
+      ]
+    },
+    "razor-counter": {
+      title: "Razor counter and automatic re-rendering",
+      files: [
+        {
+          project: "4. MyMauiApp.Web.Client",
+          file: "Home.razor",
+          code: '@page "/"\n\n<h1>Counter</h1>\n<p>Current value: <strong>@count</strong></p>\n<button @onclick="Increment">Increment</button>\n\n@code {\n    private int count = 0;\n\n    private void Increment()\n    {\n        count++;\n    }\n}'
+        }
+      ]
+    },
+    "razor-routing": {
+      title: "Blazor routing",
+      files: [
+        {
+          project: "2. MyMauiApp.Shared",
+          file: "Home.razor",
+          code: '@page "/home"\n\n<h1>Home Page</h1>\n<p>This page was loaded by the playground router.</p>\n<a href="/home">Reload Home</a>'
+        }
+      ]
+    },
+    "dependency-injection": {
+      title: "ASP.NET Core dependency injection",
+      files: [
+        {
+          project: "3. MyMauiApp.Web",
+          file: "Program.cs",
+          code: 'var builder = WebApplication.CreateBuilder(args);\n\n// Register a service\nbuilder.Services.AddScoped<IGreetingService, GreetingService>();\nbuilder.Services.AddRazorComponents().AddInteractiveServerComponents();\n\nvar app = builder.Build();\napp.MapRazorComponents<App>().AddInteractiveServerRenderMode();\napp.Run();\n\npublic interface IGreetingService\n{\n    string GetGreeting();\n}\n\npublic class GreetingService : IGreetingService\n{\n    public string GetGreeting() => "Hello from Dependency Injection!";\n}'
+        },
+        {
+          project: "4. MyMauiApp.Web.Client",
+          file: "Home.razor",
+          code: '@page "/"\n\n<h1>Dependency Injection Demo</h1>\n<p>The Web project contains a registered scoped service.</p>\n<p>Edit Program.cs and experiment with the registration.</p>'
+        }
+      ]
+    },
+    "radzen-button": {
+      title: "Radzen Button",
+      files: [
+        {
+          project: "3. MyMauiApp.Web",
+          file: "Program.cs",
+          code: 'var builder = WebApplication.CreateBuilder(args);\nbuilder.Services.AddRadzenComponents();\nbuilder.Services.AddRazorComponents().AddInteractiveServerComponents();\nvar app = builder.Build();\napp.MapRazorComponents<App>().AddInteractiveServerRenderMode();\napp.Run();'
+        },
+        {
+          project: "4. MyMauiApp.Web.Client",
+          file: "Home.razor",
+          code: '@page "/"\n@using Radzen\n@using Radzen.Blazor\n\n<h1>Radzen Button Demo</h1>\n<RadzenButton Text="Click me" />'
+        }
+      ]
+    },
+    "maui-xaml-label": {
+      title: "MAUI XAML Label",
+      files: [
+        {
+          project: "1. MyMauiApp",
+          file: "MainPage.xaml",
+          code: '<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">\n    <VerticalStackLayout Padding="30">\n        <Label Text="Hello from the article demo!" FontSize="28" />\n    </VerticalStackLayout>\n</ContentPage>'
+        }
+      ]
     }
   };
 
@@ -38,40 +123,65 @@
       }
 
       clearInterval(timer);
-
-      var projectRows = tree.children;
-      for (var i = 0; i < projectRows.length; i++) {
-        var row = projectRows[i];
-        var strong = row.querySelector(".maui-tree-folder-link strong");
-        if (!strong || strong.textContent.trim() !== demo.project) continue;
-
-        var links = row.querySelectorAll(".maui-tree-link");
-        for (var j = 0; j < links.length; j++) {
-          if (links[j].textContent.replace(/^📄\s*/, "").trim() === demo.file) {
-            links[j].click();
-            break;
-          }
-        }
-        break;
-      }
-
-      setTimeout(function () {
-        editor.value = demo.code;
-        editor.dispatchEvent(new Event("input", { bubbles: true }));
-        setTimeout(function () {
-          run.click();
-        }, 100);
-      }, 150);
+      loadFiles(demo, 0);
     }, 100);
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", loadDemo);
-  } else {
+  function findFileLink(project, file) {
+    var roots = document.querySelectorAll(".maui-project-tree > li");
+    for (var i = 0; i < roots.length; i++) {
+      var strong = roots[i].querySelector(".maui-tree-folder-link strong");
+      if (!strong || strong.textContent.trim() !== project) continue;
+
+      var links = roots[i].querySelectorAll(".maui-tree-link");
+      for (var j = 0; j < links.length; j++) {
+        var text = links[j].textContent.replace(/\s*\*\s*$/, "").trim();
+        if (text === "📄 " + file || text === file) return links[j];
+      }
+    }
+    return null;
+  }
+
+  function loadFiles(demo, index) {
+    var files = demo.files || [];
+    if (index >= files.length) {
+      var run = document.getElementById("maui-run-preview");
+      if (run) run.click();
+      var output = document.getElementById("maui-console-output");
+      if (output) output.textContent = "Demo loaded: " + demo.title + "\n\nThe example was loaded automatically and Run Preview was clicked.";
+      return;
+    }
+
+    var item = files[index];
+    var link = findFileLink(item.project, item.file);
+    var editor = document.getElementById("maui-code-editor");
+    var output = document.getElementById("maui-console-output");
+
+    if (!link || !editor) {
+      if (output) output.textContent = "Demo error: could not find " + item.project + " / " + item.file + ".";
+      return;
+    }
+
+    link.click();
+
+    setTimeout(function () {
+      editor.value = item.code;
+      editor.dispatchEvent(new Event("input", { bubbles: true }));
+      setTimeout(function () {
+        loadFiles(demo, index + 1);
+      }, 80);
+    }, 120);
+  }
+
+  function start() {
     loadDemo();
   }
 
-  window.addEventListener("algolassi:spa-navigation", function () {
-    loadDemo();
-  });
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
+
+  window.addEventListener("algolassi:spa-navigation", loadDemo);
 })();
