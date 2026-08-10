@@ -27,14 +27,15 @@
     packages.sort(function (a, b) { return a.id.localeCompare(b.id); });
     //list.innerHTML = packages.map(function (pkg) { return '<div class="maui-package"><span>📦 ' + esc(pkg.id) + '</span><code>' + esc(pkg.version) + '</code></div>'; }).join("");
     list.innerHTML = packages.map(function (pkg) {
-  var isBasePackage = basePackages.some(function (base) {
-  return base.id === pkg.id;
-});
+  var isRequiredPackage =
+  pkg.id === "Microsoft.Maui.Controls" ||
+  pkg.id === "Microsoft.AspNetCore.Components" ||
+  pkg.id === "Microsoft.AspNetCore.Components.Web";
 
 return '<div class="maui-package">' +
   '<span>📦 ' + esc(pkg.id) + '</span>' +
   '<code>' + esc(pkg.version) + '</code>' +
-  (isBasePackage
+  (isRequiredPackage
     ? '<span class="maui-package-required">Required</span>'
     : '<button type="button" class="maui-package-remove" data-nuget-id="' +
       esc(pkg.id) +
