@@ -222,7 +222,8 @@
 
     function attrs(text) {
       var result = {};
-      var re = /([:@\w-]+)\s*=\s*["']([^"']*)["']/g;
+      //var re = /([:@\w-]+)\s*=\s*["']([^"']*)["']/g;
+      var re = /([:@\w.-]+)\s*=\s*["']([^"']*)["']/g;
       var match;
       while ((match = re.exec(text || ""))) result[match[1]] = match[2];
       return result;
