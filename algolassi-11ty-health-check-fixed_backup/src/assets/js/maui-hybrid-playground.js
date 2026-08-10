@@ -174,6 +174,72 @@
       while ((m = r.exec(s))) a[m[1]] = m[2];
       return a;
     }
+
+    /*
+     * Simulate Blazor's runtime configuration check.
+     * A component may be installed, but its required Web registration
+     * must still exist in Program.cs before the playground renders it.
+     */
+    function validatePackageRegistrations(s) {
+      var errors = [];
+      var webProgram = projects["3. MyMauiApp.Web"] && projects["3. MyMauiApp.Web"]["Program.cs"] || "";
+
+      Object.keys(packageRecipes).forEach(function (id) {
+        var recipe = packageRecipes[id];
+        var components = Object.keys(recipe.components || {});
+        if (!components.length) return;
+
+        var usedComponent = null;
+        components.some(function (component) {
+          var re = new RegExp("<" + component + "\\b", "i");
+          if (re.test(s)) {
+            usedComponent = component;
+            return true;
+          }
+          return false;
+        });
+
+        if (!usedComponent) return;
+
+        if (!installedPackages[id]) {
+          errors.push({
+            type: "package",
+            packageId: id,
+            component: usedComponent,
+            project: recipe.project,
+            message: "The package is not installed in the playground."
+          });
+          return;
+        }
+
+        if (recipe.registration && webProgram.indexOf(recipe.registration) < 0) {
+          errors.push({
+            type: "registration",
+            packageId: id,
+            component: usedComponent,
+            project: recipe.project,
+            registration: recipe.registration,
+            message: "Required service registration is missing from Program.cs."
+          });
+        }
+      });
+
+      return errors;
+    }
+
+    function runtimeErrorHtml(error) {
+      return '<div class="maui-runtime-error">' +
+        '<div class="maui-runtime-error-title">❌ Unhandled exception</div>' +
+        '<div class="maui-runtime-error-message">' + esc(error.message) + '</div>' +
+        '<div class="maui-runtime-error-detail"><strong>Component:</strong> ' + esc(error.component) +
+        '<br><strong>Package:</strong> ' + esc(error.packageId) +
+        '<br><strong>Project:</strong> ' + esc(error.project) +
+        (error.registration ? '<br><br><strong>Required registration:</strong><pre>' + esc(error.registration) + '</pre>' : '') +
+        '</div>' +
+        '<div class="maui-runtime-error-help">Add the required registration to Program.cs and run the preview again.</div>' +
+      '</div>';
+    }
+
     function renderComponents(s) {
       var out = "";
       Object.keys(packageRecipes).forEach(function (id) {
@@ -186,8 +252,18 @@
       });
       return out;
     }
+
     function razorPage(s) {
+      var validationErrors = validatePackageRegistrations(s);
       var route = (s.match(/@page\s+["']([^"']+)["']/i) || [, ""])[1] || "/";
+
+      if (validationErrors.length) {
+        return {
+          route: route,
+          html: validationErrors.map(runtimeErrorHtml).join("")
+        };
+      }
+
       var h = (s.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || [, ""])[1];
       var p = (s.match(/<p[^>]*>([\s\S]*?)<\/p>/i) || [, ""])[1];
       var html = (h ? "<h1>" + h + "</h1>" : "") + (p ? "<p>" + p + "</p>" : "") + renderComponents(s);
@@ -195,6 +271,7 @@
       while ((m = r.exec(s))) html += '<a href="' + esc(m[1]) + '" data-playground-route="' + esc(m[1]) + '">' + m[2] + "</a> ";
       return { route: route, html: html };
     }
+
     function findRoute(path) {
       var found = null;
       Object.keys(projects).some(function (project) {
@@ -250,7 +327,7 @@
       if (installedPackages[pkg.id]) return;
       installedPackages[pkg.id] = pkg;
       var recipe = applyRecipe(pkg.id, pkg.version);
-      button.textContent = "Installed";
+      button.textContent = "✓ Installed";
       button.classList.add("installed");
       button.onclick = null;
       save();
@@ -260,282 +337,89 @@
       output.textContent = "NuGet package installed: " + pkg.id + (recipe ? "\nTarget project: " + recipe.project + "\nProgram.cs: " + recipe.registration : "\nNo package-specific setup recipe is registered yet; PackageReference was added to Web.");
     }
     function setupNuget() {
-  if (document.getElementById("maui-nuget-panel")) return;
+      if (document.getElementById("maui-nuget-panel")) return;
+      var host = tree.parentElement || tree.parentNode;
+      var section = document.createElement("section");
+      section.id = "maui-nuget-section";
+      section.innerHTML =
+        '<div class="maui-installed-header"><div class="maui-installed-title"><span class="maui-installed-icon">📦</span><strong>Installed Packages</strong><span id="maui-installed-count" class="maui-installed-count">0</span></div><a href="#" id="maui-nuget-toggle" class="maui-nuget-add">＋ Add Package</a></div>' +
+        '<div id="maui-nuget-panel" class="maui-nuget-panel"><div class="maui-nuget-search-row"><input id="maui-nuget-query" type="search" placeholder="Search NuGet packages…" autocomplete="off"><a href="#" id="maui-nuget-search-btn" class="maui-nuget-search-btn">Search</a><a href="#" id="maui-nuget-close" class="maui-nuget-close" title="Close">×</a></div><div id="maui-nuget-status" class="maui-nuget-status"></div><div id="maui-nuget-results" class="maui-nuget-results"></div></div>' +
+        '<div id="maui-installed-packages" class="maui-installed-packages"><div class="maui-no-packages">No packages installed yet.</div></div>';
+      host.appendChild(section);
 
-  var host = tree.parentElement || tree.parentNode;
+      var panel = section.querySelector("#maui-nuget-panel");
+      var q = section.querySelector("#maui-nuget-query");
+      var results = section.querySelector("#maui-nuget-results");
+      var status = section.querySelector("#maui-nuget-status");
+      var installedList = section.querySelector("#maui-installed-packages");
+      var count = section.querySelector("#maui-installed-count");
 
-  var section = document.createElement("section");
-  section.id = "maui-nuget-section";
-
-  section.innerHTML =
-    '<div class="maui-installed-header">' +
-      '<div class="maui-installed-title">' +
-        '<span class="maui-installed-icon">📦</span>' +
-        '<strong>Installed Packages</strong>' +
-        '<span id="maui-installed-count" class="maui-installed-count">0</span>' +
-      '</div>' +
-      '<a href="#" id="maui-nuget-toggle" class="maui-nuget-add">＋ Add Package</a>' +
-    '</div>' +
-
-    '<div id="maui-nuget-panel" class="maui-nuget-panel">' +
-      '<div class="maui-nuget-search-row">' +
-        '<input id="maui-nuget-query" type="search" ' +
-          'placeholder="Search NuGet packages…" autocomplete="off">' +
-        '<a href="#" id="maui-nuget-search-btn" class="maui-nuget-search-btn">Search</a>' +
-        '<a href="#" id="maui-nuget-close" class="maui-nuget-close" title="Close">×</a>' +
-      '</div>' +
-      '<div id="maui-nuget-status" class="maui-nuget-status"></div>' +
-      '<div id="maui-nuget-results" class="maui-nuget-results"></div>' +
-    '</div>' +
-
-    '<div id="maui-installed-packages" class="maui-installed-packages">' +
-      '<div class="maui-no-packages">No packages installed yet.</div>' +
-    '</div>';
-
-  /*
-   * IMPORTANT:
-   * Put the whole NuGet section AFTER the Solution Explorer.
-   */
-  host.appendChild(section);
-
-  var panel = section.querySelector("#maui-nuget-panel");
-  var q = section.querySelector("#maui-nuget-query");
-  var results = section.querySelector("#maui-nuget-results");
-  var status = section.querySelector("#maui-nuget-status");
-  var installedList = section.querySelector("#maui-installed-packages");
-  var count = section.querySelector("#maui-installed-count");
-
-  function renderInstalledPackages() {
-    var ids = Object.keys(installedPackages);
-
-    count.textContent = ids.length;
-
-    if (!ids.length) {
-      installedList.innerHTML =
-        '<div class="maui-no-packages">' +
-          'No packages installed yet.' +
-        '</div>';
-      return;
-    }
-
-    installedList.innerHTML = ids.map(function (id) {
-      var pkg = installedPackages[id] || {};
-      var recipe = packageRecipes[id];
-
-      var version = pkg.version || "latest";
-      var project = recipe ? recipe.project : "3. MyMauiApp.Web";
-
-      return (
-        '<div class="maui-installed-package">' +
-
-          '<div class="maui-installed-package-icon">📦</div>' +
-
-          '<div class="maui-installed-package-info">' +
-            '<div class="maui-installed-package-name">' +
-              esc(pkg.id || id) +
-            '</div>' +
-
-            '<div class="maui-installed-package-meta">' +
-              'v' + esc(version) +
-              ' · ' +
-              esc(project) +
-            '</div>' +
-
-          '</div>' +
-
-          '<span class="maui-installed-check">✓</span>' +
-
-        '</div>'
-      );
-    }).join("");
-  }
-
-  function search() {
-    var term = q.value.trim();
-
-    if (!term) {
-      status.textContent = "Enter a package name.";
-      results.innerHTML = "";
-      return;
-    }
-
-    status.textContent = "Searching NuGet.org…";
-    results.innerHTML =
-      '<div class="maui-nuget-loading">Searching packages…</div>';
-
-    fetch(
-      "https://azuresearch-usnc.nuget.org/query?q=" +
-      encodeURIComponent(term) +
-      "&prerelease=false&take=20"
-    )
-      .then(function (r) {
-        if (!r.ok) throw new Error("NuGet search failed");
-        return r.json();
-      })
-
-      .then(function (data) {
-        var items = data.data || [];
-
-        status.textContent =
-          items.length +
-          " package" +
-          (items.length === 1 ? "" : "s") +
-          " found";
-
-        results.innerHTML =
-          items.map(function (p) {
-
-            var recipe = packageRecipes[p.id];
-            var installed = !!installedPackages[p.id];
-
-            return (
-              '<div class="maui-nuget-result">' +
-
-                '<div class="maui-nuget-result-head">' +
-
-                  '<div class="maui-nuget-package-name">' +
-                    '<span class="maui-package-icon">📦</span>' +
-                    '<strong>' +
-                      esc(p.id || "") +
-                    '</strong>' +
-                  '</div>' +
-
-                  '<a href="#" ' +
-                    'class="maui-nuget-install ' +
-                    (installed ? "installed" : "") +
-                    '" ' +
-                    'data-id="' +
-                    esc(p.id || "") +
-                    '">' +
-                    (installed ? "✓ Installed" : "Install") +
-                  '</a>' +
-
-                '</div>' +
-
-                '<div class="maui-nuget-description">' +
-                  esc(
-                    p.description ||
-                    "No description available."
-                  ) +
-                '</div>' +
-
-                '<div class="maui-nuget-meta">' +
-                  'v' + esc(p.version || "") +
-                  ' · Downloads: ' +
-                  Number(
-                    p.totalDownloads || 0
-                  ).toLocaleString() +
-                '</div>' +
-
-                (
-                  recipe
-                    ? '<div class="maui-package-setup">' +
-                        '<strong>✓ Package setup available</strong>' +
-                        '<br>Program.cs: <code>' +
-                        esc(recipe.registration || "None") +
-                        '</code>' +
-                        '<br>Target: ' +
-                        esc(recipe.project) +
-                      '</div>'
-                    : ""
-                ) +
-
-              '</div>'
-            );
-          }).join("") ||
-          '<div class="maui-no-results">' +
-            'No packages found.' +
-          '</div>';
-
-        results
-          .querySelectorAll(".maui-nuget-install")
-          .forEach(function (button) {
-
-            button.onclick = function (e) {
-              e.preventDefault();
-
-              var pkg = items.find(function (p) {
-                return p.id === button.dataset.id;
-              });
-
-              if (!pkg) return;
-
-              installPackage(pkg, button);
-
-              renderInstalledPackages();
-            };
-          });
-      })
-
-      .catch(function () {
-        status.textContent =
-          "NuGet search is unavailable right now.";
-
-        results.innerHTML =
-          '<div class="maui-no-results">' +
-            'Could not reach NuGet.org.' +
-          '</div>';
-      });
-  }
-
-  /*
-   * Open search panel.
-   */
-  section
-    .querySelector("#maui-nuget-toggle")
-    .onclick = function (e) {
-
-      e.preventDefault();
-
-      panel.classList.toggle("open");
-
-      if (panel.classList.contains("open")) {
-        q.focus();
+      function renderInstalledPackages() {
+        var ids = Object.keys(installedPackages);
+        count.textContent = ids.length;
+        if (!ids.length) {
+          installedList.innerHTML = '<div class="maui-no-packages">No packages installed yet.</div>';
+          return;
+        }
+        installedList.innerHTML = ids.map(function (id) {
+          var pkg = installedPackages[id] || {};
+          var recipe = packageRecipes[id];
+          var version = pkg.version || "latest";
+          var project = recipe ? recipe.project : "3. MyMauiApp.Web";
+          return '<div class="maui-installed-package"><div class="maui-installed-package-icon">📦</div><div class="maui-installed-package-info"><div class="maui-installed-package-name">' + esc(pkg.id || id) + '</div><div class="maui-installed-package-meta">v' + esc(version) + ' · ' + esc(project) + '</div></div><span class="maui-installed-check">✓</span></div>';
+        }).join("");
       }
-    };
 
-  /*
-   * Close search panel.
-   */
-  section
-    .querySelector("#maui-nuget-close")
-    .onclick = function (e) {
+      function search() {
+        var term = q.value.trim();
+        if (!term) { status.textContent = "Enter a package name."; results.innerHTML = ""; return; }
+        status.textContent = "Searching NuGet.org…";
+        results.innerHTML = '<div class="maui-nuget-loading">Searching packages…</div>';
+        fetch("https://azuresearch-usnc.nuget.org/query?q=" + encodeURIComponent(term) + "&prerelease=false&take=20")
+          .then(function (r) { if (!r.ok) throw new Error("NuGet search failed"); return r.json(); })
+          .then(function (data) {
+            var items = data.data || [];
+            status.textContent = items.length + " package" + (items.length === 1 ? "" : "s") + " found";
+            results.innerHTML = items.map(function (p) {
+              var recipe = packageRecipes[p.id], installed = !!installedPackages[p.id];
+              return '<div class="maui-nuget-result"><div class="maui-nuget-result-head"><div class="maui-nuget-package-name"><span class="maui-package-icon">📦</span><strong>' + esc(p.id || "") + '</strong></div><a href="#" class="maui-nuget-install ' + (installed ? "installed" : "") + '" data-id="' + esc(p.id || "") + '">' + (installed ? "✓ Installed" : "Install") + '</a></div><div class="maui-nuget-description">' + esc(p.description || "No description available.") + '</div><div class="maui-nuget-meta">v' + esc(p.version || "") + ' · Downloads: ' + Number(p.totalDownloads || 0).toLocaleString() + '</div>' + (recipe ? '<div class="maui-package-setup"><strong>✓ Package setup available</strong><br>Program.cs: <code>' + esc(recipe.registration || "None") + '</code><br>Target: ' + esc(recipe.project) + '</div>' : "") + '</div>';
+            }).join("") || '<div class="maui-no-results">No packages found.</div>';
+            results.querySelectorAll(".maui-nuget-install").forEach(function (button) {
+              button.onclick = function (e) {
+                e.preventDefault();
+                var pkg = items.find(function (p) { return p.id === button.dataset.id; });
+                if (!pkg) return;
+                installPackage(pkg, button);
+                renderInstalledPackages();
+              };
+            });
+          })
+          .catch(function () {
+            status.textContent = "NuGet search is unavailable right now.";
+            results.innerHTML = '<div class="maui-no-results">Could not reach NuGet.org.</div>';
+          });
+      }
 
-      e.preventDefault();
-
-      panel.classList.remove("open");
-    };
-
-  /*
-   * Search button.
-   */
-  section
-    .querySelector("#maui-nuget-search-btn")
-    .onclick = function (e) {
-
-      e.preventDefault();
-      search();
-    };
-
-  /*
-   * Enter key.
-   */
-  q.onkeydown = function (e) {
-
-    if (e.key === "Enter") {
-      e.preventDefault();
-      search();
+      section.querySelector("#maui-nuget-toggle").onclick = function (e) { e.preventDefault(); panel.classList.toggle("open"); if (panel.classList.contains("open")) q.focus(); };
+      section.querySelector("#maui-nuget-close").onclick = function (e) { e.preventDefault(); panel.classList.remove("open"); };
+      section.querySelector("#maui-nuget-search-btn").onclick = function (e) { e.preventDefault(); search(); };
+      q.onkeydown = function (e) { if (e.key === "Enter") { e.preventDefault(); search(); } };
+      renderInstalledPackages();
     }
-  };
 
-  /*
-   * Initial package list.
-   */
-  renderInstalledPackages();
-}
     function render() {
       save();
-      var body = currentProject === "1. MyMauiApp" && currentFile === "MainPage.xaml" ? xaml(files()[currentFile]) : /\.razor$/i.test(currentFile) ? razorPage(files()[currentFile]).html : "<p>This source file is editable but has no browser renderer yet.</p>";
+      var body;
+      var validationErrors = [];
+      if (currentProject === "1. MyMauiApp" && currentFile === "MainPage.xaml") {
+        body = xaml(files()[currentFile]);
+      } else if (/\.razor$/i.test(currentFile)) {
+        var page = razorPage(files()[currentFile]);
+        body = page.html;
+        validationErrors = validatePackageRegistrations(files()[currentFile]);
+      } else {
+        body = "<p>This source file is editable but has no browser renderer yet.</p>";
+      }
       preview.innerHTML = '<div class="maui-browser-toolbar"><span>●</span><span>●</span><span>●</span><code>https://preview.algolassi.local/</code></div><div class="maui-browser-content">' + body + "</div>";
       preview.querySelectorAll("a[data-playground-route]").forEach(function (a) {
         a.addEventListener("click", function (e) {
@@ -543,422 +427,83 @@
           if (href && href.charAt(0) === "/") { e.preventDefault(); route(href); }
         });
       });
-      output.textContent = "Preview refreshed.\n\nCurrent file: " + currentProject + " / " + currentFile;
+      if (validationErrors.length) {
+        output.textContent = "Runtime error.\n\n" + validationErrors.map(function (e) {
+          return e.message + "\nComponent: " + e.component + "\nPackage: " + e.packageId + "\nProject: " + e.project + (e.registration ? "\nRequired registration: " + e.registration : "");
+        }).join("\n\n");
+      } else {
+        output.textContent = "Preview refreshed.\n\nCurrent file: " + currentProject + " / " + currentFile;
+      }
     }
+
     function addStyles() {
-  if (document.getElementById("maui-playground-runtime-style")) return;
-
-  var st = document.createElement("style");
-
-  st.id = "maui-playground-runtime-style";
-
-  st.textContent =
-
-    /*
-     * Solution Explorer
-     */
-    ".maui-project-tree li{" +
-      "list-style:none;" +
-      "margin:0;" +
-      "padding:0" +
-    "}" +
-
-    ".maui-project-tree .maui-tree-link{" +
-      "display:block;" +
-      "width:100%;" +
-      "box-sizing:border-box;" +
-      "border:0;" +
-      "background:transparent;" +
-      "color:inherit;" +
-      "text-decoration:none;" +
-      "text-align:left;" +
-      "font:inherit;" +
-      "cursor:pointer;" +
-      "padding:4px 8px;" +
-      "border-radius:4px;" +
-      "line-height:1.35" +
-    "}" +
-
-    ".maui-project-tree .maui-tree-link:hover{" +
-      "background:rgba(127,127,127,.12)" +
-    "}" +
-
-    ".maui-project-tree .maui-tree-link.active{" +
-      "background:rgba(0,120,212,.16)" +
-    "}" +
-
-    ".maui-project-tree .maui-tree-folder-row{" +
-      "display:flex;" +
-      "align-items:center;" +
-      "gap:2px" +
-    "}" +
-
-    ".maui-project-tree .maui-tree-folder-link{" +
-      "flex:1;" +
-      "font-weight:600" +
-    "}" +
-
-    ".maui-project-tree .maui-tree-add-link{" +
-      "width:auto;" +
-      "flex:0 0 auto;" +
-      "padding:2px 7px;" +
-      "opacity:.65" +
-    "}" +
-
-    ".maui-project-tree .maui-tree-children{" +
-      "margin:0;" +
-      "padding-left:14px" +
-    "}" +
-
-    /*
-     * Installed Packages section
-     */
-    "#maui-nuget-section{" +
-      "margin-top:18px;" +
-      "border-top:1px solid rgba(127,127,127,.22);" +
-      "padding-top:12px;" +
-      "font-size:.9rem" +
-    "}" +
-
-    ".maui-installed-header{" +
-      "display:flex;" +
-      "align-items:center;" +
-      "justify-content:space-between;" +
-      "gap:8px;" +
-      "margin-bottom:8px" +
-    "}" +
-
-    ".maui-installed-title{" +
-      "display:flex;" +
-      "align-items:center;" +
-      "gap:7px;" +
-      "min-width:0" +
-    "}" +
-
-    ".maui-installed-icon{" +
-      "font-size:1.05rem" +
-    "}" +
-
-    ".maui-installed-count{" +
-      "display:inline-flex;" +
-      "align-items:center;" +
-      "justify-content:center;" +
-      "min-width:20px;" +
-      "height:20px;" +
-      "padding:0 5px;" +
-      "box-sizing:border-box;" +
-      "border-radius:10px;" +
-      "background:rgba(0,120,212,.14);" +
-      "font-size:.75rem;" +
-      "font-weight:700" +
-    "}" +
-
-    ".maui-nuget-add{" +
-      "white-space:nowrap;" +
-      "text-decoration:none;" +
-      "padding:5px 8px;" +
-      "border-radius:5px;" +
-      "font-size:.82rem;" +
-      "font-weight:600;" +
-      "color:inherit;" +
-      "background:rgba(0,120,212,.10)" +
-    "}" +
-
-    ".maui-nuget-add:hover{" +
-      "background:rgba(0,120,212,.18)" +
-    "}" +
-
-    /*
-     * Installed package cards
-     */
-    ".maui-installed-packages{" +
-      "display:flex;" +
-      "flex-direction:column;" +
-      "gap:5px;" +
-      "max-height:220px;" +
-      "overflow-y:auto;" +
-      "overflow-x:hidden;" +
-      "padding-right:3px" +
-    "}" +
-
-    ".maui-installed-package{" +
-      "display:flex;" +
-      "align-items:center;" +
-      "gap:9px;" +
-      "padding:8px 9px;" +
-      "border:1px solid rgba(127,127,127,.18);" +
-      "border-radius:7px;" +
-      "background:rgba(127,127,127,.045);" +
-      "transition:background .15s ease,transform .15s ease" +
-    "}" +
-
-    ".maui-installed-package:hover{" +
-      "background:rgba(127,127,127,.10);" +
-      "transform:translateX(1px)" +
-    "}" +
-
-    ".maui-installed-package-icon{" +
-      "width:28px;" +
-      "height:28px;" +
-      "display:flex;" +
-      "align-items:center;" +
-      "justify-content:center;" +
-      "border-radius:6px;" +
-      "background:rgba(0,120,212,.10);" +
-      "flex:0 0 auto" +
-    "}" +
-
-    ".maui-installed-package-info{" +
-      "min-width:0;" +
-      "flex:1" +
-    "}" +
-
-    ".maui-installed-package-name{" +
-      "font-weight:600;" +
-      "white-space:nowrap;" +
-      "overflow:hidden;" +
-      "text-overflow:ellipsis" +
-    "}" +
-
-    ".maui-installed-package-meta{" +
-      "font-size:.73rem;" +
-      "opacity:.62;" +
-      "margin-top:2px;" +
-      "white-space:nowrap;" +
-      "overflow:hidden;" +
-      "text-overflow:ellipsis" +
-    "}" +
-
-    ".maui-installed-check{" +
-      "font-size:.85rem;" +
-      "font-weight:700;" +
-      "opacity:.7;" +
-      "flex:0 0 auto" +
-    "}" +
-
-    ".maui-no-packages," +
-    ".maui-no-results{" +
-      "padding:10px;" +
-      "text-align:center;" +
-      "opacity:.6;" +
-      "font-size:.82rem" +
-    "}" +
-
-    /*
-     * NuGet search panel
-     */
-    ".maui-nuget-panel{" +
-      "display:none;" +
-      "margin-top:8px;" +
-      "padding:9px;" +
-      "border:1px solid rgba(127,127,127,.20);" +
-      "border-radius:7px;" +
-      "background:rgba(127,127,127,.035)" +
-    "}" +
-
-    ".maui-nuget-panel.open{" +
-      "display:block" +
-    "}" +
-
-    ".maui-nuget-search-row{" +
-      "display:flex;" +
-      "align-items:center;" +
-      "gap:5px" +
-    "}" +
-
-    "#maui-nuget-query{" +
-      "flex:1;" +
-      "min-width:0;" +
-      "box-sizing:border-box;" +
-      "padding:7px 9px;" +
-      "border:1px solid rgba(127,127,127,.35);" +
-      "border-radius:5px;" +
-      "background:transparent;" +
-      "color:inherit;" +
-      "font:inherit;" +
-      "outline:none" +
-    "}" +
-
-    "#maui-nuget-query:focus{" +
-      "border-color:rgba(0,120,212,.65);" +
-      "box-shadow:0 0 0 2px rgba(0,120,212,.10)" +
-    "}" +
-
-    ".maui-nuget-search-btn{" +
-      "padding:7px 9px;" +
-      "border-radius:5px;" +
-      "text-decoration:none;" +
-      "font-size:.82rem;" +
-      "font-weight:600;" +
-      "background:rgba(0,120,212,.14);" +
-      "color:inherit" +
-    "}" +
-
-    ".maui-nuget-search-btn:hover{" +
-      "background:rgba(0,120,212,.22)" +
-    "}" +
-
-    ".maui-nuget-close{" +
-      "font-size:1.2rem;" +
-      "line-height:1;" +
-      "padding:5px;" +
-      "text-decoration:none;" +
-      "opacity:.65;" +
-      "color:inherit" +
-    "}" +
-
-    ".maui-nuget-status{" +
-      "padding:7px 2px;" +
-      "font-size:.76rem;" +
-      "opacity:.65" +
-    "}" +
-
-    ".maui-nuget-results{" +
-      "max-height:300px;" +
-      "overflow-y:auto;" +
-      "overflow-x:hidden;" +
-      "padding-right:4px;" +
-      "scrollbar-width:thin" +
-    "}" +
-
-    ".maui-nuget-result{" +
-      "padding:9px 2px;" +
-      "border-bottom:1px solid rgba(127,127,127,.16)" +
-    "}" +
-
-    ".maui-nuget-result:last-child{" +
-      "border-bottom:0" +
-    "}" +
-
-    ".maui-nuget-result-head{" +
-      "display:flex;" +
-      "align-items:center;" +
-      "justify-content:space-between;" +
-      "gap:7px" +
-    "}" +
-
-    ".maui-nuget-package-name{" +
-      "display:flex;" +
-      "align-items:center;" +
-      "gap:5px;" +
-      "min-width:0" +
-    "}" +
-
-    ".maui-package-icon{" +
-      "font-size:.9rem;" +
-      "flex:0 0 auto" +
-    "}" +
-
-    ".maui-nuget-install{" +
-      "display:inline-block;" +
-      "border:1px solid rgba(127,127,127,.40);" +
-      "border-radius:5px;" +
-      "padding:4px 8px;" +
-      "text-decoration:none;" +
-      "font-size:.76rem;" +
-      "font-weight:600;" +
-      "cursor:pointer;" +
-      "background:transparent;" +
-      "color:inherit;" +
-      "white-space:nowrap;" +
-      "flex:0 0 auto" +
-    "}" +
-
-    ".maui-nuget-install:hover{" +
-      "background:rgba(0,120,212,.12)" +
-    "}" +
-
-    ".maui-nuget-install.installed{" +
-      "opacity:.65;" +
-      "cursor:default" +
-    "}" +
-
-    ".maui-nuget-description{" +
-      "margin-top:5px;" +
-      "font-size:.78rem;" +
-      "line-height:1.4;" +
-      "opacity:.78" +
-    "}" +
-
-    ".maui-nuget-meta{" +
-      "margin-top:4px;" +
-      "font-size:.70rem;" +
-      "opacity:.55" +
-    "}" +
-
-    ".maui-package-setup{" +
-      "margin-top:7px;" +
-      "padding:7px;" +
-      "border-left:3px solid rgba(0,120,212,.55);" +
-      "font-size:.75rem;" +
-      "line-height:1.45;" +
-      "background:rgba(0,120,212,.045)" +
-    "}" +
-
-    ".maui-package-setup code{" +
-      "font-size:.9em;" +
-      "word-break:break-word" +
-    "}" +
-
-    ".maui-nuget-loading{" +
-      "padding:15px;" +
-      "text-align:center;" +
-      "opacity:.6;" +
-      "font-size:.8rem" +
-    "}" +
-
-    /*
-     * NuGet scrollbars
-     */
-    ".maui-installed-packages::-webkit-scrollbar," +
-    ".maui-nuget-results::-webkit-scrollbar{" +
-      "width:7px" +
-    "}" +
-
-    ".maui-installed-packages::-webkit-scrollbar-thumb," +
-    ".maui-nuget-results::-webkit-scrollbar-thumb{" +
-      "border-radius:7px;" +
-      "background:rgba(127,127,127,.35)" +
-    "}" +
-
-    ".maui-installed-packages::-webkit-scrollbar-track," +
-    ".maui-nuget-results::-webkit-scrollbar-track{" +
-      "background:transparent" +
-    "}" +
-
-    /*
-     * Existing component styles
-     */
-    ".playground-radzen-button,.playground-mud-button{" +
-      "padding:8px 16px;" +
-      "border-radius:4px;" +
-      "color:#fff;" +
-      "cursor:pointer" +
-    "}" +
-
-    ".playground-radzen-button{" +
-      "border:1px solid #1677ff;" +
-      "background:#1677ff" +
-    "}" +
-
-    ".playground-mud-button{" +
-      "border:1px solid #594ae2;" +
-      "background:#594ae2" +
-    "}" +
-
-    ".playground-radzen-input,.playground-mud-input{" +
-      "padding:8px 10px;" +
-      "border:1px solid #aaa;" +
-      "border-radius:4px" +
-    "}" +
-
-    ".playground-radzen-label{" +
-      "display:inline-block;" +
-      "padding:4px 0" +
-    "}";
-
-  document.head.appendChild(st);
-}
+      if (document.getElementById("maui-playground-runtime-style")) return;
+      var st = document.createElement("style");
+      st.id = "maui-playground-runtime-style";
+      st.textContent =
+        ".maui-project-tree li{list-style:none;margin:0;padding:0}" +
+        ".maui-project-tree .maui-tree-link{display:block;width:100%;box-sizing:border-box;border:0;background:transparent;color:inherit;text-decoration:none;text-align:left;font:inherit;cursor:pointer;padding:4px 8px;border-radius:4px;line-height:1.35}" +
+        ".maui-project-tree .maui-tree-link:hover{background:rgba(127,127,127,.12)}" +
+        ".maui-project-tree .maui-tree-link.active{background:rgba(0,120,212,.16)}" +
+        ".maui-project-tree .maui-tree-folder-row{display:flex;align-items:center;gap:2px}" +
+        ".maui-project-tree .maui-tree-folder-link{flex:1;font-weight:600}" +
+        ".maui-project-tree .maui-tree-add-link{width:auto;flex:0 0 auto;padding:2px 7px;opacity:.65}" +
+        ".maui-project-tree .maui-tree-children{margin:0;padding-left:14px}" +
+        "#maui-nuget-section{margin-top:18px;border-top:1px solid rgba(127,127,127,.22);padding-top:12px;font-size:.9rem}" +
+        ".maui-installed-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}" +
+        ".maui-installed-title{display:flex;align-items:center;gap:7px;min-width:0}" +
+        ".maui-installed-icon{font-size:1.05rem}" +
+        ".maui-installed-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:10px;background:rgba(0,120,212,.14);font-size:.75rem;font-weight:700}" +
+        ".maui-nuget-add{white-space:nowrap;text-decoration:none;padding:5px 8px;border-radius:5px;font-size:.82rem;font-weight:600;color:inherit;background:rgba(0,120,212,.10)}" +
+        ".maui-nuget-add:hover{background:rgba(0,120,212,.18)}" +
+        ".maui-installed-packages{display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;overflow-x:hidden;padding-right:3px}" +
+        ".maui-installed-package{display:flex;align-items:center;gap:9px;padding:8px 9px;border:1px solid rgba(127,127,127,.18);border-radius:7px;background:rgba(127,127,127,.045);transition:background .15s ease,transform .15s ease}" +
+        ".maui-installed-package:hover{background:rgba(127,127,127,.10);transform:translateX(1px)}" +
+        ".maui-installed-package-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:rgba(0,120,212,.10);flex:0 0 auto}" +
+        ".maui-installed-package-info{min-width:0;flex:1}" +
+        ".maui-installed-package-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+        ".maui-installed-package-meta{font-size:.73rem;opacity:.62;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+        ".maui-installed-check{font-size:.85rem;font-weight:700;opacity:.7;flex:0 0 auto}" +
+        ".maui-no-packages,.maui-no-results{padding:10px;text-align:center;opacity:.6;font-size:.82rem}" +
+        ".maui-nuget-panel{display:none;margin-top:8px;padding:9px;border:1px solid rgba(127,127,127,.20);border-radius:7px;background:rgba(127,127,127,.035)}" +
+        ".maui-nuget-panel.open{display:block}" +
+        ".maui-nuget-search-row{display:flex;align-items:center;gap:5px}" +
+        "#maui-nuget-query{flex:1;min-width:0;box-sizing:border-box;padding:7px 9px;border:1px solid rgba(127,127,127,.35);border-radius:5px;background:transparent;color:inherit;font:inherit;outline:none}" +
+        "#maui-nuget-query:focus{border-color:rgba(0,120,212,.65);box-shadow:0 0 0 2px rgba(0,120,212,.10)}" +
+        ".maui-nuget-search-btn{padding:7px 9px;border-radius:5px;text-decoration:none;font-size:.82rem;font-weight:600;background:rgba(0,120,212,.14);color:inherit}" +
+        ".maui-nuget-search-btn:hover{background:rgba(0,120,212,.22)}" +
+        ".maui-nuget-close{font-size:1.2rem;line-height:1;padding:5px;text-decoration:none;opacity:.65;color:inherit}" +
+        ".maui-nuget-status{padding:7px 2px;font-size:.76rem;opacity:.65}" +
+        ".maui-nuget-results{max-height:300px;overflow-y:auto;overflow-x:hidden;padding-right:4px;scrollbar-width:thin}" +
+        ".maui-nuget-result{padding:9px 2px;border-bottom:1px solid rgba(127,127,127,.16)}" +
+        ".maui-nuget-result:last-child{border-bottom:0}" +
+        ".maui-nuget-result-head{display:flex;align-items:center;justify-content:space-between;gap:7px}" +
+        ".maui-nuget-package-name{display:flex;align-items:center;gap:5px;min-width:0}" +
+        ".maui-package-icon{font-size:.9rem;flex:0 0 auto}" +
+        ".maui-nuget-install{display:inline-block;border:1px solid rgba(127,127,127,.40);border-radius:5px;padding:4px 8px;text-decoration:none;font-size:.76rem;font-weight:600;cursor:pointer;background:transparent;color:inherit;white-space:nowrap;flex:0 0 auto}" +
+        ".maui-nuget-install:hover{background:rgba(0,120,212,.12)}" +
+        ".maui-nuget-install.installed{opacity:.65;cursor:default}" +
+        ".maui-nuget-description{margin-top:5px;font-size:.78rem;line-height:1.4;opacity:.78}" +
+        ".maui-nuget-meta{margin-top:4px;font-size:.70rem;opacity:.55}" +
+        ".maui-package-setup{margin-top:7px;padding:7px;border-left:3px solid rgba(0,120,212,.55);font-size:.75rem;line-height:1.45;background:rgba(0,120,212,.045)}" +
+        ".maui-package-setup code{font-size:.9em;word-break:break-word}" +
+        ".maui-nuget-loading{padding:15px;text-align:center;opacity:.6;font-size:.8rem}" +
+        ".maui-installed-packages::-webkit-scrollbar,.maui-nuget-results::-webkit-scrollbar{width:7px}" +
+        ".maui-installed-packages::-webkit-scrollbar-thumb,.maui-nuget-results::-webkit-scrollbar-thumb{border-radius:7px;background:rgba(127,127,127,.35)}" +
+        ".maui-installed-packages::-webkit-scrollbar-track,.maui-nuget-results::-webkit-scrollbar-track{background:transparent}" +
+        ".playground-radzen-button,.playground-mud-button{padding:8px 16px;border-radius:4px;color:#fff;cursor:pointer}" +
+        ".playground-radzen-button{border:1px solid #1677ff;background:#1677ff}" +
+        ".playground-mud-button{border:1px solid #594ae2;background:#594ae2}" +
+        ".playground-radzen-input,.playground-mud-input{padding:8px 10px;border:1px solid #aaa;border-radius:4px}" +
+        ".playground-radzen-label{display:inline-block;padding:4px 0}" +
+        ".maui-runtime-error{margin:12px 0;padding:16px;border:1px solid rgba(210,50,50,.45);border-radius:8px;background:rgba(210,50,50,.07);font-family:inherit}" +
+        ".maui-runtime-error-title{font-size:1.05rem;font-weight:700;margin-bottom:10px}" +
+        ".maui-runtime-error-message{font-weight:600;margin-bottom:12px}" +
+        ".maui-runtime-error-detail{font-size:.88rem;line-height:1.55}" +
+        ".maui-runtime-error-detail pre{margin:7px 0;padding:8px;overflow:auto;border-radius:5px;background:rgba(0,0,0,.07);font-family:monospace;white-space:pre-wrap}" +
+        ".maui-runtime-error-help{margin-top:12px;font-size:.84rem;opacity:.8}";
+      document.head.appendChild(st);
+    }
 
     var run = document.getElementById("maui-run-preview");
     var create = document.getElementById("maui-create-project");
