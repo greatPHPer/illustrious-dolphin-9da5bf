@@ -380,15 +380,47 @@
     }
 
     function renderXaml(source) {
-      var outputHtml = [];
-      var re = /<Label\b([^>]*?)(?:\/>|>)/gi;
-      var match;
-      while ((match = re.exec(source))) {
-        var a = attrs(match[1]);
-        if (a.Text) outputHtml.push('<div style="font-size:' + (parseFloat(a.FontSize) || 16) + 'px;margin-bottom:16px">' + esc(a.Text) + '</div>');
-      }
-      return outputHtml.join("") || '<p>No web-compatible XAML content was found.</p>';
+  var outputHtml = [];
+  var re = /<(Label|Entry|Button)\b([^>]*?)(?:\/>|>([\s\S]*?)<\/\1>)/gi;
+  var match;
+
+  while ((match = re.exec(source))) {
+    var tag = match[1].toLowerCase();
+    var a = attrs(match[2]);
+    var inner = (match[3] || "").trim();
+
+    if (tag === "label") {
+      outputHtml.push(
+        '<div style="font-size:' +
+        (parseFloat(a.FontSize) || 16) +
+        'px;margin-bottom:16px">' +
+        esc(a.Text || inner) +
+        '</div>'
+      );
     }
+
+    if (tag === "entry") {
+      outputHtml.push(
+        '<input type="text" value="' +
+        esc(a.Text || "") +
+        '" placeholder="' +
+        esc(a.Placeholder || "") +
+        '" style="display:block;width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;margin-bottom:16px;">'
+      );
+    }
+
+    if (tag === "button") {
+      outputHtml.push(
+        '<button type="button" style="padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;margin-bottom:16px;">' +
+        esc(a.Text || inner || "Button") +
+        '</button>'
+      );
+    }
+  }
+
+  return outputHtml.join("") ||
+    '<p>No web-compatible XAML content was found.</p>';
+}
 
     function render() {
       syncEditor();
