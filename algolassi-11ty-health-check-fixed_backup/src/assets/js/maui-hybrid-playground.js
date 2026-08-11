@@ -222,7 +222,6 @@
 
     function attrs(text) {
       var result = {};
-      //var re = /([:@\w-]+)\s*=\s*["']([^"']*)["']/g;
       var re = /([:@\w.-]+)\s*=\s*["']([^"']*)["']/g;
       var match;
       while ((match = re.exec(text || ""))) result[match[1]] = match[2];
@@ -316,12 +315,40 @@
       });
     }
 
+    function validate(markup) {
+      var errors = [];
+      Object.keys(packageRecipes).forEach(function (id) {
+        var recipe = packageRecipes[id];
+        Object.keys(recipe.components).forEach(function (component) {
+          var re = new RegExp("<" + component + "\\b", "i");
+          if (re.test(markup) && !installedPackages[id]) errors.push(component + " requires " + id + ".");
+        });
+      });
+      return errors;
+    }
+
+    function renderComponents(markup) {
+      var result = markup;
+      Object.keys(packageRecipes).forEach(function (id) {
+        var recipe = packageRecipes[id];
+        Object.keys(recipe.components).forEach(function (component) {
+          var renderer = recipe.components[component];
+          var re = new RegExp("<" + component + "\\b([^>]*)>([\\s\\S]*?)</" + component + ">|<" + component + "\\b([^>]*)/>", "gi");
+          result = result.replace(re, function (whole, openAttrs, inner, selfAttrs) {
+            if (!installedPackages[id]) return whole;
+            return renderer(attrs(openAttrs || selfAttrs || ""), inner || "");
+          });
+        });
+      });
+      return result;
+    }
+
     function renderRazorMarkup(markup, state) {
       var html = markup;
-      html = html.replace(/@(\w+)/g, function (_, name) { return esc(state[name] == null ? "" : state[name]); });
       html = html.replace(/@\(([^)]+)\)/g, function (_, expr) { return esc(evalExpr(expr, state)); });
       html = html.replace(/@if\s*\(([^)]+)\)\s*\{([\s\S]*?)\}/g, function (_, expr, yes) { return evalExpr(expr, state) ? yes : ""; });
       html = html.replace(/@foreach\s*\([^)]*\)\s*\{([\s\S]*?)\}/g, function (_, body) { return body; });
+      html = html.replace(/@(\w+)/g, function (_, name) { return esc(state[name] == null ? "" : state[name]); });
       return html;
     }
 
@@ -330,12 +357,16 @@
       var codeText = code ? code.code : "";
       var state = stateFor(codeText);
       var markup = code ? source.slice(0, code.start) + source.slice(code.end) : source;
-      var html = renderRazorMarkup(markup, state);
-      html = html.replace(/<button\b([^>]*)>([\s\S]*?)<\/button>/gi, function (_, attrsText, inner) {
+      markup = markup.replace(/@page\s+["'][^"']*["']/gi, "");
+      var errors = validate(markup);
+      if (errors.length) return { html: '<div class="maui-runtime-error"><strong>Component package error</strong><pre>' + esc(errors.join("\n")) + '</pre></div>', state: state, code: codeText };
+      markup = renderComponents(markup);
+      markup = markup.replace(/<button\b([^>]*)>([\s\S]*?)<\/button>/gi, function (_, attrsText, inner) {
         var a = attrs(attrsText);
         var click = a["@onclick"] || a.onclick || "";
         return '<button' + clickAttr({ "@onclick": click }) + '>' + inner + '</button>';
       });
+      var html = renderRazorMarkup(markup, state);
       html = html.replace(/<input\b([^>]*)>/gi, function (_, attrsText) {
         var a = attrs(attrsText);
         return '<input' + (a.Value != null ? ' value="' + esc(a.Value) + '"' : '') + '>'; 
@@ -361,13 +392,11 @@
       function cssValue(value, fallback) {
         return value ? esc(value) : fallback;
       }
-
       function parseDefinitionCount(definition) {
         if (!definition) return 1;
         var parts = definition.split(',').map(function (x) { return x.trim(); }).filter(Boolean);
         return parts.length || 1;
       }
-
       var gridMatch = /<Grid\b([^>]*)>([\s\S]*?)<\/Grid>/i.exec(source);
       if (gridMatch) {
         var ga = attrs(gridMatch[1]);
@@ -380,234 +409,73 @@
         var children = [];
         var childRe = /<(Label|Entry|Button)\b([^>]*?)(?:\/>|>([\s\S]*?)<\/\1>)/gi;
         var match;
-
-       while ((match = childRe.exec(body))) {
-  var tag = match[1].toLowerCase();
-  var a = attrs(match[2]);
-  var inner = (match[3] || "").trim();
-
-  if (tag === "grid") {
-    var gridChildren = [];
-    var gridChildRe = /<([A-Za-z][\w.]*)\b([^>]*)>([\s\S]*?)<\/\1>|<([A-Za-z][\w.]*)\b([^>]*)\/>/gi;
-    var gm;
-
-    while ((gm = gridChildRe.exec(inner))) {
-      var childTag = (gm[1] || gm[4] || "").toLowerCase();
-      var childAttrs = attrs(gm[2] || gm[5] || "");
-      var childInner = (gm[3] || "").trim();
-
-      var row = parseInt(childAttrs["Grid.Row"], 10);
-      var column = parseInt(childAttrs["Grid.Column"], 10);
-      var rowSpan = parseInt(childAttrs["Grid.RowSpan"], 10);
-      var columnSpan = parseInt(childAttrs["Grid.ColumnSpan"], 10);
-
-      if (isNaN(row)) row = 0;
-      if (isNaN(column)) column = 0;
-      if (isNaN(rowSpan) || rowSpan < 1) rowSpan = 1;
-      if (isNaN(columnSpan) || columnSpan < 1) columnSpan = 1;
-
-      var style = 'grid-row:' + (row + 1) + ' / span ' + rowSpan + ';' +
-        'grid-column:' + (column + 1) + ' / span ' + columnSpan + ';' +
-        'min-width:0;box-sizing:border-box;';
-
-      if (childTag === "label") {
-        gridChildren.push('<div style="' + style + 'font-size:' +
-          (parseFloat(childAttrs.FontSize) || 16) +
-          'px;align-self:center;">' +
-          esc(childAttrs.Text || childInner) + '</div>');
-      } else if (childTag === "entry") {
-        gridChildren.push('<input type="text" value="' +
-          esc(childAttrs.Text || "") +
-          '" placeholder="' +
-          esc(childAttrs.Placeholder || "") +
-          '" style="' + style +
-          'width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;">');
-      } else if (childTag === "button") {
-        gridChildren.push('<button type="button" style="' +
-          style +
-          'padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;">' +
-          esc(childAttrs.Text || childInner || "Button") +
-          '</button>');
-      }
-    }
-
-    children.push(
-      '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:20px;align-items:start;box-sizing:border-box;width:100%;">' +
-      gridChildren.join("") +
-      '</div>'
-    );
-
-  } else if (tag === "verticalstacklayout") {
-
-    var spacing = parseFloat(a.Spacing);
-    if (isNaN(spacing)) spacing = 8;
-
-    children.push(
-      '<div style="display:flex;flex-direction:column;gap:' +
-      spacing +
-      'px;padding:20px;box-sizing:border-box;width:100%;">' +
-      renderSimpleChildren(inner) +
-      '</div>'
-    );
-
-  } else if (tag === "horizontalstacklayout") {
-
-    var hSpacing = parseFloat(a.Spacing);
-    if (isNaN(hSpacing)) hSpacing = 8;
-
-    children.push(
-      '<div style="display:flex;flex-direction:row;align-items:center;gap:' +
-      hSpacing +
-      'px;padding:20px;box-sizing:border-box;width:100%;flex-wrap:wrap;">' +
-      renderSimpleChildren(inner) +
-      '</div>'
-    );
-
-  } else if (tag === "scrollview") {
-
-    children.push(
-      '<div style="overflow-y:auto;max-height:100%;width:100%;box-sizing:border-box;">' +
-      renderSimpleChildren(inner) +
-      '</div>'
-    );
-
-  } else if (tag === "border") {
-
-  var stroke = a.Stroke || "#0d6efd";
-  var strokeThickness = parseFloat(a.StrokeThickness);
-  if (isNaN(strokeThickness)) strokeThickness = 2;
-
-  var radius = 12;
-  var shape = a.StrokeShape || "";
-  var radiusMatch = shape.match(/RoundRectangle\s+([\d.]+)/i);
-  if (radiusMatch) radius = parseFloat(radiusMatch[1]) || 12;
-
-  var borderPadding = a.Padding || "16";
-
-  children.push(
-    '<div style="' +
-    'display:block;' +
-    'width:100%;' +
-    'box-sizing:border-box;' +
-    'border:' + strokeThickness + 'px solid ' + esc(stroke) + ';' +
-    'border-radius:' + radius + 'px;' +
-    'padding:' + parseFloat(borderPadding) + 'px;' +
-    'margin:4px 0;' +
-    'background:#fff;' +
-    '">' +
-    renderSimpleChildren(inner) +
-    '</div>'
-  );
-
-  } else if (tag === "label") {
-
-    children.push(
-      '<div style="' +
-      'font-size:' + (parseFloat(a.FontSize) || 16) +
-      'px;align-self:center;">' +
-      esc(a.Text || inner) +
-      '</div>'
-    );
-
-  } else if (tag === "entry") {
-
-    children.push(
-      '<input type="text" value="' +
-      esc(a.Text || "") +
-      '" placeholder="' +
-      esc(a.Placeholder || "") +
-      '" style="width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;box-sizing:border-box;">'
-    );
-
-  } else if (tag === "button") {
-
-    children.push(
-      '<button type="button" style="padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;">' +
-      esc(a.Text || inner || "Button") +
-      '</button>'
-    );
-  }
-}
-
-        if (children.length) {
-          return '<div style="display:grid;grid-template-columns:repeat(' + cols + ',minmax(0,1fr));grid-template-rows:repeat(' + rows + ',auto);gap:' + cssValue(rowGap, '0') + 'px ' + cssValue(colGap, '0') + 'px;padding:' + cssValue(padding, '0') + 'px;align-items:start;box-sizing:border-box;width:100%;">' + children.join("") + '</div>';
+        while ((match = childRe.exec(body))) {
+          var tag = match[1].toLowerCase();
+          var a = attrs(match[2]);
+          var inner = (match[3] || "").trim();
+          if (tag === "grid") {
+            var gridChildren = [];
+            var gridChildRe = /<([A-Za-z][\w.]*)\b([^>]*)>([\s\S]*?)<\/\1>|<([A-Za-z][\w.]*)\b([^>]*)\/>/gi;
+            var gm;
+            while ((gm = gridChildRe.exec(inner))) {
+              var childTag = (gm[1] || gm[4] || "").toLowerCase();
+              var childAttrs = attrs(gm[2] || gm[5] || "");
+              var childInner = (gm[3] || "").trim();
+              var row = parseInt(childAttrs["Grid.Row"], 10); var column = parseInt(childAttrs["Grid.Column"], 10); var rowSpan = parseInt(childAttrs["Grid.RowSpan"], 10); var columnSpan = parseInt(childAttrs["Grid.ColumnSpan"], 10);
+              if (isNaN(row)) row = 0; if (isNaN(column)) column = 0; if (isNaN(rowSpan) || rowSpan < 1) rowSpan = 1; if (isNaN(columnSpan) || columnSpan < 1) columnSpan = 1;
+              var style = 'grid-row:' + (row + 1) + ' / span ' + rowSpan + ';grid-column:' + (column + 1) + ' / span ' + columnSpan + ';min-width:0;box-sizing:border-box;';
+              if (childTag === "label") gridChildren.push('<div style="' + style + 'font-size:' + (parseFloat(childAttrs.FontSize) || 16) + 'px;align-self:center;">' + esc(childAttrs.Text || childInner) + '</div>');
+              else if (childTag === "entry") gridChildren.push('<input type="text" value="' + esc(childAttrs.Text || "") + '" placeholder="' + esc(childAttrs.Placeholder || "") + '" style="' + style + 'width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;">');
+              else if (childTag === "button") gridChildren.push('<button type="button" style="' + style + 'padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;">' + esc(childAttrs.Text || childInner || "Button") + '</button>');
+            }
+            children.push('<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:20px;align-items:start;box-sizing:border-box;width:100%;">' + gridChildren.join("") + '</div>');
+          } else if (tag === "verticalstacklayout") {
+            var spacing = parseFloat(a.Spacing); if (isNaN(spacing)) spacing = 8;
+            children.push('<div style="display:flex;flex-direction:column;gap:' + spacing + 'px;padding:20px;box-sizing:border-box;width:100%;">' + renderSimpleChildren(inner) + '</div>');
+          } else if (tag === "horizontalstacklayout") {
+            var hSpacing = parseFloat(a.Spacing); if (isNaN(hSpacing)) hSpacing = 8;
+            children.push('<div style="display:flex;flex-direction:row;align-items:center;gap:' + hSpacing + 'px;padding:20px;box-sizing:border-box;width:100%;flex-wrap:wrap;">' + renderSimpleChildren(inner) + '</div>');
+          } else if (tag === "scrollview") {
+            children.push('<div style="overflow-y:auto;max-height:100%;width:100%;box-sizing:border-box;">' + renderSimpleChildren(inner) + '</div>');
+          } else if (tag === "border") {
+            var stroke = a.Stroke || "#0d6efd"; var strokeThickness = parseFloat(a.StrokeThickness); if (isNaN(strokeThickness)) strokeThickness = 2; var radius = 12; var shape = a.StrokeShape || ""; var radiusMatch = shape.match(/RoundRectangle\s+([\d.]+)/i); if (radiusMatch) radius = parseFloat(radiusMatch[1]) || 12; var borderPadding = a.Padding || "16";
+            children.push('<div style="display:block;width:100%;box-sizing:border-box;border:' + strokeThickness + 'px solid ' + esc(stroke) + ';border-radius:' + radius + 'px;padding:' + parseFloat(borderPadding) + 'px;margin:4px 0;background:#fff;">' + renderSimpleChildren(inner) + '</div>');
+          } else if (tag === "label") children.push('<div style="font-size:' + (parseFloat(a.FontSize) || 16) + 'px;align-self:center;">' + esc(a.Text || inner) + '</div>');
+          else if (tag === "entry") children.push('<input type="text" value="' + esc(a.Text || "") + '" placeholder="' + esc(a.Placeholder || "") + '" style="width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;box-sizing:border-box;">');
+          else if (tag === "button") children.push('<button type="button" style="padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;">' + esc(a.Text || inner || "Button") + '</button>');
         }
+        if (children.length) return '<div style="display:grid;grid-template-columns:repeat(' + cols + ',minmax(0,1fr));grid-template-rows:repeat(' + rows + ',auto);gap:' + cssValue(rowGap, '0') + 'px ' + cssValue(colGap, '0') + 'px;padding:' + cssValue(padding, '0') + 'px;align-items:start;box-sizing:border-box;width:100%;">' + children.join("") + '</div>';
       }
-
       var outputHtml = [];
       var re = /<(Label|Entry|Button)\b([^>]*?)(?:\/>|>([\s\S]*?)<\/\1>)/gi;
       var match;
-
       while ((match = re.exec(source))) {
-        var tag = match[1].toLowerCase();
-        var a = attrs(match[2]);
-        var inner = (match[3] || "").trim();
-
-        if (tag === "label") {
-          outputHtml.push('<div style="font-size:' + (parseFloat(a.FontSize) || 16) + 'px;margin-bottom:16px">' + esc(a.Text || inner) + '</div>');
-        }
-
-        if (tag === "entry") {
-          outputHtml.push('<input type="text" value="' + esc(a.Text || "") + '" placeholder="' + esc(a.Placeholder || "") + '" style="display:block;width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;margin-bottom:16px;">');
-        }
-
-        if (tag === "button") {
-          outputHtml.push('<button type="button" style="padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;margin-bottom:16px;">' + esc(a.Text || inner || "Button") + '</button>');
-        }
+        var tag = match[1].toLowerCase(); var a = attrs(match[2]); var inner = (match[3] || "").trim();
+        if (tag === "label") outputHtml.push('<div style="font-size:' + (parseFloat(a.FontSize) || 16) + 'px;margin-bottom:16px">' + esc(a.Text || inner) + '</div>');
+        if (tag === "entry") outputHtml.push('<input type="text" value="' + esc(a.Text || "") + '" placeholder="' + esc(a.Placeholder || "") + '" style="display:block;width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;margin-bottom:16px;">');
+        if (tag === "button") outputHtml.push('<button type="button" style="padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;margin-bottom:16px;">' + esc(a.Text || inner || "Button") + '</button>');
       }
-
       return outputHtml.join("") || '<p>No web-compatible XAML content was found.</p>';
     }
-function renderSimpleChildren(body) {
-  var result = [];
-  var re = /<([A-Za-z][\w.]*)\b([^>]*)>([\s\S]*?)<\/\1>|<([A-Za-z][\w.]*)\b([^>]*)\/>/gi;
-  var match;
 
-  while ((match = re.exec(body))) {
-    var tag = (match[1] || match[4] || "").toLowerCase();
-    var a = attrs(match[2] || match[5] || "");
-    var inner = (match[3] || "").trim();
-
-    if (tag === "label") {
-      result.push(
-        '<div style="font-size:' +
-        (parseFloat(a.FontSize) || 16) +
-        'px;">' +
-        esc(a.Text || inner) +
-        '</div>'
-      );
-    } else if (tag === "entry") {
-      result.push(
-        '<input type="text" value="' +
-        esc(a.Text || "") +
-        '" placeholder="' +
-        esc(a.Placeholder || "") +
-        '" style="width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;box-sizing:border-box;">'
-      );
-    } else if (tag === "button") {
-      result.push(
-        '<button type="button" style="padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;">' +
-        esc(a.Text || inner || "Button") +
-        '</button>'
-      );
+    function renderSimpleChildren(body) {
+      var result = [];
+      var re = /<([A-Za-z][\w.]*)\b([^>]*)>([\s\S]*?)<\/\1>|<([A-Za-z][\w.]*)\b([^>]*)\/>/gi;
+      var match;
+      while ((match = re.exec(body))) {
+        var tag = (match[1] || match[4] || "").toLowerCase(); var a = attrs(match[2] || match[5] || ""); var inner = (match[3] || "").trim();
+        if (tag === "label") result.push('<div style="font-size:' + (parseFloat(a.FontSize) || 16) + 'px;">' + esc(a.Text || inner) + '</div>');
+        else if (tag === "entry") result.push('<input type="text" value="' + esc(a.Text || "") + '" placeholder="' + esc(a.Placeholder || "") + '" style="width:100%;padding:8px 10px;border:1px solid #d0d5dd;border-radius:6px;box-sizing:border-box;">');
+        else if (tag === "button") result.push('<button type="button" style="padding:8px 14px;border:0;border-radius:6px;background:#0d6efd;color:#fff;cursor:pointer;">' + esc(a.Text || inner || "Button") + '</button>');
+      }
+      return result.join("");
     }
-  }
 
-  return result.join("");
-}
     function render() {
       syncEditor();
       var source = fileMap()[currentFile] || "";
-      if (/\.xaml$/i.test(currentFile)) {
-        preview.querySelector(".maui-browser-content").innerHTML = renderXaml(source);
-        return;
-      }
-      if (/\.razor$/i.test(currentFile)) {
-        var page = razorPage(source);
-        preview.querySelector(".maui-browser-content").innerHTML = page.html;
-        bindPreviewEvents(source);
-        return;
-      }
+      if (/\.xaml$/i.test(currentFile)) { preview.querySelector(".maui-browser-content").innerHTML = renderXaml(source); return; }
+      if (/\.razor$/i.test(currentFile)) { var page = razorPage(source); preview.querySelector(".maui-browser-content").innerHTML = page.html; bindPreviewEvents(source); return; }
       preview.querySelector(".maui-browser-content").innerHTML = '<pre>' + esc(source) + '</pre>';
     }
 
@@ -615,89 +483,44 @@ function renderSimpleChildren(body) {
       var content = preview.querySelector(".maui-browser-content");
       content.querySelectorAll("[data-playground-click]").forEach(function (button) {
         button.addEventListener("click", function (event) {
-          event.preventDefault();
-          var name = button.getAttribute("data-playground-click").trim();
-          var state = stateFor(source);
-          try {
-            executeMethod(name, source, state);
-            render();
-          } catch (error) {
-            output.textContent = error.message;
-          }
+          event.preventDefault(); var name = button.getAttribute("data-playground-click").trim(); var state = stateFor(source);
+          try { executeMethod(name, source, state); render(); } catch (error) { output.textContent = error.message; }
         });
       });
     }
 
-    editor.addEventListener("input", function () {
-      syncEditor();
-      markDirty();
-    });
-
+    editor.addEventListener("input", function () { syncEditor(); markDirty(); });
     run.onclick = function () { render(); output.textContent = "Preview rendered successfully."; };
     create.onclick = function () { output.textContent = "Project creation is available in the playground editor."; };
-
-    renderTree();
-    renderTabs();
-    load(currentProject, currentFile);
-    render();
-
-    var params = new URLSearchParams(window.location.search);
-    var demo = params.get("demo");
-    if (demo && window.MauiPlaygroundDemos && typeof window.MauiPlaygroundDemos.load === "function") {
-      window.MauiPlaygroundDemos.load(demo);
-    }
-
-    window.MauiPlayground = {
-      projects: projects,
-      load: load,
-      render: render,
-      saveProject: saveProject,
-      stateFor: stateFor,
-      executeMethod: executeMethod
-    };
+    renderTree(); renderTabs(); load(currentProject, currentFile); render();
+    var params = new URLSearchParams(window.location.search); var demo = params.get("demo");
+    if (demo && window.MauiPlaygroundDemos && typeof window.MauiPlaygroundDemos.load === "function") window.MauiPlaygroundDemos.load(demo);
+    window.MauiPlayground = { projects: projects, load: load, render: render, saveProject: saveProject, stateFor: stateFor, executeMethod: executeMethod };
   }
 
   function addStyles() {
     if (document.getElementById("maui-playground-js-styles")) return;
-    var style = document.createElement("style");
-    style.id = "maui-playground-js-styles";
-    //20260810 webclient name same line
+    var style = document.createElement("style"); style.id = "maui-playground-js-styles";
     style.textContent = ".maui-tree-folder-row{display:flex;align-items:center;justify-content:space-between}.maui-tree-folder-link{display:flex;align-items:center;white-space:nowrap;min-width:0}.maui-tree-folder-link strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.maui-tree-children{margin:0;padding-left:22px;list-style:none}.maui-tree-link{display:block;color:#344054;text-decoration:none;padding:4px 6px;border-radius:5px}.maui-tree-link:hover,.maui-tree-link.active{background:#e8f1ff;color:#0d6efd}.maui-tree-add-link{display:inline-block}.maui-file-dirty{color:#d92d20}.maui-runtime-error{padding:18px;border:1px solid #fecdca;background:#fef3f2;color:#b42318;border-radius:8px}.maui-runtime-error pre{white-space:pre-wrap}.maui-nuget-bar{display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid #d0d5dd;background:#fff}.maui-nuget-bar input{flex:1;padding:7px 9px;border:1px solid #d0d5dd;border-radius:6px}.maui-nuget-bar button,.maui-save-button{border:0;border-radius:6px;padding:7px 10px;background:#0d6efd;color:#fff;cursor:pointer}.maui-nuget-status{font-size:12px;color:#667085}.maui-save-button{margin-left:auto}.playground-radzen-button,.playground-mud-button{border:0;border-radius:6px;padding:8px 12px;background:#0d6efd;color:#fff;cursor:pointer}.playground-radzen-input,.playground-mud-input{display:block;padding:8px;border:1px solid #d0d5dd;border-radius:6px;margin:8px 0}.playground-radzen-label{display:inline-block;margin:8px 0}";
-    //style.textContent = ".maui-tree-folder-row{display:flex;align-items:center;justify-content:space-between}.maui-tree-folder-link{display:flex;align-items:center;white-space:nowrap;min-width:0}.maui-tree-folder-link strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}...";
     document.head.appendChild(style);
   }
 
   function setupNuget() {
-    var header = document.querySelector(".maui-code-panel .maui-panel-title");
-    if (!header || document.querySelector(".maui-nuget-bar")) return;
-    var bar = document.createElement("div");
-    bar.className = "maui-nuget-bar";
-    bar.innerHTML = '<input id="maui-nuget-input" placeholder="Install NuGet package, e.g. Radzen.Blazor"><button type="button" id="maui-nuget-install">Install</button><span class="maui-nuget-status" id="maui-nuget-status">No extra packages installed.</span>';
-    header.parentNode.insertBefore(bar, header.nextSibling);
-    var input = bar.querySelector("#maui-nuget-input");
-    var button = bar.querySelector("#maui-nuget-install");
-    var status = bar.querySelector("#maui-nuget-status");
-    button.onclick = function () {
-      var id = input.value.trim();
-      if (!id) return;
-      installedPackages[id] = true;
-      status.textContent = id + " installed for this playground session.";
-      input.value = "";
-    };
+    var bar = document.getElementById("maui-nuget-bar");
+    if (!bar) return;
+    var input = bar.querySelector("input"); var button = bar.querySelector("button"); var status = bar.querySelector(".maui-nuget-status");
+    if (!input || !button || !status) return;
+    input.value = "";
+    button.onclick = function () { var name = input.value.trim(); if (!name) return; installedPackages[name] = true; status.textContent = name + " installed for playground preview."; };
   }
 
   function addSaveButton() {
-    var header = document.querySelector(".maui-playground-header");
-    if (!header || document.getElementById("maui-save-project")) return;
-    var button = document.createElement("button");
-    button.type = "button";
-    button.id = "maui-save-project";
-    button.className = "maui-save-button";
-    button.textContent = "Save Project";
-    button.onclick = function () { if (window.MauiPlayground) window.MauiPlayground.saveProject(); };
-    header.appendChild(button);
+    var run = document.getElementById("maui-run-preview");
+    if (!run || document.getElementById("maui-save-project")) return;
+    var button = document.createElement("button"); button.id = "maui-save-project"; button.type = "button"; button.className = "maui-save-button"; button.textContent = "Save";
+    run.parentNode.appendChild(button);
+    button.onclick = function () { if (window.MauiPlayground && window.MauiPlayground.saveProject) window.MauiPlayground.saveProject(); };
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
-  else start();
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();
