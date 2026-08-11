@@ -12,50 +12,48 @@
   function ensureHost(){if(host&&document.body.contains(host))return host;host=document.getElementById("algolassi-chat-presence-host");if(!host){host=document.createElement("section");host.id="algolassi-chat-presence-host";host.setAttribute("aria-label","Algolassi community chat");host.setAttribute("data-no-spa","true");document.body.appendChild(host);}return host;}
   function onlineUsers(){var map={};Object.keys(presence||{}).forEach(function(k){(presence[k]||[]).forEach(function(i){map[i.user_id||i.guest_id||k]=i;});});return Object.keys(map).map(function(k){return map[k];}).sort(function(a,b){return String(a.display_name||"").localeCompare(String(b.display_name||""));});}
   function captureChatScroll(){var b=document.getElementById("algolassi-chat-messages");if(b)preserveChatScrollTop=b.scrollTop;}
+  function messageElement(i){var el=document.createElement("div");el.className="algolassi-chat-message";el.setAttribute("data-message-id",String(i.id));var when=i.created_at?new Date(i.created_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):"";el.innerHTML='<div class="algolassi-chat-message-meta"><strong>'+escapeHtml(i.username)+'</strong><span>'+escapeHtml(when)+'</span></div><div class="algolassi-chat-message-text">'+renderMessage(i.message)+'</div>';return el;}
+  function reconcileMessages(box){
+    var existing={};Array.prototype.slice.call(box.querySelectorAll(".algolassi-chat-message[data-message-id]")).forEach(function(n){existing[String(n.getAttribute("data-message-id"))]=n;});
+    var wanted={};messages.forEach(function(i){wanted[String(i.id)]=true;});
+    Object.keys(existing).forEach(function(id){if(!wanted[id])existing[id].remove();});
+    var currentIds=messages.map(function(i){return String(i.id);});
+    messages.forEach(function(i,index){
+      var id=String(i.id),node=existing[id];
+      if(!node){node=messageElement(i);var ref=null;for(var j=index+1;j<currentIds.length;j++){ref=existing[currentIds[j]];if(ref)break;}if(ref)box.insertBefore(node,ref);else box.appendChild(node);}
+    });
+  }
   function render(){
     var el=ensureHost(),users=onlineUsers();
-    var rows=users.map(function(u){var n=u.display_name||(u.kind==="guest"?u.guest_id:"Google user"),badge=u.kind==="google"?"Google":"Guest";return '<li class="algolassi-chat-online-user"><span class="algolassi-chat-online-dot" aria-hidden="true"></span><span class="algolassi-chat-online-name">'+escapeHtml(n)+'</span><span class="algolassi-chat-online-badge">'+badge+'</span></li>';}).join("");
-    var chatRows=messages.map(function(i){var when=i.created_at?new Date(i.created_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):"";return '<div class="algolassi-chat-message"><div class="algolassi-chat-message-meta"><strong>'+escapeHtml(i.username)+'</strong><span>'+escapeHtml(when)+'</span></div><div class="algolassi-chat-message-text">'+renderMessage(i.message)+'</div></div>';}).join("");
-    var me=currentUser?(currentUsername||googleName(currentUser)):guestId();
-    var loadingOlder=olderLoadInProgress?'<div class="algolassi-chat-loading-older" aria-live="polite">Loading older messages...</div>':'';
-    var olderEnd=!hasOlderMessages&&messages.length?'<div class="algolassi-chat-history-end">No older messages</div>':'';
-    el.innerHTML='<div class="algolassi-chat-presence-card"><div class="algolassi-chat-presence-head"><span>💬</span><strong>Algolassi Chat</strong><span class="algolassi-chat-online-count">'+users.length+'</span></div><div class="algolassi-chat-online-title">👥 Online now</div><ul class="algolassi-chat-online-list">'+(rows||'<li class="algolassi-chat-empty">No other users online yet.</li>')+'</ul><div class="algolassi-chat-messages" id="algolassi-chat-messages">'+loadingOlder+olderEnd+(chatRows||'<div class="algolassi-chat-empty">No messages yet. Say hello! 👋</div>')+'</div><form class="algolassi-chat-form" id="algolassi-chat-form"><input id="algolassi-chat-input" maxlength="500" autocomplete="off" placeholder="Message as '+escapeHtml(me)+'" aria-label="Chat message"><button type="submit" aria-label="Send chat message">Send</button></form><div class="algolassi-chat-status" id="algolassi-chat-status" aria-live="polite"></div></div>';
-    bindForm();
-    var box=document.getElementById("algolassi-chat-messages");
+    var card=el.querySelector(".algolassi-chat-presence-card");
+    if(!card){
+      el.innerHTML='<div class="algolassi-chat-presence-card"><div class="algolassi-chat-presence-head"><span>💬</span><strong>Algolassi Chat</strong><span class="algolassi-chat-online-count">0</span></div><div class="algolassi-chat-online-title">👥 Online now</div><ul class="algolassi-chat-online-list"></ul><div class="algolassi-chat-messages" id="algolassi-chat-messages"></div><form class="algolassi-chat-form" id="algolassi-chat-form"><input id="algolassi-chat-input" maxlength="500" autocomplete="off" placeholder="Message" aria-label="Chat message"><button type="submit" aria-label="Send chat message">Send</button></form><div class="algolassi-chat-status" id="algolassi-chat-status" aria-live="polite"></div></div>';
+      card=el.querySelector(".algolassi-chat-presence-card");bindForm();
+    }
+    var countEl=card.querySelector(".algolassi-chat-online-count");if(countEl)countEl.textContent=String(users.length);
+    var list=card.querySelector(".algolassi-chat-online-list");
+    if(list){var rows=users.map(function(u){var n=u.display_name||(u.kind==="guest"?u.guest_id:"Google user"),badge=u.kind==="google"?"Google":"Guest";return '<li class="algolassi-chat-online-user"><span class="algolassi-chat-online-dot" aria-hidden="true"></span><span class="algolassi-chat-online-name">'+escapeHtml(n)+'</span><span class="algolassi-chat-online-badge">'+badge+'</span></li>';}).join("");var next=rows||'<li class="algolassi-chat-empty">No other users online yet.</li>';if(list.innerHTML!==next)list.innerHTML=next;}
+    var box=card.querySelector("#algolassi-chat-messages");
     if(box){
-      if(olderScrollRestore){
-        var restore=olderScrollRestore; olderScrollRestore=null;
-        requestAnimationFrame(function(){var newHeight=box.scrollHeight;box.scrollTop=Math.max(0,newHeight-restore.oldHeight+restore.oldTop);});
-      } else if(preserveChatScrollTop!==null){box.scrollTop=preserveChatScrollTop;preserveChatScrollTop=null;}
-      else box.scrollTop=box.scrollHeight;
+      var atBottom=box.scrollHeight-box.clientHeight-box.scrollTop<24;
+      var oldHeight=box.scrollHeight;
+      reconcileMessages(box);
+      var loading=box.querySelector(".algolassi-chat-loading-older");
+      if(olderLoadInProgress&&!loading){loading=document.createElement("div");loading.className="algolassi-chat-loading-older";loading.setAttribute("aria-live","polite");loading.textContent="Loading older messages...";box.insertBefore(loading,box.firstChild);}else if(!olderLoadInProgress&&loading)loading.remove();
+      var end=box.querySelector(".algolassi-chat-history-end");
+      if(!hasOlderMessages&&messages.length){if(!end){end=document.createElement("div");end.className="algolassi-chat-history-end";end.textContent="No older messages";box.insertBefore(end,box.firstChild);}}else if(end)end.remove();
+      var empty=box.querySelector(".algolassi-chat-empty-message");
+      if(!messages.length){if(!empty){empty=document.createElement("div");empty.className="algolassi-chat-empty algolassi-chat-empty-message";empty.textContent="No messages yet. Say hello! 👋";box.appendChild(empty);}}else if(empty)empty.remove();
+      if(olderScrollRestore){var restore=olderScrollRestore;olderScrollRestore=null;requestAnimationFrame(function(){var newHeight=box.scrollHeight;box.scrollTop=Math.max(0,newHeight-restore.oldHeight+restore.oldTop);});}
+      else if(preserveChatScrollTop!==null){box.scrollTop=preserveChatScrollTop;preserveChatScrollTop=null;}
+      else if(atBottom||oldHeight===0)box.scrollTop=box.scrollHeight;
       bindChatScroll(box);
     }
+    var input=card.querySelector("#algolassi-chat-input");if(input){var me=currentUser?(currentUsername||googleName(currentUser)):guestId();input.placeholder="Message as "+me;}
     reposition();
   }
-  function bindChatScroll(box){
-    if(!box||box.dataset.lazyBound==="true")return;box.dataset.lazyBound="true";
-    box.addEventListener("scroll",function(){
-      if(olderLoadInProgress||!hasOlderMessages)return;
-      if(box.scrollTop<=80)loadOlderMessages();
-    },{passive:true});
-  }
-  function loadOlderMessages(){
-    if(!client||olderLoadInProgress||!hasOlderMessages||!messages.length)return;
-    var oldest=messages[0]; if(!oldest||oldest.id==null){hasOlderMessages=false;return;}
-    var box=document.getElementById("algolassi-chat-messages");
-    olderLoadInProgress=true;
-    olderScrollRestore=box?{oldHeight:box.scrollHeight,oldTop:box.scrollTop}:null;
-    render();
-    client.from("chat_messages").select("id,user_id,guest_id,username,message,created_at").lt("id",oldest.id).order("id",{ascending:false}).limit(50).then(function(r){
-      if(r.error)throw r.error;
-      var older=(r.data||[]).reverse();
-      if(older.length===0){hasOlderMessages=false;return;}
-      var existing={};messages.forEach(function(i){existing[String(i.id)]=true;});
-      older=older.filter(function(i){return !existing[String(i.id)];});
-      messages=older.concat(messages);
-      if(older.length<50)hasOlderMessages=false;
-    }).catch(function(e){console.error("Algolassi older chat load:",e);if(olderScrollRestore)olderScrollRestore=null;}).finally(function(){olderLoadInProgress=false;render();});
-  }
+  function bindChatScroll(box){if(!box||box.dataset.lazyBound==="true")return;box.dataset.lazyBound="true";box.addEventListener("scroll",function(){if(olderLoadInProgress||!hasOlderMessages)return;if(box.scrollTop<=80)loadOlderMessages();},{passive:true});}
+  function loadOlderMessages(){if(!client||olderLoadInProgress||!hasOlderMessages||!messages.length)return;var oldest=messages[0];if(!oldest||oldest.id==null){hasOlderMessages=false;return;}var box=document.getElementById("algolassi-chat-messages");olderLoadInProgress=true;olderScrollRestore=box?{oldHeight:box.scrollHeight,oldTop:box.scrollTop}:null;render();client.from("chat_messages").select("id,user_id,guest_id,username,message,created_at").lt("id",oldest.id).order("id",{ascending:false}).limit(50).then(function(r){if(r.error)throw r.error;var older=(r.data||[]).reverse();if(older.length===0){hasOlderMessages=false;return;}var existing={};messages.forEach(function(i){existing[String(i.id)]=true;});older=older.filter(function(i){return !existing[String(i.id)];});messages=older.concat(messages);if(older.length<50)hasOlderMessages=false;}).catch(function(e){console.error("Algolassi older chat load:",e);if(olderScrollRestore)olderScrollRestore=null;}).finally(function(){olderLoadInProgress=false;render();});}
   function allowedHost(h){h=String(h||"").toLowerCase().replace(/\.$/,"");return h==="localhost"||h==="algolassi.online"||h==="www.algolassi.online";}
   function validateInternalLinks(t){var m=String(t||"").match(/(?:https?:\/\/|www\.)[^\s<]+/gi)||[];for(var i=0;i<m.length;i++){var raw=m[i].replace(/[),.!?;:'\"]+$/g,""),c=raw.indexOf("www.")===0?"https://"+raw:raw;try{if(!allowedHost(new URL(c,window.location.origin).hostname))return{ok:false,url:raw};}catch(e){return{ok:false,url:raw};}}return{ok:true};}
   function renderMessage(t){var v=escapeHtml(t);return v.replace(/(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi,function(e){var clean=e.replace(/[),.!?;:'\"]+$/g,""),trail=e.slice(clean.length),href=clean.indexOf("www.")===0?"https://"+clean:clean;try{var p=new URL(href,window.location.origin);if(!allowedHost(p.hostname))return e;return '<a href="'+escapeHtml(p.href)+'" data-algolassi-spa-link="true" rel="noopener">'+clean+'</a>'+trail;}catch(x){return e;}});}
