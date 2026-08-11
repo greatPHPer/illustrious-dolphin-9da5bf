@@ -1,16 +1,21 @@
-/* Algolassi Community - Phase 1: online presence */
+/* Algolassi Community - Phase 2: online presence + realtime chat */
 (function () {
   "use strict";
 
   var SUPABASE_URL = "https://ashezapnoqslggtxcncj.supabase.co";
   var SUPABASE_KEY = "sb_publishable_ki4D3v_JZk4elETfkYtmGA_xWDtbpBg";
-  var CHANNEL_NAME = "algolassi-community-presence-v1";
+  var PRESENCE_CHANNEL = "algolassi-community-presence-v1";
+  var CHAT_CHANNEL = "algolassi-community-chat-v1";
   var GUEST_KEY = "algolassi_guest_id_v1";
-  var channel = null;
   var client = null;
+  var channel = null;
+  var chatChannel = null;
   var host = null;
   var presence = {};
+  var currentUser = null;
   var initialized = false;
+  var chatLoaded = false;
+  var messages = [];
 
   function escapeHtml(value) {
     return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#039;");
@@ -41,7 +46,7 @@
     if (!host) {
       host = document.createElement("section");
       host.id = "algolassi-chat-presence-host";
-      host.setAttribute("aria-label", "Algolassi users online");
+      host.setAttribute("aria-label", "Algolassi community chat");
       host.setAttribute("data-no-spa", "true");
       document.body.appendChild(host);
     }
@@ -70,11 +75,27 @@
       return '<li class="algolassi-chat-online-user"><span class="algolassi-chat-online-dot" aria-hidden="true"></span><span class="algolassi-chat-online-name">' + escapeHtml(name) + '</span><span class="algolassi-chat-online-badge">' + badge + '</span></li>';
     }).join("");
 
+    var chatRows = messages.map(function (item) {
+      var when = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+      return '<div class="algolassi-chat-message"><div class="algolassi-chat-message-meta"><strong>' + escapeHtml(item.username) + '</strong><span>' + escapeHtml(when) + '</span></div><div class="algolassi-chat-message-text">' + escapeHtml(item.message) + '</div></div>';
+    }).join("");
+
+    var me = currentUser ? displayName(currentUser) : guestId();
     el.innerHTML = '<div class="algolassi-chat-presence-card">' +
-      '<div class="algolassi-chat-presence-head"><span>👥</span><strong>Online now</strong><span class="algolassi-chat-online-count">' + users.length + '</span></div>' +
+      '<div class="algolassi-chat-presence-head"><span>💬</span><strong>Algolassi Chat</strong><span class="algolassi-chat-online-count">' + users.length + '</span></div>' +
+      '<div class="algolassi-chat-online-title">👥 Online now</div>' +
       '<ul class="algolassi-chat-online-list">' + (rows || '<li class="algolassi-chat-empty">No other users online yet.</li>') + '</ul>' +
-      '<div class="algolassi-chat-phase-label">Community chat coming next</div>' +
+      '<div class="algolassi-chat-messages" id="algolassi-chat-messages">' + (chatRows || '<div class="algolassi-chat-empty">No messages yet. Say hello! 👋</div>') + '</div>' +
+      '<form class="algolassi-chat-form" id="algolassi-chat-form">' +
+      '<input id="algolassi-chat-input" maxlength="500" autocomplete="off" placeholder="Message as ' + escapeHtml(me) + '" aria-label="Chat message">' +
+      '<button type="submit" aria-label="Send chat message">Send</button>' +
+      '</form>' +
+      '<div class="algolassi-chat-status" id="algolassi-chat-status" aria-live="polite"></div>' +
       '</div>';
+
+    bindForm();
+    var box = document.getElementById("algolassi-chat-messages");
+    if (box) box.scrollTop = box.scrollHeight;
     reposition();
   }
 
@@ -100,17 +121,78 @@
   }
 
   function trackUser(user) {
+    currentUser = user || null;
     if (!channel) return;
-    var identity;
     var payload;
     if (user) {
-      identity = user.id;
       payload = { user_id: user.id, display_name: displayName(user), kind: "google", reputation: 0 };
     } else {
-      identity = guestId();
-      payload = { guest_id: identity, display_name: identity, kind: "guest", reputation: 0 };
+      var id = guestId();
+      payload = { guest_id: id, display_name: id, kind: "guest", reputation: 0 };
     }
     channel.track(payload).catch(function (error) { console.error("Algolassi presence track:", error); });
+    render();
+  }
+
+  function loadMessages() {
+    if (!client) return;
+    client.from("chat_messages").select("id,user_id,guest_id,username,message,created_at").order("created_at", { ascending: false }).limit(50).then(function (result) {
+      if (result.error) throw result.error;
+      messages = (result.data || []).reverse();
+      chatLoaded = true;
+      render();
+    }).catch(function (error) {
+      console.error("Algolassi chat load:", error);
+      chatLoaded = false;
+      render();
+    });
+  }
+
+  function bindChatRealtime() {
+    chatChannel = client.channel(CHAT_CHANNEL);
+    chatChannel.on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, function (payload) {
+      if (!payload || !payload.new) return;
+      if (!messages.some(function (item) { return String(item.id) === String(payload.new.id); })) {
+        messages.push(payload.new);
+        if (messages.length > 50) messages.shift();
+        render();
+      }
+    });
+    chatChannel.subscribe();
+  }
+
+  function bindForm() {
+    var form = document.getElementById("algolassi-chat-form");
+    if (!form || form.dataset.bound === "true") return;
+    form.dataset.bound = "true";
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      var input = document.getElementById("algolassi-chat-input");
+      var status = document.getElementById("algolassi-chat-status");
+      var text = input ? input.value.trim() : "";
+      if (!text) return;
+      if (!client) return;
+      var payload;
+      if (currentUser) {
+        payload = { user_id: currentUser.id, guest_id: null, username: displayName(currentUser), message: text };
+      } else {
+        var id = guestId();
+        payload = { user_id: null, guest_id: id, username: id, message: text };
+      }
+      if (status) status.textContent = "Sending...";
+      input.disabled = true;
+      client.from("chat_messages").insert(payload).then(function (result) {
+        if (result.error) throw result.error;
+        input.value = "";
+        if (status) status.textContent = "";
+      }).catch(function (error) {
+        console.error("Algolassi chat send:", error);
+        if (status) status.textContent = "Message could not be sent. Please try again.";
+      }).finally(function () {
+        input.disabled = false;
+        input.focus();
+      });
+    });
   }
 
   function start() {
@@ -123,7 +205,7 @@
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
       });
       window.AlgolassiChatSupabase = client;
-      channel = client.channel(CHANNEL_NAME, { config: { presence: { key: "algolassi-presence" } } });
+      channel = client.channel(PRESENCE_CHANNEL, { config: { presence: { key: "algolassi-presence" } } });
       channel.on("presence", { event: "sync" }, function () {
         presence = channel.presenceState();
         render();
@@ -137,14 +219,14 @@
         render();
       });
       return channel.subscribe(function (status) {
-        if (status === "SUBSCRIBED") {
-          getCurrentUser().then(trackUser);
-        }
+        if (status === "SUBSCRIBED") getCurrentUser().then(trackUser);
       });
+    }).then(function () {
+      loadMessages();
+      bindChatRealtime();
     }).catch(function (error) {
-      console.error("Algolassi chat presence initialization:", error);
-      var el = ensureHost();
-      el.innerHTML = "";
+      console.error("Algolassi chat initialization:", error);
+      render();
     });
 
     window.addEventListener("algolassi:auth-changed", function (event) {
