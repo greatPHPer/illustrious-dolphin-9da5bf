@@ -33,14 +33,26 @@
     });
   }
 
+  function escapeHtml(value) {
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  function getDisplayName(user) {
+    var metadata = user && user.user_metadata ? user.user_metadata : {};
+    return metadata.full_name || metadata.name || user.email || "Google user";
+  }
+
   function renderSignedIn(user) {
     var el = ensureContainer();
     if (!el) return;
-    var name = (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) || user.email || "Google user";
+    var name = getDisplayName(user);
     el.innerHTML = '<span style="font-size:13px;font-weight:600">Hi, ' + escapeHtml(name) + '</span>' +
       '<button type="button" id="algolassi-google-signout" style="border:1px solid #d0d5dd;background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer">Sign out</button>';
     document.getElementById("algolassi-google-signout").addEventListener("click", function () {
-      supabaseClient.auth.signOut().then(function () { renderSignedOut(); });
+      supabaseClient.auth.signOut().then(function () {
+        renderSignedOut();
+        window.dispatchEvent(new CustomEvent("algolassi:auth-changed", { detail: { user: null } }));
+      });
     });
     window.dispatchEvent(new CustomEvent("algolassi:auth-changed", { detail: { user: user } }));
   }
@@ -49,7 +61,8 @@
     var el = ensureContainer();
     if (!el) return;
     el.innerHTML = '<button type="button" id="algolassi-google-login" style="border:1px solid #d0d5dd;background:#fff;border-radius:7px;padding:8px 12px;cursor:pointer;font-weight:600">Sign in with Google</button>';
-    document.getElementById("algolassi-google-login").addEventListener("click", function () {
+    var button = document.getElementById("algolassi-google-login");
+    if (button) button.addEventListener("click", function () {
       supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: window.location.origin + window.location.pathname }
@@ -57,25 +70,33 @@
     });
   }
 
-  function escapeHtml(value) {
-    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#039;");
+  function signInWithGoogleToken(token) {
+    if (!supabaseClient || !token) return;
+    var timeout = new Promise(function (_, reject) {
+      setTimeout(function () { reject(new Error("Google sign-in timed out.")); }, 15000);
+    });
+    Promise.race([
+      supabaseClient.auth.signInWithIdToken({ provider: "google", token: token }),
+      timeout
+    ]).then(function (result) {
+      if (!result || result.error) throw (result && result.error) || new Error("Google sign-in failed.");
+      if (result.data && result.data.user) renderSignedIn(result.data.user);
+    }).catch(function (error) {
+      console.error("Algolassi Google sign-in failed:", error);
+      var el = ensureContainer();
+      if (el) {
+        el.insertAdjacentHTML("beforeend", '<span style="font-size:12px;color:#b42318">Google sign-in failed. Please use Sign in with Google.</span>');
+      }
+    });
   }
 
   function initGoogleOneTap() {
+    if (window.location.pathname !== "/") return;
     if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
     window.google.accounts.id.initialize({
       client_id: CLIENT_ID,
       callback: function (response) {
-        supabaseClient.auth.signInWithIdToken({
-          provider: "google",
-          token: response.credential
-        }).then(function (result) {
-          if (result.error) throw result.error;
-          renderSignedIn(result.data.user);
-          window.dispatchEvent(new CustomEvent("algolassi:auth-changed", { detail: { user: result.data.user } }));
-        }).catch(function (error) {
-          console.error("Algolassi Google sign-in failed:", error);
-        });
+        signInWithGoogleToken(response.credential);
       },
       auto_select: false,
       cancel_on_tap_outside: false,
@@ -89,10 +110,10 @@
     import(SUPABASE_JS).then(function (module) {
       supabaseClient = module.createClient(SUPABASE_URL, SUPABASE_KEY);
       window.AlgolassiSupabase = supabaseClient;
-      supabaseClient.auth.getSession().then(function (result) {
-        if (result.data && result.data.session && result.data.session.user) renderSignedIn(result.data.session.user);
-        else renderSignedOut();
-      });
+      return supabaseClient.auth.getSession();
+    }).then(function (result) {
+      if (result.data && result.data.session && result.data.session.user) renderSignedIn(result.data.session.user);
+      else renderSignedOut();
       supabaseClient.auth.onAuthStateChange(function (_event, session) {
         if (session && session.user) renderSignedIn(session.user);
         else renderSignedOut();
@@ -107,6 +128,7 @@
   }
 
   window.AlgolassiGoogleAuthInit = init;
+  window.AlgolassiGetGoogleDisplayName = getDisplayName;
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
