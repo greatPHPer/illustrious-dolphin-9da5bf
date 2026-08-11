@@ -140,6 +140,106 @@
     scrollToHash();
   }
 
+  function updateMeta(doc) {
+    if (doc.title) document.title = doc.title;
+    var currentDescription = document.querySelector('meta[name="description"]');
+    var nextDescription = doc.querySelector('meta[name="description"]');
+    if (currentDescription && nextDescription) currentDescription.setAttribute("content", nextDescription.getAttribute("content") || "");
+    else if (!currentDescription && nextDescription) document.head.appendChild(nextDescription.cloneNode(true));
+    else if (currentDescription && !nextDescription) currentDescription.remove();
+
+    var currentCanonical = document.querySelector('link[rel="canonical"]');
+    var nextCanonical = doc.querySelector('link[rel="canonical"]');
+    if (currentCanonical && nextCanonical) currentCanonical.setAttribute("href", nextCanonical.getAttribute("href") || "");
+    else if (!currentCanonical && nextCanonical) document.head.appendChild(nextCanonical.cloneNode(true));
+  }
+
+  function loadPlayground(url) {
+    if (window.__algolassiPlaygroundNavigating) return;
+    window.__algolassiPlaygroundNavigating = true;
+
+    fetch(url.href, { credentials: "same-origin" })
+      .then(function (response) {
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        return response.text();
+      })
+      .then(function (html) {
+        var doc = new DOMParser().parseFromString(html, "text/html");
+        var currentMain = document.querySelector(".site-main");
+        var nextMain = doc.querySelector(".site-main");
+        if (!currentMain || !nextMain) throw new Error("site-main not found");
+
+        currentMain.innerHTML = nextMain.innerHTML;
+        updateMeta(doc);
+        history.pushState({ algolassiPlaygroundSpa: true }, "", url.href);
+        window.scrollTo(0, 0);
+
+        var scripts = Array.prototype.slice.call(currentMain.querySelectorAll("script"));
+        var index = 0;
+
+        function runNextScript() {
+          if (index >= scripts.length) {
+            scripts.forEach(function (oldScript) {
+              if (oldScript.parentNode) oldScript.parentNode.removeChild(oldScript);
+            });
+            window.dispatchEvent(new Event("algolassi:spa-navigation"));
+            return;
+          }
+
+          var oldScript = scripts[index++];
+          var newScript = document.createElement("script");
+          Array.prototype.forEach.call(oldScript.attributes, function (attribute) {
+            newScript.setAttribute(attribute.name, attribute.value);
+          });
+
+          if (oldScript.src) {
+            newScript.onload = runNextScript;
+            newScript.onerror = function () {
+              console.error("Algolassi SPA: failed to load", oldScript.src);
+              runNextScript();
+            };
+            newScript.src = oldScript.src;
+            document.body.appendChild(newScript);
+          } else {
+            newScript.textContent = oldScript.textContent;
+            document.body.appendChild(newScript);
+            runNextScript();
+          }
+        }
+
+        runNextScript();
+      })
+      .catch(function () {
+        location.href = url.href;
+      })
+      .finally(function () {
+        window.__algolassiPlaygroundNavigating = false;
+      });
+  }
+
+  function isPlaygroundLink(link) {
+    if (!link || !link.href) return false;
+    try {
+      var url = new URL(link.href, location.href);
+      return url.origin === location.origin && url.pathname === "/maui-hybrid-playground/";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function handlePlaygroundClick(event) {
+    if (event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    var target = event.target;
+    var link = target && target.closest ? target.closest("a") : null;
+    if (!isPlaygroundLink(link)) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    loadPlayground(new URL(link.href, location.href));
+  }
+
+  document.addEventListener("click", handlePlaygroundClick, false);
+
   document.addEventListener("DOMContentLoaded", init);
   window.addEventListener("hashchange", scrollToHash);
   window.addEventListener("algolassi:spa-navigation", init);
