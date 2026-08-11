@@ -1,0 +1,12 @@
+---
+permalink: "/search-index.json"
+eleventyExcludeFromCollections: true
+---
+[
+{% set items = collections.all | selectattr("url") | list %}
+{% for item in items %}{% if item.url != "/search-index.json" and item.url != "/404.html" %}{
+  "title": {{ (item.data.title or item.url) | dump | safe }},
+  "url": {{ item.url | dump | safe }},
+  "description": {{ (item.data.description or "") | dump | safe }}
+}{% if not loop.last %},{% endif %}{% endif %}{% endfor %}
+]
