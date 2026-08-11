@@ -46,7 +46,7 @@
       profiles.forEach(function (p) { profileByName[p.username] = p; });
 
       var ids = rows.map(function (r) { return r.id; });
-      var reactionsResult = ids.length ? await client.from("chat_message_reactions").select("message_id,user_id").in("message_id", ids) : { data: [], error: null };
+      var reactionsResult = ids.length ? await client.from("chat_message_reactions").select("message_id,user_id").in("message_id", ids) : { data: [], error: null } : { data: [], error: null };
       var reactions = reactionsResult.data || [];
       var counts = {}, mine = {};
       var authResult = await client.auth.getUser();
@@ -73,57 +73,60 @@
             }
           }
           if (line) {
-            var oldRep = line.querySelector(".algolassi-chat-reputation");
-            if (oldRep) oldRep.remove();
+            var rep = line.querySelector(".algolassi-chat-reputation");
+            if (!rep) {
+              rep = document.createElement("span");
+              rep.className = "algolassi-chat-reputation";
+              line.appendChild(rep);
+            }
             var p = profileByName[row.username];
-            var rep = document.createElement("span");
-            rep.className = "algolassi-chat-reputation";
             rep.textContent = "⭐ " + String(p && Number.isFinite(Number(p.reputation)) ? Number(p.reputation) : 0);
-            line.appendChild(rep);
           }
         }
 
-        var oldRow = node.querySelector(".algolassi-chat-reaction-row");
-        if (oldRow) oldRow.remove();
+        var reactionRow = node.querySelector(".algolassi-chat-reaction-row");
+        var button = reactionRow ? reactionRow.querySelector(".algolassi-chat-like") : null;
+        var count = reactionRow ? reactionRow.querySelector(".algolassi-chat-reaction-count") : null;
 
-        var reactionRow = document.createElement("div");
-        reactionRow.className = "algolassi-chat-reaction-row";
-        var button = document.createElement("button");
-        button.type = "button";
-        button.className = "algolassi-chat-like" + (mine[row.id] ? " is-reacted" : "");
-        button.textContent = "👍";
+        if (!reactionRow) {
+          reactionRow = document.createElement("div");
+          reactionRow.className = "algolassi-chat-reaction-row";
+          button = document.createElement("button");
+          button.type = "button";
+          button.className = "algolassi-chat-like";
+          button.textContent = "👍";
+          count = document.createElement("span");
+          count.className = "algolassi-chat-reaction-count";
+          reactionRow.appendChild(button);
+          reactionRow.appendChild(count);
+          node.appendChild(reactionRow);
+
+          button.addEventListener("click", async function () {
+            button.disabled = true;
+            var rpc = await client.rpc("toggle_chat_positive_reaction", { p_message_id: row.id });
+            if (rpc.error) {
+              console.error("Algolassi reputation reaction:", rpc.error);
+              button.disabled = false;
+              return;
+            }
+            var data = Array.isArray(rpc.data) ? rpc.data[0] : rpc.data;
+            var reacted = !!(data && data.reacted);
+            var newCount = data && data.reaction_count != null ? data.reaction_count : 0;
+            button.classList.toggle("is-reacted", reacted);
+            button.setAttribute("aria-label", reacted ? "Remove positive reaction" : "Give positive reaction");
+            button.setAttribute("title", reacted ? "Remove positive reaction" : "Give positive reputation");
+            count.textContent = String(newCount);
+            button.disabled = false;
+            lastSignature = "";
+            setTimeout(decorate, 100);
+          });
+        }
+
+        button.classList.toggle("is-reacted", !!mine[row.id]);
         button.setAttribute("aria-label", mine[row.id] ? "Remove positive reaction" : "Give positive reaction");
         button.setAttribute("title", mine[row.id] ? "Remove positive reaction" : "Give positive reputation");
         button.disabled = !myId;
-
-        var count = document.createElement("span");
-        count.className = "algolassi-chat-reaction-count";
         count.textContent = String(counts[row.id] || 0);
-
-        button.addEventListener("click", async function () {
-          button.disabled = true;
-          var rpc = await client.rpc("toggle_chat_positive_reaction", { p_message_id: row.id });
-          if (rpc.error) {
-            console.error("Algolassi reputation reaction:", rpc.error);
-            button.disabled = false;
-            return;
-          }
-          var data = Array.isArray(rpc.data) ? rpc.data[0] : rpc.data;
-          var reacted = !!(data && data.reacted);
-          var newCount = data && data.reaction_count != null ? data.reaction_count : 0;
-          button.textContent = "👍";
-          button.classList.toggle("is-reacted", reacted);
-          button.setAttribute("aria-label", reacted ? "Remove positive reaction" : "Give positive reaction");
-          button.setAttribute("title", reacted ? "Remove positive reaction" : "Give positive reputation");
-          count.textContent = String(newCount);
-          button.disabled = false;
-          lastSignature = "";
-          setTimeout(decorate, 50);
-        });
-
-        reactionRow.appendChild(button);
-        reactionRow.appendChild(count);
-        node.appendChild(reactionRow);
       });
       lastSignature = signature;
     } finally {
@@ -142,11 +145,6 @@
     initialized = true;
     addStyles();
 
-    var observer = new MutationObserver(function () {
-      setTimeout(decorate, 30);
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-
     window.addEventListener("algolassi:username-changed", function () { lastSignature = ""; setTimeout(decorate, 100); });
     window.addEventListener("algolassi:auth-changed", function () { lastSignature = ""; setTimeout(decorate, 100); });
     window.addEventListener("algolassi:spa-navigation", function () { lastSignature = ""; setTimeout(decorate, 100); });
@@ -159,6 +157,7 @@
       decorate();
       if (++tries > 30) clearInterval(timer);
     }, 1000);
+    setTimeout(decorate, 100);
   }
 
   window.AlgolassiChatReputationInit = start;
