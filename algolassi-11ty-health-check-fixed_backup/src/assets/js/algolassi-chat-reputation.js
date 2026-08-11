@@ -1,7 +1,7 @@
 /* Algolassi Community - Phase 3C: reputation UI */
 (function () {
   "use strict";
-  var initialized = false, decorating = false, lastSignature = "", styleAdded = false;
+  var initialized = false, decorating = false, lastSignature = "", styleAdded = false, observer = null, refreshTimer = null;
 
   function addStyles() {
     if (styleAdded) return;
@@ -12,6 +12,10 @@
   }
   function getClient(){return window.AlgolassiChatSupabase||null;}
   function getMessageNodes(){var host=document.getElementById("algolassi-chat-presence-host");return host?Array.prototype.slice.call(host.querySelectorAll(".algolassi-chat-message")):[];}
+  function scheduleDecorate(delay){
+    clearTimeout(refreshTimer);
+    refreshTimer=setTimeout(function(){refreshTimer=null;decorate();},delay==null?20:delay);
+  }
 
   async function decorate(){
     var client=getClient(),nodes=getMessageNodes();
@@ -54,7 +58,7 @@
             var rpc=await client.rpc("toggle_chat_positive_reaction",{p_message_id:row.id});
             if(rpc.error){button.disabled=false;return;}
             var data=Array.isArray(rpc.data)?rpc.data[0]:rpc.data,reacted=!!(data&&data.reacted),newCount=data&&data.reaction_count!=null?data.reaction_count:0;
-            button.classList.toggle("is-reacted",reacted);button.setAttribute("aria-label",reacted?"Remove positive reaction":"Give positive reaction");button.setAttribute("title",reacted?"Remove positive reaction":"Give positive reputation");count.textContent=String(newCount);button.disabled=false;lastSignature="";setTimeout(decorate,100);
+            button.classList.toggle("is-reacted",reacted);button.setAttribute("aria-label",reacted?"Remove positive reaction":"Give positive reaction");button.setAttribute("title",reacted?"Remove positive reaction":"Give positive reputation");count.textContent=String(newCount);button.disabled=false;lastSignature="";scheduleDecorate(100);
           });
         } else if(messageText && reactionRow.parentNode!==messageText){
           messageText.appendChild(reactionRow);
@@ -62,21 +66,42 @@
         button.classList.toggle("is-reacted",!!mine[row.id]);button.setAttribute("aria-label",mine[row.id]?"Remove positive reaction":"Give positive reaction");button.setAttribute("title",mine[row.id]?"Remove positive reaction":"Give positive reputation");button.disabled=!myId;count.textContent=String(counts[row.id]||0);
       });
       lastSignature=signature;
-    }finally{decorating=false;}
+    }finally{
+      decorating=false;
+      var currentNodes=getMessageNodes();
+      var needsAnotherPass=currentNodes.some(function(node){return !node.querySelector(".algolassi-chat-reaction-row")||!node.querySelector(".algolassi-chat-author-line");});
+      if(needsAnotherPass)scheduleDecorate(20);
+    }
   }
 
   function refreshAfterVisibilityChange(){
     var nodes=getMessageNodes();
     var needsRefresh=nodes.some(function(node){return !node.querySelector(".algolassi-chat-author-line")||!node.querySelector(".algolassi-chat-reaction-row");});
-    if(needsRefresh){lastSignature="";setTimeout(decorate,50);}
+    if(needsRefresh){lastSignature="";scheduleDecorate(20);}
+  }
+  function observeMessages(){
+    var host=document.getElementById("algolassi-chat-presence-host");
+    if(!host||observer)return;
+    observer=new MutationObserver(function(mutations){
+      var hasNewMessage=false;
+      mutations.forEach(function(m){
+        Array.prototype.forEach.call(m.addedNodes||[],function(n){
+          if(n.nodeType!==1)return;
+          if((n.matches&&n.matches(".algolassi-chat-message"))||(n.querySelector&&n.querySelector(".algolassi-chat-message")))hasNewMessage=true;
+        });
+      });
+      if(hasNewMessage){lastSignature="";scheduleDecorate(0);}
+    });
+    observer.observe(host,{childList:true,subtree:true});
   }
   function start(){
     if(initialized)return;initialized=true;addStyles();
-    window.addEventListener("algolassi:username-changed",function(){lastSignature="";setTimeout(decorate,100);});
-    window.addEventListener("algolassi:auth-changed",function(){lastSignature="";setTimeout(decorate,100);});
-    window.addEventListener("algolassi:spa-navigation",function(){lastSignature="";setTimeout(decorate,100);});
+    window.addEventListener("algolassi:username-changed",function(){lastSignature="";scheduleDecorate(100);});
+    window.addEventListener("algolassi:auth-changed",function(){lastSignature="";scheduleDecorate(100);});
+    window.addEventListener("algolassi:spa-navigation",function(){lastSignature="";scheduleDecorate(100);});
     document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")refreshAfterVisibilityChange();});
-    var tries=0,timer=setInterval(function(){decorate();if(++tries>30)clearInterval(timer);},1000);setTimeout(decorate,100);
+    observeMessages();
+    var tries=0,timer=setInterval(function(){decorate();observeMessages();if(++tries>30)clearInterval(timer);},1000);setTimeout(function(){observeMessages();decorate();},100);
   }
   window.AlgolassiChatReputationInit=start;
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
