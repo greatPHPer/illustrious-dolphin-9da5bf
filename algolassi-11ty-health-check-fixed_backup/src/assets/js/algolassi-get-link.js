@@ -163,8 +163,7 @@
           Array.prototype.forEach.call(oldScript.attributes, function (attribute) { newScript.setAttribute(attribute.name, attribute.value); });
           if (oldScript.src) {
             var scriptKey = normalizedScriptUrl(oldScript.src);
-            var isMauiPlaygroundDemoLoader = /\/maui-playground-demos\.js(?:\?|$)/i.test(oldScript.src);
-            if (window.__algolassiLoadedScriptUrls[scriptKey] && !isMauiPlaygroundDemoLoader) {
+            if (window.__algolassiLoadedScriptUrls[scriptKey]) {
               runNextScript();
               return;
             }
