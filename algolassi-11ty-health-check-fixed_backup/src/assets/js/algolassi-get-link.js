@@ -133,10 +133,7 @@
   }
 
   function loadPlayground(url) {
-    if (sameDocumentUrl(url, new URL(window.location.href))) {
-      console.log("Algolassi SPA: Playground already at requested URL; ignoring duplicate navigation");
-      return;
-    }
+    if (sameDocumentUrl(url, new URL(window.location.href))) return;
     if (window.__algolassiPlaygroundNavigating) return;
     window.__algolassiPlaygroundNavigating = true;
     console.log("Algolassi SPA: loading Playground", url.href);
