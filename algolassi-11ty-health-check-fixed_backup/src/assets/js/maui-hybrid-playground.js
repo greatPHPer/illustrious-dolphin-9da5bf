@@ -153,10 +153,10 @@
         var children = document.createElement("ul");
 
         row.className = "maui-tree-folder-row";
-        folder.href = "#";
+        //folder.href = "#";
         folder.className = "maui-tree-link maui-tree-folder-link";
         folder.innerHTML = "▾ 📁 <strong>" + esc(project) + "</strong>";
-        plus.href = "#";
+        //plus.href = "#";
         plus.className = "maui-tree-link maui-tree-add-link";
         plus.textContent = "+";
         plus.title = "Add file";
@@ -167,7 +167,9 @@
         Object.keys(projects[project]).forEach(function (file) {
           var li = document.createElement("li");
           var link = document.createElement("a");
-          link.href = "#";
+          //link.href = "#";
+          //var link = document.createElement("button");
+          //link.type = "button";
           link.className = "maui-tree-link" + (project === currentProject && file === currentFile ? " active" : "");
           link.appendChild(document.createTextNode("📄 " + file));
           if (isDirty(project, file)) {
@@ -206,15 +208,20 @@
         };
 
         folder.onclick = function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          saveCurrentView();
-          var first = Object.keys(projects[project])[0];
-          if (first) load(project, first);
-          renderTree();
-          renderTabs();
-          render();
-        };
+    e.preventDefault();
+    e.stopPropagation();
+    saveCurrentView();
+
+    var first = Object.keys(projects[project] || {})[0];
+
+    if (first) {
+        load(project, first);
+    }
+
+    renderTree();
+    renderTabs();
+    render();
+};
 
         tree.appendChild(root);
       });
@@ -501,7 +508,7 @@
   function addStyles() {
     if (document.getElementById("maui-playground-js-styles")) return;
     var style = document.createElement("style"); style.id = "maui-playground-js-styles";
-    style.textContent = ".maui-tree-folder-row{display:flex;align-items:center;justify-content:space-between}.maui-tree-folder-link{display:flex;align-items:center;white-space:nowrap;min-width:0}.maui-tree-folder-link strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.maui-tree-children{margin:0;padding-left:22px;list-style:none}.maui-tree-link{display:block;color:#344054;text-decoration:none;padding:4px 6px;border-radius:5px}.maui-tree-link:hover,.maui-tree-link.active{background:#e8f1ff;color:#0d6efd}.maui-tree-add-link{display:inline-block}.maui-file-dirty{color:#d92d20}.maui-runtime-error{padding:18px;border:1px solid #fecdca;background:#fef3f2;color:#b42318;border-radius:8px}.maui-runtime-error pre{white-space:pre-wrap}.maui-nuget-bar{display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid #d0d5dd;background:#fff}.maui-nuget-bar input{flex:1;padding:7px 9px;border:1px solid #d0d5dd;border-radius:6px}.maui-nuget-bar button,.maui-save-button{border:0;border-radius:6px;padding:7px 10px;background:#0d6efd;color:#fff;cursor:pointer}.maui-nuget-status{font-size:12px;color:#667085}.maui-save-button{margin-left:auto}.playground-radzen-button,.playground-mud-button{border:0;border-radius:6px;padding:8px 12px;background:#0d6efd;color:#fff;cursor:pointer}.playground-radzen-input,.playground-mud-input{display:block;padding:8px;border:1px solid #d0d5dd;border-radius:6px;margin:8px 0}.playground-radzen-label{display:inline-block;margin:8px 0}";
+    style.textContent = ".maui-tree-folder-row{display:flex;align-items:center;justify-content:space-between}.maui-tree-folder-link{display:flex;align-items:center;white-space:nowrap;min-width:0}.maui-tree-folder-link strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.maui-tree-children{margin:0;padding-left:22px;list-style:none}.maui-tree-link{cursor:pointer;display:block;color:#344054;text-decoration:none !important;padding:4px 6px;border-radius:5px;color: inherit}.maui-tree-link:hover,.maui-tree-link.active{background:#e8f1ff;color:#0d6efd;text-decoration:none !important;}.maui-tree-add-link{display:inline-block}.maui-file-dirty{color:#d92d20}.maui-runtime-error{padding:18px;border:1px solid #fecdca;background:#fef3f2;color:#b42318;border-radius:8px}.maui-runtime-error pre{white-space:pre-wrap}.maui-nuget-bar{display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid #d0d5dd;background:#fff}.maui-nuget-bar input{flex:1;padding:7px 9px;border:1px solid #d0d5dd;border-radius:6px}.maui-nuget-bar button,.maui-save-button{border:0;border-radius:6px;padding:7px 10px;background:#0d6efd;color:#fff;cursor:pointer}.maui-nuget-status{font-size:12px;color:#667085}.maui-save-button{margin-left:auto}.playground-radzen-button,.playground-mud-button{border:0;border-radius:6px;padding:8px 12px;background:#0d6efd;color:#fff;cursor:pointer}.playground-radzen-input,.playground-mud-input{display:block;padding:8px;border:1px solid #d0d5dd;border-radius:6px;margin:8px 0}.playground-radzen-label{display:inline-block;margin:8px 0}";
     document.head.appendChild(style);
   }
 
