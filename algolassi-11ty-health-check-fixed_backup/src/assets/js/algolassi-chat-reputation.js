@@ -15,7 +15,6 @@
   }
 
   function getClient() { return window.AlgolassiChatSupabase || null; }
-
   function getMessageNodes() {
     var host = document.getElementById("algolassi-chat-presence-host");
     return host ? Array.prototype.slice.call(host.querySelectorAll(".algolassi-chat-message")) : [];
@@ -46,7 +45,7 @@
       profiles.forEach(function (p) { profileByName[p.username] = p; });
 
       var ids = rows.map(function (r) { return r.id; });
-      var reactionsResult = ids.length ? await client.from("chat_message_reactions").select("message_id,user_id").in("message_id", ids) : { data: [], error: null } : { data: [], error: null };
+      var reactionsResult = ids.length ? await client.from("chat_message_reactions").select("message_id,user_id").in("message_id", ids) : { data: [], error: null };
       var reactions = reactionsResult.data || [];
       var counts = {}, mine = {};
       var authResult = await client.auth.getUser();
@@ -144,14 +143,12 @@
     if (initialized) return;
     initialized = true;
     addStyles();
-
     window.addEventListener("algolassi:username-changed", function () { lastSignature = ""; setTimeout(decorate, 100); });
     window.addEventListener("algolassi:auth-changed", function () { lastSignature = ""; setTimeout(decorate, 100); });
     window.addEventListener("algolassi:spa-navigation", function () { lastSignature = ""; setTimeout(decorate, 100); });
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "visible") refreshAfterVisibilityChange();
     });
-
     var tries = 0;
     var timer = setInterval(function () {
       decorate();
