@@ -106,7 +106,37 @@
     else if (!currentCanonical && nextCanonical) document.head.appendChild(nextCanonical.cloneNode(true));
   }
 
+  function sameDocumentUrl(a, b) {
+    return a.origin === b.origin &&
+      a.pathname === b.pathname &&
+      a.search === b.search &&
+      a.hash === b.hash;
+  }
+
+  function normalizedScriptUrl(src) {
+    try {
+      var url = new URL(src, window.location.href);
+      return url.origin + url.pathname + url.search;
+    } catch (e) {
+      return String(src || "");
+    }
+  }
+
+  function dispatchSpaNavigation(url) {
+    try {
+      window.dispatchEvent(new CustomEvent("algolassi:spa-navigation", { detail: { url: url.href } }));
+    } catch (e) {
+      var event = document.createEvent("Event");
+      event.initEvent("algolassi:spa-navigation", false, false);
+      window.dispatchEvent(event);
+    }
+  }
+
   function loadPlayground(url) {
+    if (sameDocumentUrl(url, new URL(window.location.href))) {
+      console.log("Algolassi SPA: Playground already at requested URL; ignoring duplicate navigation");
+      return;
+    }
     if (window.__algolassiPlaygroundNavigating) return;
     window.__algolassiPlaygroundNavigating = true;
     console.log("Algolassi SPA: loading Playground", url.href);
@@ -124,10 +154,12 @@
         history.pushState({ algolassiPlaygroundSpa: true }, "", url.href);
         window.scrollTo(0, 0);
 
+        if (!window.__algolassiLoadedScriptUrls) window.__algolassiLoadedScriptUrls = {};
         var scripts = Array.prototype.slice.call(currentMain.querySelectorAll("script")), index = 0;
         function runNextScript() {
           if (index >= scripts.length) {
             scripts.forEach(function (oldScript) { if (oldScript.parentNode) oldScript.parentNode.removeChild(oldScript); });
+            dispatchSpaNavigation(url);
             if (typeof window.AlgolassiCommentsInit === "function") window.AlgolassiCommentsInit();
             if (typeof window.AlgolassiRadioInit === "function") window.AlgolassiRadioInit();
             console.log("Algolassi SPA: Playground loaded without document navigation");
@@ -136,8 +168,20 @@
           var oldScript = scripts[index++], newScript = document.createElement("script");
           Array.prototype.forEach.call(oldScript.attributes, function (attribute) { newScript.setAttribute(attribute.name, attribute.value); });
           if (oldScript.src) {
-            newScript.onload = runNextScript;
-            newScript.onerror = function () { console.error("Algolassi SPA: failed to load", oldScript.src); runNextScript(); };
+            var scriptKey = normalizedScriptUrl(oldScript.src);
+            if (window.__algolassiLoadedScriptUrls[scriptKey]) {
+              runNextScript();
+              return;
+            }
+            newScript.async = false;
+            newScript.onload = function () {
+              window.__algolassiLoadedScriptUrls[scriptKey] = true;
+              runNextScript();
+            };
+            newScript.onerror = function () {
+              console.error("Algolassi SPA: failed to load", oldScript.src);
+              runNextScript();
+            };
             newScript.src = oldScript.src;
             document.body.appendChild(newScript);
           } else {
