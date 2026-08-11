@@ -1,4 +1,4 @@
-/* Algolassi Community - Phase 3A: username */
+/* Algolassi Community - Phase 3A/3C: username + reputation UI loader */
 (function () {
   "use strict";
   var SUPABASE_URL = "https://ashezapnoqslggtxcncj.supabase.co";
@@ -6,6 +6,14 @@
   var client = null, user = null, profile = null, initialized = false;
 
   function esc(v) { return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;"); }
+  function loadReputationScript() {
+    if (window.AlgolassiChatReputationInit || document.getElementById("algolassi-chat-reputation-script")) return;
+    var script = document.createElement("script");
+    script.id = "algolassi-chat-reputation-script";
+    script.src = "/assets/js/algolassi-chat-reputation.js?v=20260811-1";
+    script.onload = function () { if (window.AlgolassiChatReputationInit) window.AlgolassiChatReputationInit(); };
+    document.body.appendChild(script);
+  }
   function ensureUi() {
     var host = document.getElementById("algolassi-username-host");
     if (host) return host;
@@ -41,10 +49,7 @@
     if (!/^[A-Za-z0-9_]{3,24}$/.test(name)) { check.textContent = "Use 3–24 letters, numbers, or underscores."; return; }
     button.disabled = true; check.textContent = "Saving username...";
     client.from("profiles").upsert({ user_id: user.id, username: name }, { onConflict: "user_id" }).select("user_id,username,reputation,created_at,updated_at").single().then(function (result) {
-      if (result.error) {
-        if (result.error.code === "23505") throw new Error("That username is already taken.");
-        throw result.error;
-      }
+      if (result.error) { if (result.error.code === "23505") throw new Error("That username is already taken."); throw result.error; }
       profile = result.data;
       check.textContent = "Username saved ✓"; check.className = "algolassi-username-check is-available";
       window.dispatchEvent(new CustomEvent("algolassi:username-changed", { detail: { profile: profile } }));
@@ -62,7 +67,7 @@
     }).catch(function (error) { console.error("Algolassi profile load:", error); });
   }
   function start() {
-    if (initialized) return; initialized = true; ensureUi();
+    if (initialized) return; initialized = true; ensureUi(); loadReputationScript();
     var useExisting = window.AlgolassiChatSupabase;
     if (useExisting) { client = useExisting; loadCurrent(); }
     else import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm").then(function (module) { client = module.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }); loadCurrent(); }).catch(function (e) { console.error("Algolassi username initialization:", e); });
