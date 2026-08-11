@@ -48,7 +48,18 @@
   async function sha256(value) { var data = new TextEncoder().encode(value); var digest = await crypto.subtle.digest("SHA-256", data); return Array.from(new Uint8Array(digest), function (b) { return b.toString(16).padStart(2, "0"); }).join(""); }
   async function signInWithGoogleToken(token) { if (!supabaseClient || !token || !nonce) return; var timeout = new Promise(function (_, reject) { setTimeout(function () { reject(new Error("Google sign-in timed out.")); }, 15000); }); try { var result = await Promise.race([supabaseClient.auth.signInWithIdToken({ provider: "google", token: token, nonce: nonce }), timeout]); if (!result || result.error) throw (result && result.error) || new Error("Google sign-in failed."); if (result.data && result.data.user) await renderSignedIn(result.data.user); } catch (error) { console.error("Algolassi Google One Tap sign-in failed:", error); var el = ensureContainer(); if (el) { var old = el.querySelector(".algolassi-google-error"); if (old) old.remove(); var msg = document.createElement("span"); msg.className = "algolassi-google-error"; msg.style.cssText = "font-size:12px;color:#b42318"; msg.textContent = "Google sign-in failed. Please use Sign in with Google."; el.appendChild(msg); } }
   }
-  async function initGoogleOneTap() { if (window.location.pathname !== "/") return; if (!window.google || !window.google.accounts || !window.google.accounts.id) return; nonce = randomNonce(); var hashedNonce = await sha256(nonce); window.google.accounts.id.initialize({ client_id: CLIENT_ID, nonce: hashedNonce, callback: function (response) { signInWithGoogleToken(response.credential); }, auto_select: false, cancel_on_tap_outside: false, use_fedcm_for_prompt: true }); window.google.accounts.id.prompt(); }
+  async function initGoogleOneTap() {
+    if (window.location.pathname !== "/") return;
+    if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+    if (supabaseClient) {
+      var sessionResult = await supabaseClient.auth.getSession();
+      if (sessionResult.data && sessionResult.data.session && sessionResult.data.session.user) {
+        if (window.google.accounts.id.cancel) window.google.accounts.id.cancel();
+        return;
+      }
+    }
+    nonce = randomNonce(); var hashedNonce = await sha256(nonce); window.google.accounts.id.initialize({ client_id: CLIENT_ID, nonce: hashedNonce, callback: function (response) { signInWithGoogleToken(response.credential); }, auto_select: false, cancel_on_tap_outside: false, use_fedcm_for_prompt: true }); window.google.accounts.id.prompt();
+  }
   function init() { ensureContainer(); import(SUPABASE_JS).then(function (module) { supabaseClient = module.createClient(SUPABASE_URL, SUPABASE_KEY); window.AlgolassiSupabase = supabaseClient; return supabaseClient.auth.getSession(); }).then(function (result) { if (result.data && result.data.session && result.data.session.user) renderSignedIn(result.data.session.user); else renderSignedOut(); supabaseClient.auth.onAuthStateChange(function (_event, session) { if (session && session.user) renderSignedIn(session.user); else renderSignedOut(); }); return loadScript("https://accounts.google.com/gsi/client"); }).then(function () { return initGoogleOneTap(); }).catch(function (error) { console.error("Algolassi Google authentication initialization failed:", error); renderSignedOut(); }); }
   window.AlgolassiGoogleAuthInit = init;
   window.AlgolassiGetGoogleDisplayName = getDisplayName;
