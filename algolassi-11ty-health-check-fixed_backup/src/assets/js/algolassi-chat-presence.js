@@ -77,7 +77,7 @@
 
     var chatRows = messages.map(function (item) {
       var when = item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
-      return '<div class="algolassi-chat-message"><div class="algolassi-chat-message-meta"><strong>' + escapeHtml(item.username) + '</strong><span>' + escapeHtml(when) + '</span></div><div class="algolassi-chat-message-text">' + escapeHtml(item.message) + '</div></div>';
+      return '<div class="algolassi-chat-message"><div class="algolassi-chat-message-meta"><strong>' + escapeHtml(item.username) + '</strong><span>' + escapeHtml(when) + '</span></div><div class="algolassi-chat-message-text">' + renderMessage(item.message) + '</div></div>';
     }).join("");
 
     var me = currentUser ? displayName(currentUser) : guestId();
@@ -97,6 +97,46 @@
     var box = document.getElementById("algolassi-chat-messages");
     if (box) box.scrollTop = box.scrollHeight;
     reposition();
+  }
+
+  function allowedHost(hostname) {
+    hostname = String(hostname || "").toLowerCase().replace(/\.$/, "");
+    return hostname === "localhost" || hostname === "algolassi.online" || hostname === "www.algolassi.online";
+  }
+
+  function validateInternalLinks(text) {
+    var urlPattern = /(?:https?:\/\/|www\.)[^\s<]+/gi;
+    var matches = String(text || "").match(urlPattern) || [];
+    for (var i = 0; i < matches.length; i++) {
+      var raw = matches[i].replace(/[),.!?;:'\"]+$/g, "");
+      var candidate = raw.indexOf("www.") === 0 ? "https://" + raw : raw;
+      try {
+        var parsed = new URL(candidate, window.location.origin);
+        if (!allowedHost(parsed.hostname)) {
+          return { ok: false, url: raw };
+        }
+      } catch (e) {
+        return { ok: false, url: raw };
+      }
+    }
+    return { ok: true };
+  }
+
+  function renderMessage(text) {
+    var value = escapeHtml(text);
+    var urlPattern = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
+    return value.replace(urlPattern, function (encodedUrl) {
+      var clean = encodedUrl.replace(/[),.!?;:'\"]+$/g, "");
+      var trailing = encodedUrl.slice(clean.length);
+      var href = clean.indexOf("www.") === 0 ? "https://" + clean : clean;
+      try {
+        var parsed = new URL(href, window.location.origin);
+        if (!allowedHost(parsed.hostname)) return encodedUrl;
+        return '<a href="' + escapeHtml(parsed.href) + '" target="_self" rel="noopener">' + clean + '</a>' + trailing;
+      } catch (e) {
+        return encodedUrl;
+      }
+    });
   }
 
   function reposition() {
@@ -174,6 +214,13 @@
       var text = input ? input.value.trim() : "";
       if (!text) return;
       if (!client) return;
+
+      var linkCheck = validateInternalLinks(text);
+      if (!linkCheck.ok) {
+        if (status) status.textContent = "External links aren't allowed in Algolassi Chat. Please share an Algolassi link.";
+        return;
+      }
+
       var payload;
       if (currentUser) {
         payload = { user_id: currentUser.id, guest_id: null, username: displayName(currentUser), message: text };
@@ -190,14 +237,10 @@
         .single()
         .then(function (result) {
           if (result.error) throw result.error;
-
-          // Add the row immediately. Realtime will ignore it later because
-          // the id is already present in the local message list.
           if (result.data && !messages.some(function (item) { return String(item.id) === String(result.data.id); })) {
             messages.push(result.data);
             if (messages.length > 50) messages.shift();
           }
-
           input.value = "";
           if (status) status.textContent = "";
           render();
