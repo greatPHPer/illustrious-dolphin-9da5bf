@@ -107,10 +107,7 @@
   }
 
   function sameDocumentUrl(a, b) {
-    return a.origin === b.origin &&
-      a.pathname === b.pathname &&
-      a.search === b.search &&
-      a.hash === b.hash;
+    return a.origin === b.origin && a.pathname === b.pathname && a.search === b.search && a.hash === b.hash;
   }
 
   function normalizedScriptUrl(src) {
@@ -166,7 +163,8 @@
           Array.prototype.forEach.call(oldScript.attributes, function (attribute) { newScript.setAttribute(attribute.name, attribute.value); });
           if (oldScript.src) {
             var scriptKey = normalizedScriptUrl(oldScript.src);
-            if (window.__algolassiLoadedScriptUrls[scriptKey]) {
+            var isMauiPlaygroundDemoLoader = /\/maui-playground-demos\.js(?:\?|$)/i.test(oldScript.src);
+            if (window.__algolassiLoadedScriptUrls[scriptKey] && !isMauiPlaygroundDemoLoader) {
               runNextScript();
               return;
             }
