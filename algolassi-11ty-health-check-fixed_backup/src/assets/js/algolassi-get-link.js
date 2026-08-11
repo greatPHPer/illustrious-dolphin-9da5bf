@@ -238,7 +238,8 @@
     loadPlayground(new URL(link.href, location.href));
   }
 
-  document.addEventListener("click", handlePlaygroundClick, false);
+  /* Capture the Playground link before the site's generic SPA router sees it. */
+  document.addEventListener("click", handlePlaygroundClick, true);
 
   document.addEventListener("DOMContentLoaded", init);
   window.addEventListener("hashchange", scrollToHash);
