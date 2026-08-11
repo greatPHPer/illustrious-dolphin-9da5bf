@@ -119,6 +119,10 @@
     }
   }
 
+  function isMauiPlaygroundScript(src) {
+    return /(?:^|\/)maui-(?:hybrid-)?playground(?:[-.]|\/)/i.test(src) || /\/maui-playground-[^/]+\.js(?:\?|$)/i.test(src);
+  }
+
   function dispatchSpaNavigation(url) {
     try {
       window.dispatchEvent(new CustomEvent("algolassi:spa-navigation", { detail: { url: url.href } }));
@@ -132,6 +136,13 @@
   function loadPlayground(url) {
     if (sameDocumentUrl(url, new URL(window.location.href))) return;
     if (window.__algolassiPlaygroundNavigating) return;
+
+    // Give every playground navigation a unique URL identity. This prevents
+    // repeated visits to the same demo from being treated as the same SPA page.
+    if (url.pathname === "/maui-hybrid-playground/" && !url.searchParams.get("version")) {
+      url.searchParams.set("version", "nav-" + Date.now());
+    }
+
     window.__algolassiPlaygroundNavigating = true;
     console.log("Algolassi SPA: loading Playground", url.href);
     fetch(url.href, { credentials: "same-origin" })
@@ -163,13 +174,19 @@
           Array.prototype.forEach.call(oldScript.attributes, function (attribute) { newScript.setAttribute(attribute.name, attribute.value); });
           if (oldScript.src) {
             var scriptKey = normalizedScriptUrl(oldScript.src);
-            if (window.__algolassiLoadedScriptUrls[scriptKey]) {
+
+            // Most global scripts should execute only once. Playground scripts
+            // are different: their DOM-bound initialization must run again
+            // against the newly injected playground DOM on every navigation.
+            var rerunPlaygroundScript = isMauiPlaygroundScript(oldScript.src);
+            if (!rerunPlaygroundScript && window.__algolassiLoadedScriptUrls[scriptKey]) {
               runNextScript();
               return;
             }
+
             newScript.async = false;
             newScript.onload = function () {
-              window.__algolassiLoadedScriptUrls[scriptKey] = true;
+              if (!rerunPlaygroundScript) window.__algolassiLoadedScriptUrls[scriptKey] = true;
               runNextScript();
             };
             newScript.onerror = function () {
