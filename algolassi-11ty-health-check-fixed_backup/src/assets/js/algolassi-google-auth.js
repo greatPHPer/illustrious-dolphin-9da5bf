@@ -3,7 +3,7 @@
 
   var CLIENT_ID = "82669071-dvo4ur39m1a4b4a6a8katj9hkhquti2e.apps.googleusercontent.com";
   var SUPABASE_URL = "https://ashezapnoqslggtxcncj.supabase.co";
-  var SUPABASE_KEY = "sb_publishable_ki4D3v_JZk4elETfkYtmGA_xWDtbpBg";
+  var SUPABASE_KEY = "sb_publishable_ki4D3v_JZK4elETfkYtmGA_xWDtbpBg";
   var SUPABASE_JS = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
   var containerId = "algolassi-google-auth";
   var supabaseClient = null;
@@ -60,7 +60,7 @@
     }
     nonce = randomNonce(); var hashedNonce = await sha256(nonce); window.google.accounts.id.initialize({ client_id: CLIENT_ID, nonce: hashedNonce, callback: function (response) { signInWithGoogleToken(response.credential); }, auto_select: false, cancel_on_tap_outside: false, use_fedcm_for_prompt: true }); window.google.accounts.id.prompt();
   }
-  function init() { ensureContainer(); import(SUPABASE_JS).then(function (module) { supabaseClient = module.createClient(SUPABASE_URL, SUPABASE_KEY); window.AlgolassiSupabase = supabaseClient; return supabaseClient.auth.getSession(); }).then(function (result) { if (result.data && result.data.session && result.data.session.user) renderSignedIn(result.data.session.user); else renderSignedOut(); supabaseClient.auth.onAuthStateChange(function (_event, session) { if (session && session.user) renderSignedIn(session.user); else renderSignedOut(); }); return loadScript("https://accounts.google.com/gsi/client"); }).then(function () { return initGoogleOneTap(); }).catch(function (error) { console.error("Algolassi Google authentication initialization failed:", error); renderSignedOut(); }); }
+  function init() { ensureContainer(); import(SUPABASE_JS).then(function (module) { supabaseClient = window.AlgolassiChatSupabase || window.AlgolassiSupabase || module.createClient(SUPABASE_URL, SUPABASE_KEY); window.AlgolassiSupabase = supabaseClient; return supabaseClient.auth.getSession(); }).then(function (result) { if (result.data && result.data.session && result.data.session.user) renderSignedIn(result.data.session.user); else renderSignedOut(); supabaseClient.auth.onAuthStateChange(function (_event, session) { if (session && session.user) renderSignedIn(session.user); else renderSignedOut(); }); return loadScript("https://accounts.google.com/gsi/client"); }).then(function () { return initGoogleOneTap(); }).catch(function (error) { console.error("Algolassi Google authentication initialization failed:", error); renderSignedOut(); }); }
   window.AlgolassiGoogleAuthInit = init;
   window.AlgolassiGetGoogleDisplayName = getDisplayName;
   window.AlgolassiGetUsername = getUsername;
