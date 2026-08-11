@@ -24,12 +24,18 @@
     if (!host || !client || decorating) return;
     var nodes = Array.prototype.slice.call(host.querySelectorAll(".algolassi-chat-message"));
     if (!nodes.length) return;
+
     var result = await client.from("chat_messages").select("id,user_id,username,created_at").order("created_at", { ascending: false }).limit(50);
     if (result.error) { console.warn("Algolassi reputation messages:", result.error); return; }
     var rows = (result.data || []).reverse();
     if (rows.length !== nodes.length) return;
+
     var signature = rows.map(function (r) { return r.id; }).join(",") + ":" + nodes.length;
-    if (signature === lastSignature && nodes[0].querySelector(".algolassi-chat-reaction-row")) return;
+    var allDecorated = nodes.every(function (node) {
+      return !!node.querySelector(".algolassi-chat-reaction-row");
+    });
+    if (signature === lastSignature && allDecorated) return;
+
     decorating = true;
     try {
       var usernames = rows.map(function (r) { return r.username; }).filter(Boolean);
@@ -37,13 +43,18 @@
       var profiles = profilesResult.data || [];
       var profileByName = {};
       profiles.forEach(function (p) { profileByName[p.username] = p; });
+
       var ids = rows.map(function (r) { return r.id; });
       var reactionsResult = ids.length ? await client.from("chat_message_reactions").select("message_id,user_id").in("message_id", ids) : { data: [], error: null };
       var reactions = reactionsResult.data || [];
       var counts = {}, mine = {};
       var authResult = await client.auth.getUser();
       var myId = authResult.data && authResult.data.user ? authResult.data.user.id : null;
-      reactions.forEach(function (r) { counts[r.message_id] = (counts[r.message_id] || 0) + 1; if (myId && r.user_id === myId) mine[r.message_id] = true; });
+      reactions.forEach(function (r) {
+        counts[r.message_id] = (counts[r.message_id] || 0) + 1;
+        if (myId && r.user_id === myId) mine[r.message_id] = true;
+      });
+
       nodes.forEach(function (node, index) {
         var row = rows[index];
         if (!row) return;
@@ -66,6 +77,7 @@
             line.appendChild(rep);
           }
         }
+
         var oldRow = node.querySelector(".algolassi-chat-reaction-row");
         if (oldRow) oldRow.remove();
         var reactionRow = document.createElement("div");
@@ -105,6 +117,11 @@
     } finally { decorating = false; }
   }
 
+  function refreshAfterVisibilityChange() {
+    lastSignature = "";
+    setTimeout(function () { decorate(); }, 50);
+  }
+
   function start() {
     if (initialized) return;
     initialized = true;
@@ -114,6 +131,9 @@
     window.addEventListener("algolassi:username-changed", function () { lastSignature = ""; setTimeout(decorate, 100); });
     window.addEventListener("algolassi:auth-changed", function () { lastSignature = ""; setTimeout(decorate, 100); });
     window.addEventListener("algolassi:spa-navigation", function () { lastSignature = ""; setTimeout(decorate, 100); });
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") refreshAfterVisibilityChange();
+    });
     var tries = 0;
     var timer = setInterval(function () { decorate(); if (++tries > 30) clearInterval(timer); }, 1000);
   }
