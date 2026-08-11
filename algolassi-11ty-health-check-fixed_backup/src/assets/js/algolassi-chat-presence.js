@@ -158,7 +158,9 @@
         render();
       }
     });
-    chatChannel.subscribe();
+    chatChannel.subscribe(function (status) {
+      if (status !== "SUBSCRIBED") console.warn("Algolassi chat realtime status:", status);
+    });
   }
 
   function bindForm() {
@@ -181,17 +183,36 @@
       }
       if (status) status.textContent = "Sending...";
       input.disabled = true;
-      client.from("chat_messages").insert(payload).then(function (result) {
-        if (result.error) throw result.error;
-        input.value = "";
-        if (status) status.textContent = "";
-      }).catch(function (error) {
-        console.error("Algolassi chat send:", error);
-        if (status) status.textContent = "Message could not be sent. Please try again.";
-      }).finally(function () {
-        input.disabled = false;
-        input.focus();
-      });
+
+      client.from("chat_messages")
+        .insert(payload)
+        .select("id,user_id,guest_id,username,message,created_at")
+        .single()
+        .then(function (result) {
+          if (result.error) throw result.error;
+
+          // Add the row immediately. Realtime will ignore it later because
+          // the id is already present in the local message list.
+          if (result.data && !messages.some(function (item) { return String(item.id) === String(result.data.id); })) {
+            messages.push(result.data);
+            if (messages.length > 50) messages.shift();
+          }
+
+          input.value = "";
+          if (status) status.textContent = "";
+          render();
+        })
+        .catch(function (error) {
+          console.error("Algolassi chat send:", error);
+          if (status) status.textContent = "Message could not be sent. Please try again.";
+        })
+        .finally(function () {
+          var newInput = document.getElementById("algolassi-chat-input");
+          if (newInput) {
+            newInput.disabled = false;
+            newInput.focus();
+          }
+        });
     });
   }
 
