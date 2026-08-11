@@ -128,7 +128,8 @@
         function runNextScript() {
           if (index >= scripts.length) {
             scripts.forEach(function (oldScript) { if (oldScript.parentNode) oldScript.parentNode.removeChild(oldScript); });
-            window.dispatchEvent(new Event("algolassi:spa-navigation"));
+            if (typeof window.AlgolassiCommentsInit === "function") window.AlgolassiCommentsInit();
+            if (typeof window.AlgolassiRadioInit === "function") window.AlgolassiRadioInit();
             console.log("Algolassi SPA: Playground loaded without document navigation");
             return;
           }
