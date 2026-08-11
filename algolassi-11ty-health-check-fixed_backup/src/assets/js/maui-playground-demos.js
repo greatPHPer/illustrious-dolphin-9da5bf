@@ -56,7 +56,7 @@
     if (!preview) return;
 
     if (demoName === "razor-routing") {
-      var routingLink = preview.querySelector(".maui-browser-content a[href=\"/home\"]");
+      var routingLink = preview.querySelector('.maui-browser-content a[href="/home"]');
       if (routingLink && !routingLink.__algolassiRoutingBound) {
         routingLink.__algolassiRoutingBound = true;
         routingLink.addEventListener("click", function (event) {
@@ -73,7 +73,8 @@
     if (demoName === "razor-two-way-binding") {
       var input = preview.querySelector("input");
       var valueNode = preview.querySelector("p strong");
-      if (input && valueNode) {
+      if (input && valueNode && !input.__algolassiBindingBound) {
+        input.__algolassiBindingBound = true;
         input.value = valueNode.textContent.trim();
         input.addEventListener("input", function () {
           valueNode.textContent = input.value;
@@ -84,7 +85,9 @@
     if (demoName === "razor-calculator") {
       var strong = preview.querySelector("p strong");
       var buttons = preview.querySelectorAll("button");
-      if (!strong || buttons.length < 2) return;
+      if (!strong || buttons.length < 2 || buttons[0].__algolassiCalcBound) return;
+      buttons[0].__algolassiCalcBound = true;
+      buttons[1].__algolassiCalcBound = true;
       var value = Number(strong.textContent.trim()) || 0;
       buttons[0].addEventListener("click", function (e) {
         e.preventDefault();
@@ -106,6 +109,8 @@
       content.innerHTML = '<h2>Conditional Rendering</h2><p>Click the button to show or hide content with <code>@if</code>.</p><button type="button" id="conditional-toggle">Hide message</button><p id="conditional-message"><strong>The message is visible.</strong></p>';
       var toggle = content.querySelector("#conditional-toggle");
       var message = content.querySelector("#conditional-message");
+      if (!toggle || toggle.__algolassiConditionalBound) return;
+      toggle.__algolassiConditionalBound = true;
       toggle.addEventListener("click", function () {
         var visible = message.style.display !== "none";
         message.style.display = visible ? "none" : "block";
@@ -118,7 +123,10 @@
       if (!listContent) return;
       listContent.innerHTML = '<h2>List Rendering</h2><p>This list is rendered with <code>@foreach</code>.</p><ul id="demo-list"><li>Apple</li><li>Banana</li><li>Orange</li></ul><button type="button" id="list-add">Add item</button>';
       var items = ["Apple", "Banana", "Orange"];
-      listContent.querySelector("#list-add").addEventListener("click", function () {
+      var addButton = listContent.querySelector("#list-add");
+      if (!addButton || addButton.__algolassiListBound) return;
+      addButton.__algolassiListBound = true;
+      addButton.addEventListener("click", function () {
         items.push("Item " + (items.length + 1));
         listContent.querySelector("#demo-list").innerHTML = items.map(function (item) { return "<li>" + escDemo(item) + "</li>"; }).join("");
       });
@@ -162,30 +170,14 @@
     return String(value == null ? "" : value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
-  function loadDemo() {
-    var params = new URLSearchParams(window.location.search);
-    var demoName = params.get("demo");
-    var demo = demos[demoName];
-    if (!demo) return;
-    var attempts = 0;
-    var timer = setInterval(function () {
-      attempts++;
-      var editor = document.getElementById("maui-code-editor");
-      var tree = document.querySelector(".maui-project-tree");
-      var run = document.getElementById("maui-run-preview");
-      if (!editor || !tree || !run) { if (attempts > 100) clearInterval(timer); return; }
-      clearInterval(timer);
-      watchProjectLabels();
-      loadFiles(demo, 0);
-    }, 100);
-  }
-
   function findFileLink(project, file) {
     var roots = document.querySelectorAll(".maui-project-tree > li");
-    var expectedProject = project.replace(/^\d+\.\s*/, "");
+    var expectedProject = String(project || "").replace(/^\d+\.\s*/, "").trim();
     for (var i = 0; i < roots.length; i++) {
       var strong = roots[i].querySelector(".maui-tree-folder-link strong");
-      if (!strong || strong.textContent.trim().replace(/^\d+\.\s*/, "") !== expectedProject) continue;
+      if (!strong) continue;
+      var actualProject = strong.textContent.trim().replace(/^\d+\.\s*/, "").trim();
+      if (actualProject !== expectedProject) continue;
       var links = roots[i].querySelectorAll(".maui-tree-link");
       for (var j = 0; j < links.length; j++) {
         var text = links[j].textContent.replace(/\s*\*\s*$/, "").trim();
@@ -195,7 +187,17 @@
     return null;
   }
 
-  function loadFiles(demo, index) {
+  function requestedFilesReady(demo) {
+    var files = demo && demo.files || [];
+    if (!files.length) return true;
+    for (var i = 0; i < files.length; i++) {
+      if (!findFileLink(files[i].project, files[i].file)) return false;
+    }
+    return true;
+  }
+
+  function loadFiles(demo, index, token) {
+    if (token !== window.__algolassiMauiDemoLoadToken) return;
     var files = demo.files || [];
     if (index >= files.length) {
       var run = document.getElementById("maui-run-preview");
@@ -209,13 +211,59 @@
     var link = findFileLink(item.project, item.file);
     var editor = document.getElementById("maui-code-editor");
     var output = document.getElementById("maui-console-output");
-    if (!link || !editor) { if (output) output.textContent = "Demo error: could not find " + item.project + " / " + item.file + "."; return; }
+    if (!link || !editor) {
+      if (output) output.textContent = "Demo error: could not find " + item.project + " / " + item.file + ".";
+      return;
+    }
     link.click();
     setTimeout(function () {
-      editor.value = item.code;
-      editor.dispatchEvent(new Event("input", { bubbles: true }));
-      setTimeout(function () { loadFiles(demo, index + 1); }, 80);
+      if (token !== window.__algolassiMauiDemoLoadToken) return;
+      var currentEditor = document.getElementById("maui-code-editor");
+      if (!currentEditor) return;
+      currentEditor.value = item.code;
+      currentEditor.dispatchEvent(new Event("input", { bubbles: true }));
+      setTimeout(function () { loadFiles(demo, index + 1, token); }, 80);
     }, 120);
+  }
+
+  function loadDemo() {
+    var params = new URLSearchParams(window.location.search || "");
+    var demoName = (params.get("demo") || "").toLowerCase().trim();
+    var demo = demos[demoName];
+    if (!demo) return;
+
+    var token = (window.__algolassiMauiDemoLoadToken || 0) + 1;
+    window.__algolassiMauiDemoLoadToken = token;
+
+    var attempts = 0;
+    var timer = setInterval(function () {
+      if (token !== window.__algolassiMauiDemoLoadToken) { clearInterval(timer); return; }
+      attempts++;
+      var editor = document.getElementById("maui-code-editor");
+      var tree = document.querySelector(".maui-project-tree");
+      var run = document.getElementById("maui-run-preview");
+      if (!editor || !tree || !run) {
+        if (attempts > 150) clearInterval(timer);
+        return;
+      }
+
+      watchProjectLabels();
+
+      // During SPA navigation the playground DOM can exist before its
+      // JavaScript has rebuilt the file tree. Do not use the old/static
+      // project-only tree as a signal that the new demo is ready.
+      if (!requestedFilesReady(demo)) {
+        if (attempts > 150) {
+          clearInterval(timer);
+          var waitingOutput = document.getElementById("maui-console-output");
+          if (waitingOutput) waitingOutput.textContent = "Demo error: playground files did not finish loading for " + demo.title + ".";
+        }
+        return;
+      }
+
+      clearInterval(timer);
+      loadFiles(demo, 0, token);
+    }, 100);
   }
 
   function start() {
@@ -234,6 +282,9 @@
   else start();
 
   window.addEventListener("algolassi:spa-navigation", function () {
+    // The URL changes before the playground's replacement DOM is fully
+    // rebuilt. Start a fresh demo load and let loadDemo() wait for the
+    // requested file links rather than racing the previous tree.
     watchProjectLabels();
     loadDemo();
   });
