@@ -1,64 +1,94 @@
-/* Keep news/assistant, radio and chat vertically separated. */
+/* Algolassi 4.0 - keep assistant/news, radio and chat in a stable vertical stack. */
 (function () {
   "use strict";
-  var GAP = 12;
+  var GAP = 14;
   var timer = null;
 
   function visibleRect(el) {
     if (!el) return null;
     var cs = window.getComputedStyle(el);
-    if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") return null;
+    if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0" || el.getAttribute("aria-hidden") === "true") return null;
     var r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) return null;
     return r;
   }
 
-  function getAssistantRect() {
+  function assistantRect() {
     var host = document.getElementById("algolassi-assistant-host");
     if (!host) return null;
     var toast = host.querySelector(".algolassi-assistant-toast");
     return visibleRect(toast || host);
   }
 
+  function chatVisible() {
+    var host = document.getElementById("algolassi-chat-presence-host");
+    if (!host) return null;
+    var card = host.querySelector(".algolassi-chat-presence-card");
+    if (!card || !visibleRect(card)) return null;
+    if (host.classList.contains("algolassi-chat-is-hidden")) return null;
+    return host;
+  }
+
   function update() {
-    var chat = document.getElementById("algolassi-chat-presence-host");
+    var chat = chatVisible();
     if (!chat) return;
 
-    var chatCard = chat.querySelector(".algolassi-chat-presence-card");
-    if (!chatCard || !visibleRect(chatCard)) return;
-
     var radio = visibleRect(document.getElementById("algolassi-radio-host"));
-    var assistant = getAssistantRect();
+    var news = assistantRect();
     var lower = null;
 
-    /* Whichever visible floating item is lower on screen becomes the
-       immediate item underneath chat. This handles radio disappearing,
-       news disappearing, or either/both being hidden. */
-    [radio, assistant].forEach(function (r) {
-      if (r && (!lower || r.top > lower.top)) lower = r;
-    });
+    /* The radio script moves radio above the news toast. If radio exists,
+       it is therefore the immediate layer under chat. If it doesn't exist,
+       news becomes the immediate layer. */
+    if (radio) {
+      lower = radio;
+    } else if (news) {
+      lower = news;
+    }
 
     var base = window.innerWidth <= 600 ? 10 : 18;
     if (lower) {
-      chat.style.bottom = Math.max(base, window.innerHeight - lower.top + GAP) + "px";
+      var targetBottom = window.innerHeight - lower.top + GAP;
+      chat.style.bottom = Math.max(base, targetBottom) + "px";
     } else {
       chat.style.bottom = base + "px";
     }
   }
 
-  function start() {
+  function settle() {
     update();
-    window.addEventListener("resize", update, { passive: true });
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("algolassi:spa-navigation", function () {
-      setTimeout(update, 0);
-      setTimeout(update, 100);
-      setTimeout(update, 400);
+    [40, 100, 180, 300, 500].forEach(function (delay) {
+      setTimeout(update, delay);
     });
+  }
+
+  function start() {
+    settle();
+    window.addEventListener("resize", settle, { passive: true });
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("algolassi:radio-layout-change", settle);
+    window.addEventListener("algolassi:spa-navigation", settle);
+
     if (window.MutationObserver) {
-      var observer = new MutationObserver(function () { update(); });
-      observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["style", "class", "aria-hidden"] });
+      var observer = new MutationObserver(function () { settle(); });
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["style", "class", "aria-hidden"]
+      });
     }
+
+    if (window.ResizeObserver) {
+      var resizeObserver = new ResizeObserver(function () { settle(); });
+      var chat = document.getElementById("algolassi-chat-presence-host");
+      var radio = document.getElementById("algolassi-radio-host");
+      var assistant = document.getElementById("algolassi-assistant-host");
+      if (chat) resizeObserver.observe(chat);
+      if (radio) resizeObserver.observe(radio);
+      if (assistant) resizeObserver.observe(assistant);
+    }
+
     timer = setInterval(update, 250);
   }
 
