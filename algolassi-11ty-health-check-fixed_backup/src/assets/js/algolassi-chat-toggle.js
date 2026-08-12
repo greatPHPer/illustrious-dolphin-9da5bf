@@ -4,6 +4,7 @@
   var STORAGE_KEY = "algolassi-chat-hidden-v2";
   var BUTTON_ID = "algolassi-chat-reopen-button";
   var applying = false;
+  var GAP = 14;
 
   function hidden() { try { return localStorage.getItem(STORAGE_KEY) === "1"; } catch (e) { return false; } }
   function setHidden(v) { try { localStorage.setItem(STORAGE_KEY, v ? "1" : "0"); } catch (e) {} }
@@ -24,7 +25,28 @@
     document.body.appendChild(b); return b;
   }
 
-  function positionButton(){var b=document.getElementById(BUTTON_ID);if(!b)return;var bottom=window.innerWidth<=600?10:18;var radio=document.getElementById("algolassi-radio-host");if(radio){var r=radio.getBoundingClientRect();if(r.height>0&&r.top<window.innerHeight)bottom=Math.max(bottom,window.innerHeight-r.top+10);}b.style.bottom=bottom+"px";}
+  function positionButton(){
+    var b=document.getElementById(BUTTON_ID); if(!b)return;
+    var base=window.innerWidth<=600?10:18;
+    var radio=document.getElementById("algolassi-radio-host");
+    if(radio){
+      var r=radio.getBoundingClientRect();
+      var radioVisible=r.width>0 && r.height>0 && r.bottom>0 && r.top<window.innerHeight;
+      if(radioVisible){
+        /* Put the chat launcher above the complete radio host, with a real gap.
+           Using the radio's bottom/height avoids the two floating controls sharing
+           the same bottom coordinate when the radio is collapsed or animated. */
+        var desiredBottom=window.innerHeight-r.top+GAP;
+        var minBottom=base+42+GAP;
+        b.style.bottom=Math.max(desiredBottom,minBottom)+"px";
+      } else {
+        b.style.bottom=base+"px";
+      }
+    } else {
+      b.style.bottom=base+"px";
+    }
+    b.style.right=window.innerWidth<=600?"10px":"18px";
+  }
 
   function ensureHideButton(h){
     if(!h)return;
