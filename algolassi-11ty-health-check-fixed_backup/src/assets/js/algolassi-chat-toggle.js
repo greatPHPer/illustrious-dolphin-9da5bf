@@ -14,7 +14,7 @@
   function addStyles(){
     if(document.getElementById("algolassi-chat-toggle-styles"))return;
     var s=document.createElement("style");s.id="algolassi-chat-toggle-styles";
-    s.textContent="#algolassi-chat-presence-host.algolassi-chat-toggle-hidden{display:none!important;}#"+BUTTON_ID+"{display:none!important;position:fixed;right:18px;bottom:18px;width:"+ICON_SIZE+"px;height:"+ICON_SIZE+"px;border:0;border-radius:50%;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.28);font-size:21px;line-height:"+ICON_SIZE+"px;text-align:center;cursor:pointer;z-index:2147483647;padding:0}#"+BUTTON_ID+".is-visible{display:flex!important;align-items:center;justify-content:center}#"+BUTTON_ID+":hover{transform:scale(1.06)}#algolassi-chat-presence-host .algolassi-chat-toggle-hide{margin-left:auto;border:0;background:transparent;color:inherit;font-size:18px;line-height:1;cursor:pointer;padding:4px 7px}@media(max-width:600px){#"+BUTTON_ID+"{right:10px;width:40px;height:40px;line-height:40px;font-size:20px}}";
+    s.textContent="#algolassi-chat-presence-host.algolassi-chat-toggle-hidden{display:none!important;}#"+BUTTON_ID+"{display:none!important;position:fixed;right:18px;bottom:18px;width:"+ICON_SIZE+"px;height:"+ICON_SIZE+"px;border:0;border-radius:50%;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.28);font-size:21px;line-height:"+ICON_SIZE+"px;text-align:center;cursor:pointer;z-index:2147483647;padding:0}#"+BUTTON_ID+".is-visible{display:flex!important;align-items:center;justify-content:center}#"+BUTTON_ID+":hover{transform:scale(1.06)}#algolassi-chat-presence-host .algolassi-chat-toggle-hide{margin-left:auto;border:0;border-radius:7px;background:transparent;color:inherit;font-size:12px;line-height:1;cursor:pointer;padding:5px 8px}#algolassi-chat-presence-host .algolassi-chat-toggle-hide:hover{background:rgba(0,0,0,.08)}@media(max-width:600px){#"+BUTTON_ID+"{right:10px;width:40px;height:40px;line-height:40px;font-size:20px}}";
     document.head.appendChild(s);
   }
 
@@ -32,31 +32,14 @@
     var base=window.innerWidth<=600?10:18;
     var radio=document.getElementById("algolassi-radio-host");
     var target=null;
-    if(radio){
-      target=visibleRect(radio.querySelector(".algolassi-radio-toast"));
-      if(!target)target=visibleRect(radio.querySelector("button"));
-      if(!target)target=visibleRect(radio);
-    }
-
-    if(target){
-      /* Radio is open/visible: put chat above the actual radio control. */
-      var bottom=window.innerHeight-target.top+GAP;
-      b.style.bottom=Math.max(bottom,base+ICON_SIZE+GAP)+"px";
-    } else if(radio && hiddenRadioReopenLikely(radio)) {
-      /* Radio itself is hidden but its small reopen control remains at the
-         bottom-right. Reserve one icon-height so the two launchers stack. */
-      b.style.bottom=(base+ICON_SIZE+GAP)+"px";
-    } else {
-      b.style.bottom=base+"px";
-    }
+    if(radio){target=visibleRect(radio.querySelector(".algolassi-radio-toast"));if(!target)target=visibleRect(radio.querySelector("button"));if(!target)target=visibleRect(radio);}
+    if(target){var bottom=window.innerHeight-target.top+GAP;b.style.bottom=Math.max(bottom,base+ICON_SIZE+GAP)+"px";}
+    else if(radio && hiddenRadioReopenLikely(radio)){b.style.bottom=(base+ICON_SIZE+GAP)+"px";}
+    else{b.style.bottom=base+"px";}
     b.style.right=window.innerWidth<=600?"10px":"18px";
   }
 
   function hiddenRadioReopenLikely(radio){
-    /* The radio implementation can hide its toast while leaving a launcher
-       in the same fixed corner. Treat the radio host as reserving that corner
-       whenever it exists but has no visible toast/control. This prevents the
-       chat launcher from occupying the radio launcher's coordinates. */
     if(!radio)return false;
     var toast=radio.querySelector(".algolassi-radio-toast");
     if(toast && !visibleRect(toast))return true;
@@ -65,11 +48,18 @@
     return true;
   }
 
+  function removeOldCloseButtons(head){
+    Array.prototype.slice.call(head.querySelectorAll("#algolassi-chat-hide, .algolassi-chat-hide, [aria-label='Close chat'], [title='Close chat']")).forEach(function(old){old.remove();});
+  }
+
   function ensureHideButton(h){
     if(!h)return;var card=h.querySelector(".algolassi-chat-presence-card");if(!card)return;var head=card.querySelector(".algolassi-chat-presence-head");if(!head)return;
-    var hide=head.querySelector(".algolassi-chat-toggle-hide");if(hide)return;
-    hide=document.createElement("button");hide.type="button";hide.className="algolassi-chat-toggle-hide";hide.setAttribute("aria-label","Hide chat");hide.title="Hide chat";hide.textContent="×";
-    hide.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();setHidden(true);apply();});head.appendChild(hide);
+    removeOldCloseButtons(head);
+    var hide=head.querySelector(".algolassi-chat-toggle-hide");
+    if(hide){hide.textContent="Hide";hide.setAttribute("aria-label","Hide chat");hide.title="Hide chat";return;}
+    hide=document.createElement("button");hide.type="button";hide.className="algolassi-chat-toggle-hide";hide.setAttribute("aria-label","Hide chat");hide.title="Hide chat";hide.textContent="Hide";
+    hide.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();setHidden(true);apply();});
+    head.appendChild(hide);
   }
 
   function apply(){
