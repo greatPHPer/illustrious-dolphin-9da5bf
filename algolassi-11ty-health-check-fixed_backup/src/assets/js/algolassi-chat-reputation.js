@@ -27,8 +27,6 @@
   }
 
   function ensureReopenButton() {
-    var host=document.getElementById("algolassi-chat-presence-host");
-    if(!host)return null;
     var button=document.getElementById("algolassi-chat-reopen");
     if(!button){
       button=document.createElement("button");
@@ -141,38 +139,9 @@
     }
   }
 
-  function refreshAfterVisibilityChange(){
-    setupChatToggle();
-    var nodes=getMessageNodes();
-    var needsRefresh=nodes.some(function(node){return !node.querySelector(".algolassi-chat-author-line")||!node.querySelector(".algolassi-chat-reaction-row");});
-    if(needsRefresh){lastSignature="";scheduleDecorate(20);}
-  }
-  function observeMessages(){
-    var host=document.getElementById("algolassi-chat-presence-host");
-    if(!host||observer)return;
-    observer=new MutationObserver(function(mutations){
-      var hasNewMessage=false;
-      mutations.forEach(function(m){
-        Array.prototype.forEach.call(m.addedNodes||[],function(n){
-          if(n.nodeType!==1)return;
-          if((n.matches&&n.matches(".algolassi-chat-message"))||(n.querySelector&&n.querySelector(".algolassi-chat-message")))hasNewMessage=true;
-        });
-      });
-      setupChatToggle();
-      if(hasNewMessage){lastSignature="";scheduleDecorate(0);}
-    });
-    observer.observe(host,{childList:true,subtree:true});
-  }
-  function start(){
-    if(initialized)return;initialized=true;addStyles();
-    window.addEventListener("algolassi:username-changed",function(){lastSignature="";scheduleDecorate(100);});
-    window.addEventListener("algolassi:auth-changed",function(){lastSignature="";scheduleDecorate(100);});
-    window.addEventListener("algolassi:spa-navigation",function(){lastSignature="";scheduleDecorate(100);});
-    document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")refreshAfterVisibilityChange();});
-    observeMessages();
-    var tries=0,timer=setInterval(function(){setupChatToggle();decorate();observeMessages();if(++tries>60)clearInterval(timer);},500);
-    setTimeout(function(){setupChatToggle();observeMessages();decorate();},100);
-  }
+  function refreshAfterVisibilityChange(){setupChatToggle();var nodes=getMessageNodes();var needsRefresh=nodes.some(function(node){return !node.querySelector(".algolassi-chat-author-line")||!node.querySelector(".algolassi-chat-reaction-row");});if(needsRefresh){lastSignature="";scheduleDecorate(20);}}
+  function observeMessages(){var host=document.getElementById("algolassi-chat-presence-host");if(!host||observer)return;observer=new MutationObserver(function(mutations){var hasNewMessage=false;mutations.forEach(function(m){Array.prototype.forEach.call(m.addedNodes||[],function(n){if(n.nodeType!==1)return;if((n.matches&&n.matches(".algolassi-chat-message"))||(n.querySelector&&n.querySelector(".algolassi-chat-message")))hasNewMessage=true;});});setupChatToggle();if(hasNewMessage){lastSignature="";scheduleDecorate(0);}});observer.observe(host,{childList:true,subtree:true});}
+  function start(){if(initialized)return;initialized=true;addStyles();window.addEventListener("algolassi:username-changed",function(){lastSignature="";scheduleDecorate(100);});window.addEventListener("algolassi:auth-changed",function(){lastSignature="";scheduleDecorate(100);});window.addEventListener("algolassi:spa-navigation",function(){lastSignature="";scheduleDecorate(100);});document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")refreshAfterVisibilityChange();});observeMessages();var tries=0,timer=setInterval(function(){setupChatToggle();decorate();observeMessages();if(++tries>60)clearInterval(timer);},500);setTimeout(function(){setupChatToggle();observeMessages();decorate();},100);}
   window.AlgolassiChatReputationInit=start;
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
 })();
