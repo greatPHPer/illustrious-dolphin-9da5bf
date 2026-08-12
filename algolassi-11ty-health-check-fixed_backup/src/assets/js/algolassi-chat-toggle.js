@@ -1,14 +1,18 @@
 /* Algolassi Chat - independent hide/reopen control */
 (function () {
   "use strict";
-  var STORAGE_KEY = "algolassi-chat-hidden";
+  var STORAGE_KEY = "algolassi-chat-hidden-v2";
+  var OLD_STORAGE_KEY = "algolassi-chat-hidden";
   var BUTTON_ID = "algolassi-chat-reopen-button";
 
   function hidden() {
     try { return localStorage.getItem(STORAGE_KEY) === "1"; } catch (e) { return false; }
   }
   function setHidden(value) {
-    try { localStorage.setItem(STORAGE_KEY, value ? "1" : "0"); } catch (e) {}
+    try {
+      localStorage.setItem(STORAGE_KEY, value ? "1" : "0");
+      localStorage.setItem(OLD_STORAGE_KEY, value ? "1" : "0");
+    } catch (e) {}
   }
   function host() { return document.getElementById("algolassi-chat-presence-host"); }
   function card() { var h = host(); return h && h.querySelector(".algolassi-chat-presence-card"); }
@@ -19,7 +23,7 @@
     s.id = "algolassi-chat-toggle-styles";
     s.textContent =
       "#algolassi-chat-presence-host.algolassi-chat-toggle-hidden{display:none!important;}" +
-      "#" + BUTTON_ID + "{display:none;position:fixed;right:18px;bottom:18px;width:42px;height:42px;border:0;border-radius:50%;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.28);font-size:21px;line-height:42px;text-align:center;cursor:pointer;z-index:2147483647;padding:0;}" +
+      "#" + BUTTON_ID + "{display:none!important;position:fixed;right:18px;bottom:18px;width:42px;height:42px;border:0;border-radius:50%;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.28);font-size:21px;line-height:42px;text-align:center;cursor:pointer;z-index:2147483647;padding:0;}" +
       "#" + BUTTON_ID + ".is-visible{display:block!important;}" +
       "#" + BUTTON_ID + ":hover{transform:scale(1.06);}" +
       "#algolassi-chat-presence-host .algolassi-chat-toggle-hide{margin-left:auto;border:0;background:transparent;color:inherit;font-size:18px;line-height:1;cursor:pointer;padding:4px 7px;}" +
@@ -40,9 +44,9 @@
       e.preventDefault();
       e.stopPropagation();
       setHidden(false);
-      apply();
       var h = host();
       if (h) h.classList.remove("algolassi-chat-toggle-hidden", "algolassi-chat-is-hidden");
+      apply();
     });
     document.body.appendChild(b);
     return b;
@@ -66,6 +70,7 @@
     addStyles();
     var b = ensureButton();
     var h = host();
+    var isHidden = hidden();
     if (h) {
       var c = card();
       if (c && !c.querySelector(".algolassi-chat-toggle-hide")) {
@@ -84,14 +89,19 @@
           apply();
         });
       }
-      h.classList.toggle("algolassi-chat-toggle-hidden", hidden());
+      h.classList.toggle("algolassi-chat-toggle-hidden", isHidden);
+      if (!isHidden) h.classList.remove("algolassi-chat-is-hidden");
     }
-    b.classList.toggle("is-visible", hidden());
+    b.classList.toggle("is-visible", isHidden);
     positionButton();
   }
 
   function init() {
     addStyles();
+    /* Start in the visible state for this new toggle implementation. */
+    try {
+      if (localStorage.getItem(STORAGE_KEY) === null) localStorage.setItem(STORAGE_KEY, "0");
+    } catch (e) {}
     ensureButton();
     apply();
     window.addEventListener("resize", positionButton, { passive: true });
