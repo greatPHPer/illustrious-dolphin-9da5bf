@@ -1,0 +1,40 @@
+/* Algolassi Chat - safe hide/reopen control */
+(function () {
+  "use strict";
+  var STORAGE_KEY = "algolassi-chat-hidden-v2";
+  var BUTTON_ID = "algolassi-chat-reopen-button";
+  var GAP = 14, ICON_SIZE = 42, applying = false;
+  function hidden(){try{return localStorage.getItem(STORAGE_KEY)==="1";}catch(e){return false;}}
+  function setHidden(v){try{localStorage.setItem(STORAGE_KEY,v?"1":"0");}catch(e){}}
+  function host(){return document.getElementById("algolassi-chat-presence-host");}
+  function addStyles(){if(document.getElementById("algolassi-chat-toggle-styles"))return;var s=document.createElement("style");s.id="algolassi-chat-toggle-styles";s.textContent="#algolassi-chat-presence-host.algolassi-chat-toggle-hidden{display:none!important;}#"+BUTTON_ID+"{display:none!important;position:fixed;right:18px;bottom:18px;width:"+ICON_SIZE+"px;height:"+ICON_SIZE+"px;border:0;border-radius:50%;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.28);font-size:21px;line-height:"+ICON_SIZE+"px;text-align:center;cursor:pointer;z-index:2147483647;padding:0}#"+BUTTON_ID+".is-visible{display:flex!important;align-items:center;justify-content:center}@media(max-width:600px){#"+BUTTON_ID+"{right:10px;width:40px;height:40px;line-height:40px;font-size:20px}}";document.head.appendChild(s);}
+  function ensureButton(){var b=document.getElementById(BUTTON_ID);if(b)return b;b=document.createElement("button");b.id=BUTTON_ID;b.type="button";b.textContent="💬";b.setAttribute("aria-label","Open Algolassi Chat");b.title="Open Algolassi Chat";b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();setHidden(false);apply();});document.body.appendChild(b);return b;}
+  function rect(el){if(!el)return null;var r=el.getBoundingClientRect();return r.width>0&&r.height>0&&r.bottom>0&&r.top<window.innerHeight?r:null;}
+  function radioLauncherRect(){
+    var radio=document.getElementById("algolassi-radio-host");
+    if(!radio)return null;
+    var selectors=["[data-radio-reopen]",".algolassi-radio-reopen",".algolassi-radio-toggle",".algolassi-radio-icon",".algolassi-radio-button","button"];
+    for(var i=0;i<selectors.length;i++){var el=radio.querySelector(selectors[i]),r=rect(el);if(r)return r;}
+    return null;
+  }
+  function positionButton(){
+    var b=document.getElementById(BUTTON_ID);if(!b)return;
+    var base=window.innerWidth<=600?10:18, rr=radioLauncherRect();
+    if(rr){b.style.bottom=Math.max(window.innerHeight-rr.top+GAP,base+ICON_SIZE+GAP)+"px";}
+    else{
+      /* When the radio is hidden its launcher may live outside the radio host. Find a
+         visible radio control by common identifiers, then stack chat above it. */
+      var candidates=document.querySelectorAll("[data-radio-reopen],#algolassi-radio-reopen,.algolassi-radio-reopen,.algolassi-radio-toggle,.algolassi-radio-icon,.algolassi-radio-button");
+      var found=null;for(var i=0;i<candidates.length;i++){found=rect(candidates[i]);if(found)break;}
+      b.style.bottom=found?Math.max(window.innerHeight-found.top+GAP,base+ICON_SIZE+GAP)+"px":base+"px";
+    }
+    b.style.right=window.innerWidth<=600?"10px":"18px";
+  }
+  function hideChat(e){if(e){e.preventDefault();e.stopPropagation();}setHidden(true);var h=host();if(h)h.classList.add("algolassi-chat-toggle-hidden");var b=ensureButton();b.classList.add("is-visible");positionButton();}
+  function bindHideClick(){if(document.documentElement.dataset.algolassiChatHideBound==="true")return;document.documentElement.dataset.algolassiChatHideBound="true";document.addEventListener("click",function(e){var t=e.target;if(!t||!t.closest)return;if(t.closest("#algolassi-chat-presence-host .algolassi-chat-toggle-hide")||t.closest("#algolassi-chat-presence-host #algolassi-chat-hide, #algolassi-chat-presence-host .algolassi-chat-hide")){hideChat(e);}},true);}
+  function removeOldCloseButtons(){var h=host();if(!h)return;Array.prototype.slice.call(h.querySelectorAll("#algolassi-chat-hide, .algolassi-chat-hide, [aria-label='Close chat'], [title='Close chat']")).forEach(function(x){x.remove();});}
+  function addHideButton(){var h=host();if(!h)return;var head=h.querySelector(".algolassi-chat-presence-head");if(!head||head.querySelector(".algolassi-chat-toggle-hide"))return;var hide=document.createElement("button");hide.type="button";hide.className="algolassi-chat-toggle-hide";hide.textContent="Hide";hide.setAttribute("aria-label","Hide chat");hide.title="Hide chat";hide.style.cssText="margin-left:auto;border:0;border-radius:7px;background:transparent;color:inherit;font-size:12px;line-height:1;cursor:pointer;padding:5px 8px";head.appendChild(hide);}
+  function apply(){if(applying)return;applying=true;try{addStyles();var b=ensureButton(),h=host(),isHidden=hidden();removeOldCloseButtons();addHideButton();if(h&&isHidden)h.classList.add("algolassi-chat-toggle-hidden");else if(h)h.classList.remove("algolassi-chat-toggle-hidden","algolassi-chat-is-hidden");b.classList.toggle("is-visible",isHidden);positionButton();}finally{applying=false;}}
+  function init(){addStyles();ensureButton();bindHideClick();try{if(localStorage.getItem(STORAGE_KEY)===null)localStorage.setItem(STORAGE_KEY,"0");}catch(e){}apply();window.addEventListener("resize",positionButton,{passive:true});window.addEventListener("scroll",positionButton,{passive:true});window.addEventListener("algolassi:spa-navigation",function(){setTimeout(apply,100);setTimeout(apply,600);});setInterval(apply,1500);}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
+})();
