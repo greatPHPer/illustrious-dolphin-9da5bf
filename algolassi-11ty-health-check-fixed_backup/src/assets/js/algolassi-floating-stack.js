@@ -35,18 +35,9 @@
 
     var radio = visibleRect(document.getElementById("algolassi-radio-host"));
     var news = assistantRect();
-    var lower = null;
-
-    /* The radio script moves radio above the news toast. If radio exists,
-       it is therefore the immediate layer under chat. If it doesn't exist,
-       news becomes the immediate layer. */
-    if (radio) {
-      lower = radio;
-    } else if (news) {
-      lower = news;
-    }
-
+    var lower = radio || news || null;
     var base = window.innerWidth <= 600 ? 10 : 18;
+
     if (lower) {
       var targetBottom = window.innerHeight - lower.top + GAP;
       chat.style.bottom = Math.max(base, targetBottom) + "px";
@@ -69,13 +60,20 @@
     window.addEventListener("algolassi:radio-layout-change", settle);
     window.addEventListener("algolassi:spa-navigation", settle);
 
+    /* Observe only the three floating hosts, not the entire document. */
     if (window.MutationObserver) {
       var observer = new MutationObserver(function () { settle(); });
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ["style", "class", "aria-hidden"]
+      [
+        document.getElementById("algolassi-chat-presence-host"),
+        document.getElementById("algolassi-radio-host"),
+        document.getElementById("algolassi-assistant-host")
+      ].forEach(function (host) {
+        if (host) observer.observe(host, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ["style", "class", "aria-hidden"]
+        });
       });
     }
 
