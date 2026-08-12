@@ -4,6 +4,7 @@
   var STORAGE_KEY = "algolassi-chat-hidden-v2";
   var BUTTON_ID = "algolassi-chat-reopen-button";
   var GAP = 14;
+  var ICON_SIZE = 42;
   var applying = false;
 
   function hidden(){try{return localStorage.getItem(STORAGE_KEY)==="1";}catch(e){return false;}}
@@ -13,7 +14,7 @@
   function addStyles(){
     if(document.getElementById("algolassi-chat-toggle-styles"))return;
     var s=document.createElement("style");s.id="algolassi-chat-toggle-styles";
-    s.textContent="#algolassi-chat-presence-host.algolassi-chat-toggle-hidden{display:none!important;}#"+BUTTON_ID+"{display:none!important;position:fixed;right:18px;bottom:18px;width:42px;height:42px;border:0;border-radius:50%;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.28);font-size:21px;line-height:42px;text-align:center;cursor:pointer;z-index:2147483647;padding:0}#"+BUTTON_ID+".is-visible{display:flex!important;align-items:center;justify-content:center}#"+BUTTON_ID+":hover{transform:scale(1.06)}#algolassi-chat-presence-host .algolassi-chat-toggle-hide{margin-left:auto;border:0;background:transparent;color:inherit;font-size:18px;line-height:1;cursor:pointer;padding:4px 7px}@media(max-width:600px){#"+BUTTON_ID+"{right:10px;width:40px;height:40px;line-height:40px;font-size:20px}}";
+    s.textContent="#algolassi-chat-presence-host.algolassi-chat-toggle-hidden{display:none!important;}#"+BUTTON_ID+"{display:none!important;position:fixed;right:18px;bottom:18px;width:"+ICON_SIZE+"px;height:"+ICON_SIZE+"px;border:0;border-radius:50%;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.28);font-size:21px;line-height:"+ICON_SIZE+"px;text-align:center;cursor:pointer;z-index:2147483647;padding:0}#"+BUTTON_ID+".is-visible{display:flex!important;align-items:center;justify-content:center}#"+BUTTON_ID+":hover{transform:scale(1.06)}#algolassi-chat-presence-host .algolassi-chat-toggle-hide{margin-left:auto;border:0;background:transparent;color:inherit;font-size:18px;line-height:1;cursor:pointer;padding:4px 7px}@media(max-width:600px){#"+BUTTON_ID+"{right:10px;width:40px;height:40px;line-height:40px;font-size:20px}}";
     document.head.appendChild(s);
   }
 
@@ -32,22 +33,36 @@
     var radio=document.getElementById("algolassi-radio-host");
     var target=null;
     if(radio){
-      /* The radio host can be a full-width fixed wrapper whose own box does not
-         represent the visible radio control. Use the actual visible toast first. */
       target=visibleRect(radio.querySelector(".algolassi-radio-toast"));
       if(!target)target=visibleRect(radio.querySelector("button"));
       if(!target)target=visibleRect(radio);
     }
+
     if(target){
-      /* bottom is measured from the viewport, so the chat icon's top sits
-         GAP pixels above the radio's actual top edge. */
+      /* Radio is open/visible: put chat above the actual radio control. */
       var bottom=window.innerHeight-target.top+GAP;
-      var minBottom=base+(window.innerWidth<=600?40:42)+GAP;
-      b.style.bottom=Math.max(bottom,minBottom)+"px";
-    }else{
+      b.style.bottom=Math.max(bottom,base+ICON_SIZE+GAP)+"px";
+    } else if(radio && hiddenRadioReopenLikely(radio)) {
+      /* Radio itself is hidden but its small reopen control remains at the
+         bottom-right. Reserve one icon-height so the two launchers stack. */
+      b.style.bottom=(base+ICON_SIZE+GAP)+"px";
+    } else {
       b.style.bottom=base+"px";
     }
     b.style.right=window.innerWidth<=600?"10px":"18px";
+  }
+
+  function hiddenRadioReopenLikely(radio){
+    /* The radio implementation can hide its toast while leaving a launcher
+       in the same fixed corner. Treat the radio host as reserving that corner
+       whenever it exists but has no visible toast/control. This prevents the
+       chat launcher from occupying the radio launcher's coordinates. */
+    if(!radio)return false;
+    var toast=radio.querySelector(".algolassi-radio-toast");
+    if(toast && !visibleRect(toast))return true;
+    var buttons=radio.querySelectorAll("button");
+    if(buttons.length){for(var i=0;i<buttons.length;i++){if(!visibleRect(buttons[i]))continue;return false;}}
+    return true;
   }
 
   function ensureHideButton(h){
