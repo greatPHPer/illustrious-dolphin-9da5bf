@@ -48,32 +48,70 @@
     return true;
   }
 
-  function removeOldCloseButtons(head){
-    Array.prototype.slice.call(head.querySelectorAll("#algolassi-chat-hide, .algolassi-chat-hide, [aria-label='Close chat'], [title='Close chat']")).forEach(function(old){old.remove();});
+  /* The old X button performed the simple, reliable hide operation.
+     Keep exactly that behavior on the new Hide button. */
+  function hideChat(e){
+    if(e){e.preventDefault();e.stopPropagation();}
+    setHidden(true);
+    var h=host();
+    if(h)h.classList.add("algolassi-chat-toggle-hidden");
+    var b=ensureButton();
+    b.classList.add("is-visible");
+    positionButton();
   }
 
-  function ensureHideButton(h){
-    if(!h)return;var card=h.querySelector(".algolassi-chat-presence-card");if(!card)return;var head=card.querySelector(".algolassi-chat-presence-head");if(!head)return;
-    removeOldCloseButtons(head);
-    var hide=head.querySelector(".algolassi-chat-toggle-hide");
-    if(hide){hide.textContent="Hide";hide.setAttribute("aria-label","Hide chat");hide.title="Hide chat";return;}
-    hide=document.createElement("button");hide.type="button";hide.className="algolassi-chat-toggle-hide";hide.setAttribute("aria-label","Hide chat");hide.title="Hide chat";hide.textContent="Hide";
-    hide.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();setHidden(true);apply();});
-    head.appendChild(hide);
+  function showChat(e){
+    if(e){e.preventDefault();e.stopPropagation();}
+    setHidden(false);
+    var h=host();
+    if(h)h.classList.remove("algolassi-chat-toggle-hidden","algolassi-chat-is-hidden");
+    var b=ensureButton();
+    b.classList.remove("is-visible");
+    positionButton();
+  }
+
+  /* Do not mutate the chat DOM from a MutationObserver. The chat renderer
+     rebuilds its header, and observing those changes was causing the loop. */
+  function bindHideClick(){
+    if(document.documentElement.dataset.algolassiChatHideBound==="true")return;
+    document.documentElement.dataset.algolassiChatHideBound="true";
+    document.addEventListener("click",function(e){
+      var target=e.target;
+      if(!target||!target.closest)return;
+      var hide=target.closest("#algolassi-chat-presence-host .algolassi-chat-toggle-hide");
+      if(hide){hideChat(e);return;}
+      var oldClose=target.closest("#algolassi-chat-presence-host #algolassi-chat-hide, #algolassi-chat-presence-host .algolassi-chat-hide");
+      if(oldClose){hideChat(e);return;}
+    },true);
+  }
+
+  function removeOldCloseButtons(){
+    var h=host();if(!h)return;
+    Array.prototype.slice.call(h.querySelectorAll("#algolassi-chat-hide, .algolassi-chat-hide, [aria-label='Close chat'], [title='Close chat']")).forEach(function(old){old.remove();});
   }
 
   function apply(){
     if(applying)return;applying=true;
-    try{addStyles();var b=ensureButton(),h=host(),isHidden=hidden();if(h){ensureHideButton(h);h.classList.toggle("algolassi-chat-toggle-hidden",isHidden);if(!isHidden)h.classList.remove("algolassi-chat-is-hidden");}b.classList.toggle("is-visible",isHidden);positionButton();}finally{applying=false;}
+    try{
+      addStyles();
+      var b=ensureButton(),h=host(),isHidden=hidden();
+      removeOldCloseButtons();
+      if(h&&isHidden)h.classList.add("algolassi-chat-toggle-hidden");
+      else if(h)h.classList.remove("algolassi-chat-toggle-hidden","algolassi-chat-is-hidden");
+      b.classList.toggle("is-visible",isHidden);
+      positionButton();
+    }finally{applying=false;}
   }
 
   function init(){
-    addStyles();ensureButton();
+    addStyles();ensureButton();bindHideClick();
     try{if(localStorage.getItem(STORAGE_KEY)===null)localStorage.setItem(STORAGE_KEY,"0");}catch(e){}
-    apply();window.addEventListener("resize",positionButton,{passive:true});window.addEventListener("scroll",positionButton,{passive:true});
-    new MutationObserver(function(){apply();}).observe(document.body,{childList:true,subtree:true});
-    window.addEventListener("algolassi:spa-navigation",function(){setTimeout(apply,50);setTimeout(apply,500);});
-    setInterval(apply,1000);
+    apply();
+    window.addEventListener("resize",positionButton,{passive:true});
+    window.addEventListener("scroll",positionButton,{passive:true});
+    window.addEventListener("algolassi:spa-navigation",function(){setTimeout(apply,100);setTimeout(apply,600);});
+    /* Re-apply state only; no DOM observer, so chat rendering cannot loop. */
+    setInterval(apply,1500);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
