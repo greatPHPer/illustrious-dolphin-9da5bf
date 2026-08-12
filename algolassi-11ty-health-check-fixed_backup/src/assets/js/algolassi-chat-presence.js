@@ -2,7 +2,7 @@
 (function () {
   "use strict";
   var SUPABASE_URL = "https://ashezapnoqslggtxcncj.supabase.co";
-  var SUPABASE_KEY = "sb_publishable_ki4D3v_JZK4elETfkYtmGA_xWDtbpBg";
+  var SUPABASE_KEY = "sb_publishable_ki4D3v_JZk4elETfkYtmGA_xWDtbpBg";
   var PRESENCE_CHANNEL = "algolassi-community-presence-v1", CHAT_CHANNEL = "algolassi-community-chat-v1", GUEST_KEY = "algolassi_guest_id_v1";
   var client = null, channel = null, chatChannel = null, host = null, presence = {}, currentUser = null, currentUsername = "", initialized = false, messages = [];
   var preserveChatScrollTop = null, olderLoadInProgress = false, hasOlderMessages = true, olderScrollRestore = null;

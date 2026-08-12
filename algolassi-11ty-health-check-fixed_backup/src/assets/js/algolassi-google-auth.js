@@ -3,7 +3,7 @@
 
   var CLIENT_ID = "82669071-dvo4ur39m1a4b4a6a8katj9hkhquti2e.apps.googleusercontent.com";
   var SUPABASE_URL = "https://ashezapnoqslggtxcncj.supabase.co";
-  var SUPABASE_KEY = "sb_publishable_ki4D3v_JZK4elETfkYtmGA_xWDtbpBg";
+  var SUPABASE_KEY = "sb_publishable_ki4D3v_JZk4elETfkYtmGA_xWDtbpBg";
   var SUPABASE_JS = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
   var containerId = "algolassi-google-auth";
   var supabaseClient = null;
