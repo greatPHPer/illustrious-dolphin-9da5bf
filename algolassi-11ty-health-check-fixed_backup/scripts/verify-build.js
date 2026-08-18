@@ -4,7 +4,7 @@ const required = [
   "_site/robots.txt",
   "_site/ads.txt",
   "_site/sitemap.xml",
-  "_site/197-2/index.html",
+  "_site/portfolio/index.html",
   "_site/wp-content/themes/twentytwentyfive/assets/images/woman-splashing-water.webp"
 ];
 const missing = required.filter(p => !fs.existsSync(p));
