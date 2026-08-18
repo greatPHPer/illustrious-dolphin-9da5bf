@@ -5,7 +5,13 @@ eleventyExcludeFromCollections: true
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 {%- for item in collections.all | sort(attribute="url") -%}
-  {%- if item.url != "/404.html" and item.url != "/sample-page/" and item.url != "/thank-you/" and item.url != "/sitemap.xml" -%}
+  {%- if item.url != "/404.html"
+      and item.url != "/sample-page/"
+      and item.url != "/thank-you/"
+      and item.url != "/sitemap.xml"
+      and not item.url.startsWith("/category/")
+      and not item.url.startsWith("/tag/")
+      and not item.url.startsWith("/wp-content/") -%}
   <url><loc>https://algolassi.online{{ item.url }}</loc></url>
   {%- endif -%}
 {%- endfor %}

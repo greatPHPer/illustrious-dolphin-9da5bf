@@ -4,3 +4,9 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/197-2/"
+  to = "/portfolio/"
+  status = 301
+  force = true
