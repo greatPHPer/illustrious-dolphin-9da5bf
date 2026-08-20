@@ -1,0 +1,19 @@
+<section class="algolassi-newsletter" aria-labelledby="algolassi-newsletter-title">
+  <div>
+    <p class="eyebrow">NEWSLETTER</p>
+    <h2 id="algolassi-newsletter-title">Subscribe to the Algolassi newsletter</h2>
+    <p>Get practical .NET, C#, Blazor, SQL Server and developer tips in your inbox. No spam, just useful updates.</p>
+  </div>
+
+  <form class="algolassi-newsletter-form" data-newsletter-form action="/api/newsletter-signup" method="post" novalidate>
+    <label for="algolassi-newsletter-email">Email address</label>
+    <div class="algolassi-newsletter-row">
+      <input id="algolassi-newsletter-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required>
+      <button class="button" type="submit">Subscribe</button>
+    </div>
+    <input class="algolassi-newsletter-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <p class="algolassi-newsletter-consent">By subscribing, you agree to receive Algolassi newsletter emails. You can unsubscribe at any time. See our <a href="/privacy-policy-2/">Privacy Policy</a>.</p>
+    <p class="algolassi-newsletter-status" data-newsletter-status role="status" aria-live="polite"></p>
+  </form>
+</section>
+<script src="/assets/js/algolassi-newsletter.js" defer></script>

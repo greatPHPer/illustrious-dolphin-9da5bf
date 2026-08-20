@@ -1,0 +1,5 @@
+# Copy to .dev.vars for local development. Never commit the real .dev.vars file.
+BREVO_API_KEY=YOUR_BREVO_API_KEY_HERE
+BREVO_NEWSLETTER_LIST_ID=7
+BREVO_DOUBLE_OPTIN_TEMPLATE_ID=14
+BREVO_CONFIRMATION_REDIRECT_URL=https://algolassi.online/newsletter/
