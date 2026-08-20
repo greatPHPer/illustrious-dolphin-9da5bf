@@ -6,6 +6,11 @@
   NODE_VERSION = "22"
 
 [[redirects]]
+  from = "/api/newsletter-signup"
+  to = "/.netlify/functions/newsletter-signup"
+  status = 200
+
+[[redirects]]
   from = "/197-2/"
   to = "/portfolio/"
   status = 301
