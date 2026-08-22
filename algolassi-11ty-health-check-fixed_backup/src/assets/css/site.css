@@ -10,43 +10,86 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
 /* ========================================================= ALGOLASSI BREADCRUMB ========================================================= */.breadcrumbs{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 24px 0;padding:12px 0;font-size:14px;line-height:1.5}.breadcrumb-item{position:relative;display:inline-flex;align-items:center}.breadcrumb-trigger{display:inline-flex;align-items:center;gap:4px;text-decoration:none;cursor:pointer}.breadcrumbs a{text-decoration:none}.breadcrumb-arrow{font-size:10px;margin-left:3px}.breadcrumb-separator{color:#777;margin:0 2px}.breadcrumb-current{font-weight:500}.breadcrumb-menu{display:none;position:absolute;top:100%;left:0;min-width:280px;max-width:420px;padding:8px 0;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:1000}.breadcrumb-item:hover>.breadcrumb-menu,.breadcrumb-item:focus-within>.breadcrumb-menu{display:block}.breadcrumb-menu a{display:block;padding:7px 12px;white-space:normal;text-decoration:none;color:#333;font-size:13px;line-height:1.3}.breadcrumb-dropdown-current{background:#e8f3ff;color:#0d6efd!important;font-weight:600}.breadcrumb-menu a:hover{background:#f1f3f4}.breadcrumb-menu a.breadcrumb-dropdown-current{font-weight:700;color:#0d6efd!important;background:#f5f9ff;border-radius:4px;margin:4px 8px;padding:8px 10px;box-sizing:border-box}.breadcrumb-menu a.breadcrumb-dropdown-current:hover{background:#dbe8ff;border:1px solid #1a73e8}@media(max-width:700px){.breadcrumbs{font-size:13px;gap:5px}.breadcrumb-menu{min-width:240px;max-width:90vw}}
 
 /* =========================================================
-   ALGOLASSI MENU MOTION
-   Keep the existing menu appearance; animate only its visibility.
+   ALGOLASSI MENU MOTION — STAGGERED ZOOM RIPPLE
+   Existing menu appearance remains unchanged while each item
+   runs its own zoom-out → zoom-in → disappear sequence on exit.
    ========================================================= */
-.breadcrumb-menu{display:block!important;visibility:hidden;opacity:0;pointer-events:none;transform:translateY(-3px) scale(.98);transform-origin:top left;transition:opacity .18s ease,transform .28s cubic-bezier(.22,1,.36,1),visibility 0s linear .34s}
-.breadcrumb-item:hover>.breadcrumb-menu,.breadcrumb-item:focus-within>.breadcrumb-menu,.breadcrumb-menu.open{visibility:visible;opacity:1;pointer-events:auto;transform:translateY(0) scale(1);transition-delay:0s}
-.breadcrumb-menu a{opacity:0;transform:translateX(-3px) scale(.94);transform-origin:left center;will-change:opacity,transform;transition:opacity .16s ease,transform .28s cubic-bezier(.34,1.56,.64,1),background-color .15s ease,color .15s ease}
-.breadcrumb-item:hover>.breadcrumb-menu>a,.breadcrumb-item:focus-within>.breadcrumb-menu>a,.breadcrumb-menu.open>a{opacity:1;transform:translateX(0) scale(1);transition-delay:0s}
-.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(1){transition-delay:0s}
-.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(2){transition-delay:.035s}
-.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(3){transition-delay:.070s}
-.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(4){transition-delay:.105s}
-.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(5){transition-delay:.140s}
-.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(6){transition-delay:.175s}
-.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(7){transition-delay:.210s}
-.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(8){transition-delay:.245s}
-.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(9){transition-delay:.280s}
-.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(10){transition-delay:.315s}
-.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(11){transition-delay:.350s}
-.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(12){transition-delay:.385s}
+@keyframes algolassiBreadcrumbExitRipple{
+  0%{opacity:1;transform:translateX(0) scale(1)}
+  28%{opacity:1;transform:translateX(0) scale(.86)}
+  58%{opacity:1;transform:translateX(0) scale(1.08)}
+  100%{opacity:0;transform:translateX(0) scale(0)}
+}
+
+.breadcrumb-menu{
+  display:block!important;
+  visibility:hidden;
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(-3px) scale(.98);
+  transform-origin:top left;
+  transition:opacity .18s ease,transform .28s cubic-bezier(.22,1,.36,1),visibility 0s linear .48s;
+}
+
+.breadcrumb-item:hover>.breadcrumb-menu,
+.breadcrumb-item:focus-within>.breadcrumb-menu,
+.breadcrumb-menu.open{
+  visibility:visible;
+  opacity:1;
+  pointer-events:auto;
+  transform:translateY(0) scale(1);
+  transition-delay:0s;
+}
+
+.breadcrumb-menu a{
+  opacity:0;
+  transform:translateX(0) scale(0);
+  transform-origin:center left;
+  will-change:opacity,transform;
+  animation:none;
+  transition:background-color .15s ease,color .15s ease;
+}
+
+/* While the parent menu is open, items appear exactly as before. */
+.breadcrumb-item:hover>.breadcrumb-menu>a,
+.breadcrumb-item:focus-within>.breadcrumb-menu>a,
+.breadcrumb-menu.open>a{
+  opacity:1;
+  transform:translateX(0) scale(1);
+  animation:none;
+}
+
+/* Mouse leaves parent: each item gets its own timestamp. */
+.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(1){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both 0s}
+.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(2){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .055s}
+.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(3){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .110s}
+.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(4){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .165s}
+.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(5){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .220s}
+.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(6){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .275s}
+.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(7){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .330s}
+.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(8){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .385s}
+.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(9){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .440s}
+.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(10){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .495s}
+.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(11){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .550s}
+.breadcrumb-item:not(:hover):not(:focus-within)>.breadcrumb-menu>a:nth-child(12){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .605s}
 
 @media(max-width:700px){
   .breadcrumb-menu{min-width:240px;max-width:90vw}
   .breadcrumb-menu.open{visibility:visible;opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
-  .breadcrumb-menu:not(.open)>a:nth-child(1){transition-delay:0s}
-  .breadcrumb-menu:not(.open)>a:nth-child(2){transition-delay:.035s}
-  .breadcrumb-menu:not(.open)>a:nth-child(3){transition-delay:.070s}
-  .breadcrumb-menu:not(.open)>a:nth-child(4){transition-delay:.105s}
-  .breadcrumb-menu:not(.open)>a:nth-child(5){transition-delay:.140s}
-  .breadcrumb-menu:not(.open)>a:nth-child(6){transition-delay:.175s}
-  .breadcrumb-menu:not(.open)>a:nth-child(7){transition-delay:.210s}
-  .breadcrumb-menu:not(.open)>a:nth-child(8){transition-delay:.245s}
-  .breadcrumb-menu:not(.open)>a:nth-child(9){transition-delay:.280s}
-  .breadcrumb-menu:not(.open)>a:nth-child(10){transition-delay:.315s}
-  .breadcrumb-menu:not(.open)>a:nth-child(11){transition-delay:.350s}
-  .breadcrumb-menu:not(.open)>a:nth-child(12){transition-delay:.385s}
+  .breadcrumb-menu:not(.open)>a:nth-child(1){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both 0s}
+  .breadcrumb-menu:not(.open)>a:nth-child(2){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .055s}
+  .breadcrumb-menu:not(.open)>a:nth-child(3){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .110s}
+  .breadcrumb-menu:not(.open)>a:nth-child(4){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .165s}
+  .breadcrumb-menu:not(.open)>a:nth-child(5){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .220s}
+  .breadcrumb-menu:not(.open)>a:nth-child(6){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .275s}
+  .breadcrumb-menu:not(.open)>a:nth-child(7){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .330s}
+  .breadcrumb-menu:not(.open)>a:nth-child(8){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .385s}
+  .breadcrumb-menu:not(.open)>a:nth-child(9){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .440s}
+  .breadcrumb-menu:not(.open)>a:nth-child(10){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .495s}
+  .breadcrumb-menu:not(.open)>a:nth-child(11){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .550s}
+  .breadcrumb-menu:not(.open)>a:nth-child(12){animation:algolassiBreadcrumbExitRipple .42s cubic-bezier(.34,1.56,.64,1) both .605s}
 }
 
 @media(prefers-reduced-motion:reduce){
-  .breadcrumb-menu,.breadcrumb-menu a{transition:none!important;transform:none!important}
+  .breadcrumb-menu,.breadcrumb-menu a{animation:none!important;transition:none!important;transform:none!important}
 }
