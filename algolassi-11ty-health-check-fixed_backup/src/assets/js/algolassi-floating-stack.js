@@ -34,11 +34,12 @@
   function setBottom(el,b){if(el)el.style.bottom=Math.max(baseBottom(),b)+"px";}
   function h(rect,fallback){return rect?rect.height:fallback;}
   function bottomAbove(rect){return rect?window.innerHeight-rect.top+GAP:baseBottom();}
+  function radioLauncherAboveBottom(){var el=document.getElementById("algolassi-radio-reopen"),r=radioLauncher();if(!el||!r)return null;var bottom=parseFloat(el.style.bottom);if(!isFinite(bottom))bottom=window.innerHeight-r.bottom;return Math.max(baseBottom(),bottom+h(r,46)+GAP);}
   function updateAll(){
     syncNewsLauncher();
     var news=newsToast(),nmini=newsLauncher(),rbEl=document.getElementById("algolassi-radio-reopen"),rb=radioLauncher(),rc=radioCard(),cbEl=document.getElementById("algolassi-chat-reopen-button"),cb=chatLauncher(),ch=document.getElementById("algolassi-chat-presence-host"),radioEl=document.getElementById("algolassi-radio-host");
 
-    /* 1) Place the lower stack first. */
+    /* Place the lower stack first. */
     var cursor=baseBottom();
     if(nmini){setBottom(document.getElementById(NEWS_BUTTON_ID),cursor);cursor+=h(nmini,46)+GAP;}
     else if(news){cursor=bottomAbove(news);}
@@ -49,28 +50,25 @@
       setBottom(radioEl,news?bottomAbove(news):baseBottom());
     }
 
-    /* Re-read Radio after positioning it. This is important because the Chat
-       position must be based on Radio's NEW rectangle, not its previous one. */
-    var placedRadio=radioLauncher()||radioCard();
+    /* Chat must always be above Radio when Radio is minimized OR restored. */
+    if(rb){
+      cursor=radioLauncherAboveBottom() || bottomAbove(rb);
+    } else if(rc){
+      var placedRadio=radioCard();
+      cursor=bottomAbove(placedRadio);
+    } else if(news){
+      cursor=bottomAbove(news);
+    } else if(nmini){
+      cursor+=GAP;
+    } else {
+      cursor=baseBottom();
+    }
 
-    if(rb){cursor=bottomAbove(placedRadio);}
-    else if(rc){cursor=bottomAbove(placedRadio);}
-    else if(news){cursor=bottomAbove(news);}
-    else if(nmini){cursor+=GAP;}
-    else{cursor=baseBottom();}
-
-    /* 2) Place restored/minimized Chat above the now-settled lower item. */
-    if(ccSafe()){ 
+    if(ccSafe()){
       var cc=chatCard();
-      if(cc&&ch){
-        setBottom(ch,cursor);
-        ch.style.zIndex="2147483004";
-      }
+      if(cc&&ch){setBottom(ch,cursor);ch.style.zIndex="2147483004";}
     }
-    if(cb){
-      setBottom(cbEl,cursor);
-      cbEl.style.zIndex="2147483005";
-    }
+    if(cb){setBottom(cbEl,cursor);cbEl.style.zIndex="2147483005";}
 
     if(assistantHost())assistantHost().style.zIndex="2147483000";
     if(radioEl)radioEl.style.zIndex="2147483001";
