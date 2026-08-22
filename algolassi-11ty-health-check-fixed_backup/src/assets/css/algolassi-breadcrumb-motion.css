@@ -15,6 +15,15 @@
   transform:translateY(0) scale(1)!important;
 }
 
+/* Explicitly closed state wins over the legacy :hover rule. */
+.breadcrumb-menu.motion-hidden{
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+  animation:none!important;
+}
+
 .breadcrumb-menu.motion-open{pointer-events:auto!important}
 .breadcrumb-menu.motion-closing{pointer-events:none!important;transition:none!important}
 
@@ -51,6 +60,7 @@
 @media(max-width:700px){
   .breadcrumb-menu.motion-open{visibility:visible!important;opacity:1!important;pointer-events:auto!important}
   .breadcrumb-menu.motion-closing{visibility:visible!important;opacity:1!important;pointer-events:none!important}
+  .breadcrumb-menu.motion-hidden{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
 }
 
 @media(prefers-reduced-motion:reduce){
