@@ -1,4 +1,4 @@
-/* Algolassi breadcrumb motion - synchronized item + submenu collapse */
+/* Algolassi breadcrumb motion - item vanish controller */
 (function () {
   "use strict";
 
@@ -18,9 +18,8 @@
     if (!menu) return;
     var links = menu.querySelectorAll(":scope > a");
     for (var i = 0; i < links.length; i++) {
-      var link = links[i];
-      link.classList.remove("motion-exit-item");
-      link.style.cssText = "";
+      links[i].classList.remove("motion-exit-item");
+      links[i].style.cssText = "";
     }
     menu.style.height = "";
     menu.style.minHeight = "";
@@ -28,6 +27,9 @@
     menu.style.paddingTop = "";
     menu.style.paddingBottom = "";
     menu.style.transition = "";
+    menu.style.backgroundColor = "";
+    menu.style.borderColor = "";
+    menu.style.boxShadow = "";
   }
 
   function clearTimer(item) {
@@ -63,60 +65,42 @@
       return;
     }
 
-    /* The menu background must collapse with the links. Remove the menu's
-       own vertical padding while closing so it cannot remain as an empty box. */
-    var menuHeight = menu.getBoundingClientRect().height;
-    menu.style.boxSizing = "border-box";
-    menu.style.height = menuHeight + "px";
-    menu.style.minHeight = "0px";
-    menu.style.overflow = "hidden";
-    menu.style.paddingTop = "0px";
-    menu.style.paddingBottom = "0px";
-    menu.style.transition = "height " + ITEM_DURATION + "ms ease";
+    /* Keep the submenu's geometry unchanged. Only the items vanish.
+       The container is made transparent so an empty white box is never shown. */
+    menu.style.backgroundColor = "transparent";
+    menu.style.borderColor = "transparent";
+    menu.style.boxShadow = "none";
 
     links.forEach(function (link) {
-      link.style.height = link.getBoundingClientRect().height + "px";
       link.style.overflow = "hidden";
     });
 
-    function collapseFromBottom(index) {
+    function vanishFromBottom(index) {
       if (index < 0) {
-        menu.style.height = "0px";
-        var finalTimer = setTimeout(function () {
-          menu.classList.remove("motion-closing", "motion-open");
-          menu.classList.add("motion-hidden");
-          resetItems(menu);
-          timers.delete(item);
-        }, ITEM_DURATION);
-        timers.set(item, finalTimer);
+        menu.classList.remove("motion-closing", "motion-open");
+        menu.classList.add("motion-hidden");
+        resetItems(menu);
+        timers.delete(item);
         return;
       }
 
       var link = links[index];
-      var itemHeight = link.getBoundingClientRect().height;
-      var currentHeight = menu.getBoundingClientRect().height;
-      var targetHeight = Math.max(0, currentHeight - itemHeight);
-
       link.classList.add("motion-exit-item");
-      link.style.transition = "height " + ITEM_DURATION + "ms ease, padding-top " + ITEM_DURATION + "ms ease, padding-bottom " + ITEM_DURATION + "ms ease";
+      link.style.transformOrigin = "center left";
+      link.style.transition = "transform " + ITEM_DURATION + "ms ease";
 
       requestAnimationFrame(function () {
-        link.style.height = "0px";
-        link.style.minHeight = "0px";
-        link.style.maxHeight = "0px";
-        link.style.paddingTop = "0px";
-        link.style.paddingBottom = "0px";
-        menu.style.height = targetHeight + "px";
+        link.style.transform = "rotateZ(-2.5deg)";
       });
 
       var timer = setTimeout(function () {
         link.style.display = "none";
-        collapseFromBottom(index - 1);
+        vanishFromBottom(index - 1);
       }, ITEM_DURATION + STAGGER);
       timers.set(item, timer);
     }
 
-    collapseFromBottom(links.length - 1);
+    vanishFromBottom(links.length - 1);
   }
 
   function handlePointerOver(event) {
