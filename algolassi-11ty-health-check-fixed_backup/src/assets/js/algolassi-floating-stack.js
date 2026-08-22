@@ -27,16 +27,41 @@
       b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();hideNewsToast(toast);},false);head.appendChild(b);
     }finally{applyingNews=false;}
   }
-  function hideNewsToast(toast){var h=assistantHost();if(!toast||!h||!h.contains(toast))return;hiddenNewsToast=toast;toast.classList.add("algolassi-assistant-toast-hide");setTimeout(function(){if(h.contains(toast))h.removeChild(toast);showNewsLauncher();updateAll();},200);try{window.dispatchEvent(new Event("algolassi:news-layout-change"));}catch(e){}}
+  function hideNewsToast(toast){
+    var h=assistantHost();
+    if(!toast||!h||!h.contains(toast))return;
+    /* Keep a clean clone for restoration. The original news toast has its own
+       auto-hide timer in algolassi-assistant.js, so restoring the original
+       DOM node can resurrect an already-expired timer. */
+    try{
+      hiddenNewsToast=toast.cloneNode(true);
+      var clonedHide=hiddenNewsToast.querySelector(".algolassi-news-hide");
+      if(clonedHide)clonedHide.remove();
+      hiddenNewsToast.classList.remove("algolassi-assistant-toast-hide");
+    }catch(e){hiddenNewsToast=toast;}
+    toast.classList.add("algolassi-assistant-toast-hide");
+    setTimeout(function(){if(h.contains(toast))h.removeChild(toast);showNewsLauncher();updateAll();},200);
+    try{window.dispatchEvent(new Event("algolassi:news-layout-change"));}catch(e){}
+  }
   function removeNewsLauncher(){var b=document.getElementById(NEWS_BUTTON_ID);if(b)b.remove();}
-  function reopenNews(){var h=assistantHost();if(!h||!hiddenNewsToast)return;hiddenNewsToast.classList.remove("algolassi-assistant-toast-hide");h.innerHTML="";h.appendChild(hiddenNewsToast);ensureNewsButton(hiddenNewsToast);removeNewsLauncher();hiddenNewsToast=null;settle();}
+  function reopenNews(){
+    var h=assistantHost();
+    if(!h||!hiddenNewsToast)return;
+    var restored=hiddenNewsToast;
+    restored.classList.remove("algolassi-assistant-toast-hide");
+    h.innerHTML="";
+    h.appendChild(restored);
+    ensureNewsButton(restored);
+    removeNewsLauncher();
+    hiddenNewsToast=null;
+    settle();
+  }
   function showNewsLauncher(){if(document.getElementById(NEWS_BUTTON_ID))return;var b=document.createElement("button");b.id=NEWS_BUTTON_ID;b.type="button";b.textContent="📰";b.setAttribute("aria-label","Show news");b.title="Show news";b.style.cssText="position:fixed;right:14px;bottom:14px;z-index:2147483646;width:46px;height:46px;border:0;border-radius:50%;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);background:#fff;";b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();reopenNews();try{window.dispatchEvent(new Event("algolassi:news-reopen"));}catch(err){}},false);document.body.appendChild(b);updateAll();}
   function syncNewsLauncher(){var t=newsToastElement(),r=visibleRect(t),b=document.getElementById(NEWS_BUTTON_ID);if(r){hiddenNewsToast=null;ensureNewsButton(t);if(b)b.remove();}}
   function setBottom(el,b){if(el)el.style.bottom=Math.max(baseBottom(),b)+"px";}
   function setStackBottom(el,b){if(el)el.style.setProperty("bottom",Math.max(baseBottom(),b)+"px","important");}
   function h(rect,fallback){return rect?rect.height:fallback;}
   function bottomAbove(rect){return rect?window.innerHeight-rect.top+GAP:baseBottom();}
-  function radioLauncherAboveBottom(){var el=document.getElementById("algolassi-radio-reopen"),r=radioLauncher();if(!el||!r)return null;var bottom=parseFloat(el.style.bottom);if(!isFinite(bottom))bottom=window.innerHeight-r.bottom;return Math.max(baseBottom(),bottom+h(r,46)+GAP);}
   function updateAll(){
     syncNewsLauncher();
     var news=newsToast(),nmini=newsLauncher(),rbEl=document.getElementById("algolassi-radio-reopen"),rb=radioLauncher(),rc=radioCard(),cbEl=document.getElementById("algolassi-chat-reopen-button"),cb=chatLauncher(),ch=document.getElementById("algolassi-chat-presence-host"),radioEl=document.getElementById("algolassi-radio-host");
