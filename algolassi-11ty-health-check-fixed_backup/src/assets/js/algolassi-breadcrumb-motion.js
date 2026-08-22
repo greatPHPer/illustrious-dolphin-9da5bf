@@ -42,7 +42,7 @@
 
     clearTimer(item);
     resetItemAnimationStyles(menu);
-    menu.classList.remove("motion-closing");
+    menu.classList.remove("motion-closing", "motion-hidden");
     menu.classList.add("motion-open");
   }
 
@@ -52,7 +52,7 @@
 
     clearTimer(item);
     resetItemAnimationStyles(menu);
-    menu.classList.remove("motion-open");
+    menu.classList.remove("motion-open", "motion-hidden");
     menu.classList.add("motion-closing");
 
     var links = menu.querySelectorAll(":scope > a");
@@ -64,8 +64,9 @@
     var total = Math.max(ITEM_DURATION, Math.max(0, count - 1) * STAGGER + ITEM_DURATION + EXTRA_BUFFER);
 
     var timer = setTimeout(function () {
-      menu.classList.remove("motion-closing");
+      menu.classList.remove("motion-closing", "motion-open");
       resetItemAnimationStyles(menu);
+      menu.classList.add("motion-hidden");
       timers.delete(item);
     }, total);
 
