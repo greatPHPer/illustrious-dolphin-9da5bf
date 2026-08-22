@@ -1,0 +1,53 @@
+/* Algolassi breadcrumb motion - refined hover + bottom-up collapse */
+@keyframes algolassiBreadcrumbHoverTilt {
+  0% { transform: rotateZ(0deg); }
+  45% { transform: rotateZ(-2.5deg); }
+  100% { transform: rotateZ(0deg); }
+}
+
+.breadcrumb-menu.motion-open,
+.breadcrumb-menu.motion-closing {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: translateY(0) scale(1) !important;
+}
+
+.breadcrumb-menu.motion-hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.breadcrumb-menu.motion-open { pointer-events: auto !important; }
+.breadcrumb-menu.motion-closing { pointer-events: none !important; transition: none !important; }
+
+.breadcrumb-menu.motion-open > a {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+  will-change: transform;
+}
+
+.breadcrumb-menu.motion-open > a:hover {
+  animation: algolassiBreadcrumbHoverTilt .32s ease-in-out both;
+}
+
+.breadcrumb-menu.motion-closing > a {
+  opacity: 1 !important;
+  transform-origin: center left;
+  will-change: height, padding, transform;
+  animation: none !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 700px) {
+  .breadcrumb-menu.motion-open { visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; }
+  .breadcrumb-menu.motion-closing { visibility: visible !important; opacity: 1 !important; pointer-events: none !important; }
+  .breadcrumb-menu.motion-hidden { display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breadcrumb-menu.motion-open > a:hover { animation: none !important; transform: none !important; }
+}
