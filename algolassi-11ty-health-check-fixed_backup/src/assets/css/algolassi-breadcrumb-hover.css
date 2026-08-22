@@ -20,6 +20,9 @@
 
 .breadcrumb-menu > a {
   transform-origin: center center !important;
+  overflow: visible !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Hover: only the item directly under the pointer tilts and returns. */
@@ -47,11 +50,6 @@
 .breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(10) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 18s; }
 .breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(11) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 20s; }
 .breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(12) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 22s; }
-
-/* Keep all not-yet-active items visible during their delay. */
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(n) {
-  visibility: visible;
-}
 
 @media (max-width: 700px) {
   .breadcrumb-menu:not(.open) > a:nth-child(1) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 0s; }
