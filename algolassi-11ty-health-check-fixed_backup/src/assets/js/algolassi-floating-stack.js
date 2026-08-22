@@ -34,8 +34,9 @@
     if (!chat) return;
 
     var radio = visibleRect(document.getElementById("algolassi-radio-host"));
+    var radioReopen = visibleRect(document.getElementById("algolassi-radio-reopen"));
     var news = assistantRect();
-    var lower = radio || news || null;
+    var lower = radio || radioReopen || news || null;
     var base = window.innerWidth <= 600 ? 10 : 18;
 
     if (lower) {
@@ -66,6 +67,7 @@
       [
         document.getElementById("algolassi-chat-presence-host"),
         document.getElementById("algolassi-radio-host"),
+        document.getElementById("algolassi-radio-reopen"),
         document.getElementById("algolassi-assistant-host")
       ].forEach(function (host) {
         if (host) observer.observe(host, {
@@ -81,9 +83,11 @@
       var resizeObserver = new ResizeObserver(function () { settle(); });
       var chat = document.getElementById("algolassi-chat-presence-host");
       var radio = document.getElementById("algolassi-radio-host");
+      var radioReopen = document.getElementById("algolassi-radio-reopen");
       var assistant = document.getElementById("algolassi-assistant-host");
       if (chat) resizeObserver.observe(chat);
       if (radio) resizeObserver.observe(radio);
+      if (radioReopen) resizeObserver.observe(radioReopen);
       if (assistant) resizeObserver.observe(assistant);
     }
 
