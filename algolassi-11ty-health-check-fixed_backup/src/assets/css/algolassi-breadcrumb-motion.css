@@ -1,13 +1,13 @@
 /* Algolassi breadcrumb motion - explicit open/closing states */
 
-/* One-way Z-axis tilt + fade. No X-axis movement and no reverse bounce. */
+/* One-way Z-axis tilt. No X-axis vibration, no reverse bounce, no fade. */
 @keyframes algolassiBreadcrumbExitRipple{
   0%{opacity:1;transform:rotateZ(0deg) scale(1)}
-  45%{opacity:.92;transform:rotateZ(-2.5deg) scale(1.01)}
-  100%{opacity:0;transform:rotateZ(-2.5deg) scale(.97)}
+  72%{opacity:1;transform:rotateZ(-2.5deg) scale(1)}
+  99%{opacity:1;transform:rotateZ(-2.5deg) scale(1)}
+  100%{opacity:0;transform:rotateZ(-2.5deg) scale(1)}
 }
 
-/* The existing base menu animation remains available, but JS now owns the exit state. */
 .breadcrumb-menu.motion-open,
 .breadcrumb-menu.motion-closing{
   display:block!important;
@@ -16,14 +16,8 @@
   transform:translateY(0) scale(1)!important;
 }
 
-.breadcrumb-menu.motion-open{
-  pointer-events:auto!important;
-}
-
-.breadcrumb-menu.motion-closing{
-  pointer-events:none!important;
-  transition:none!important;
-}
+.breadcrumb-menu.motion-open{pointer-events:auto!important}
+.breadcrumb-menu.motion-closing{pointer-events:none!important;transition:none!important}
 
 .breadcrumb-menu.motion-open>a{
   opacity:1!important;
@@ -36,30 +30,24 @@
   will-change:opacity,transform;
   animation-name:algolassiBreadcrumbExitRipple!important;
   animation-duration:.42s!important;
-  animation-timing-function:ease-out!important;
+  animation-timing-function:cubic-bezier(.34,1.56,.64,1)!important;
   animation-iteration-count:1!important;
   animation-fill-mode:both!important;
 }
 
-/* 55ms exit rhythm. Opening has no delay. */
+/* 12ms exit rhythm. Opening has no delay. */
 .breadcrumb-menu.motion-closing>a:nth-child(1){animation-delay:0s!important}
-.breadcrumb-menu.motion-closing>a:nth-child(2){animation-delay:.055s!important}
-.breadcrumb-menu.motion-closing>a:nth-child(3){animation-delay:.110s!important}
-.breadcrumb-menu.motion-closing>a:nth-child(4){animation-delay:.165s!important}
-.breadcrumb-menu.motion-closing>a:nth-child(5){animation-delay:.220s!important}
-.breadcrumb-menu.motion-closing>a:nth-child(6){animation-delay:.275s!important}
-.breadcrumb-menu.motion-closing>a:nth-child(7){animation-delay:.330s!important}
-.breadcrumb-menu.motion-closing>a:nth-child(8){animation-delay:.385s!important}
-.breadcrumb-menu.motion-closing>a:nth-child(9){animation-delay:.440s!important}
-.breadcrumb-menu.motion-closing>a:nth-child(10){animation-delay:.495s!important}
-.breadcrumb-menu.motion-closing>a:nth-child(11){animation-delay:.550s!important}
-.breadcrumb-menu.motion-closing>a:nth-child(12){animation-delay:.605s!important}
-
-/* Keep the dropdown itself alive until the final item is finished. */
-.breadcrumb-menu.motion-closing::after{
-  content:"";
-  display:block;
-}
+.breadcrumb-menu.motion-closing>a:nth-child(2){animation-delay:.012s!important}
+.breadcrumb-menu.motion-closing>a:nth-child(3){animation-delay:.024s!important}
+.breadcrumb-menu.motion-closing>a:nth-child(4){animation-delay:.036s!important}
+.breadcrumb-menu.motion-closing>a:nth-child(5){animation-delay:.048s!important}
+.breadcrumb-menu.motion-closing>a:nth-child(6){animation-delay:.060s!important}
+.breadcrumb-menu.motion-closing>a:nth-child(7){animation-delay:.072s!important}
+.breadcrumb-menu.motion-closing>a:nth-child(8){animation-delay:.084s!important}
+.breadcrumb-menu.motion-closing>a:nth-child(9){animation-delay:.096s!important}
+.breadcrumb-menu.motion-closing>a:nth-child(10){animation-delay:.108s!important}
+.breadcrumb-menu.motion-closing>a:nth-child(11){animation-delay:.120s!important}
+.breadcrumb-menu.motion-closing>a:nth-child(12){animation-delay:.132s!important}
 
 @media(max-width:700px){
   .breadcrumb-menu.motion-open{visibility:visible!important;opacity:1!important;pointer-events:auto!important}
