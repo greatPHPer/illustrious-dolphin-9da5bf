@@ -1,4 +1,4 @@
-/* Breadcrumb submenu hover + exit animation */
+/* Breadcrumb submenu hover + sequential exit animation */
 @keyframes algolassiBreadcrumbExitRipple {
   0% {
     opacity: 1;
@@ -33,57 +33,39 @@
   100% { transform: rotateZ(0deg); }
 }
 
-/* Mouse-out: each submenu item gets its own 2-second exit cycle. */
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(1) {
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 0s;
-}
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(2) {
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .110s;
-}
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(3) {
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .220s;
-}
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(4) {
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .330s;
-}
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(5) {
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .440s;
-}
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(6) {
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .550s;
-}
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(7) {
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .660s;
-}
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(8) {
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .770s;
-}
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(9) {
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .880s;
-}
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(10) {
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .990s;
-}
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(11) {
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 1.100s;
-}
-.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(12) {
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 1.210s;
+/* Mouse-out: exactly one item is active at a time.
+   Each item gets a full 2-second cycle before the next item starts. */
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(1) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 0s; }
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(2) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 2s; }
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(3) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 4s; }
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(4) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 6s; }
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(5) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 8s; }
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(6) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 10s; }
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(7) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 12s; }
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(8) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 14s; }
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(9) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 16s; }
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(10) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 18s; }
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(11) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 20s; }
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(12) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 22s; }
+
+/* Keep all not-yet-active items visible during their delay. */
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a:nth-child(n) {
+  visibility: visible;
 }
 
 @media (max-width: 700px) {
   .breadcrumb-menu:not(.open) > a:nth-child(1) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 0s; }
-  .breadcrumb-menu:not(.open) > a:nth-child(2) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .110s; }
-  .breadcrumb-menu:not(.open) > a:nth-child(3) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .220s; }
-  .breadcrumb-menu:not(.open) > a:nth-child(4) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .330s; }
-  .breadcrumb-menu:not(.open) > a:nth-child(5) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .440s; }
-  .breadcrumb-menu:not(.open) > a:nth-child(6) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .550s; }
-  .breadcrumb-menu:not(.open) > a:nth-child(7) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .660s; }
-  .breadcrumb-menu:not(.open) > a:nth-child(8) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .770s; }
-  .breadcrumb-menu:not(.open) > a:nth-child(9) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .880s; }
-  .breadcrumb-menu:not(.open) > a:nth-child(10) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both .990s; }
-  .breadcrumb-menu:not(.open) > a:nth-child(11) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 1.100s; }
-  .breadcrumb-menu:not(.open) > a:nth-child(12) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 1.210s; }
+  .breadcrumb-menu:not(.open) > a:nth-child(2) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 2s; }
+  .breadcrumb-menu:not(.open) > a:nth-child(3) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 4s; }
+  .breadcrumb-menu:not(.open) > a:nth-child(4) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 6s; }
+  .breadcrumb-menu:not(.open) > a:nth-child(5) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 8s; }
+  .breadcrumb-menu:not(.open) > a:nth-child(6) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 10s; }
+  .breadcrumb-menu:not(.open) > a:nth-child(7) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 12s; }
+  .breadcrumb-menu:not(.open) > a:nth-child(8) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 14s; }
+  .breadcrumb-menu:not(.open) > a:nth-child(9) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 16s; }
+  .breadcrumb-menu:not(.open) > a:nth-child(10) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 18s; }
+  .breadcrumb-menu:not(.open) > a:nth-child(11) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 20s; }
+  .breadcrumb-menu:not(.open) > a:nth-child(12) { animation: algolassiBreadcrumbExitRipple 2s ease-in-out both 22s; }
 }
 
 @media (prefers-reduced-motion: reduce) {
