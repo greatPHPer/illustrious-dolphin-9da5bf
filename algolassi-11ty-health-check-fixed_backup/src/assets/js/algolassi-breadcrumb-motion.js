@@ -23,7 +23,10 @@
       link.style.cssText = "";
     }
     menu.style.height = "";
+    menu.style.minHeight = "";
     menu.style.overflow = "";
+    menu.style.paddingTop = "";
+    menu.style.paddingBottom = "";
     menu.style.transition = "";
   }
 
@@ -60,10 +63,15 @@
       return;
     }
 
-    /* Give the submenu a real height so its white background collapses with the items. */
+    /* The menu background must collapse with the links. Remove the menu's
+       own vertical padding while closing so it cannot remain as an empty box. */
     var menuHeight = menu.getBoundingClientRect().height;
+    menu.style.boxSizing = "border-box";
     menu.style.height = menuHeight + "px";
+    menu.style.minHeight = "0px";
     menu.style.overflow = "hidden";
+    menu.style.paddingTop = "0px";
+    menu.style.paddingBottom = "0px";
     menu.style.transition = "height " + ITEM_DURATION + "ms ease";
 
     links.forEach(function (link) {
@@ -73,19 +81,23 @@
 
     function collapseFromBottom(index) {
       if (index < 0) {
-        menu.classList.remove("motion-closing", "motion-open");
-        menu.classList.add("motion-hidden");
-        menu.style.height = "";
-        menu.style.overflow = "";
-        menu.style.transition = "";
-        timers.delete(item);
+        menu.style.height = "0px";
+        var finalTimer = setTimeout(function () {
+          menu.classList.remove("motion-closing", "motion-open");
+          menu.classList.add("motion-hidden");
+          resetItems(menu);
+          timers.delete(item);
+        }, ITEM_DURATION);
+        timers.set(item, finalTimer);
         return;
       }
 
       var link = links[index];
       var itemHeight = link.getBoundingClientRect().height;
+      var currentHeight = menu.getBoundingClientRect().height;
+      var targetHeight = Math.max(0, currentHeight - itemHeight);
+
       link.classList.add("motion-exit-item");
-      /* Transform remains owned by the CSS hover animation. */
       link.style.transition = "height " + ITEM_DURATION + "ms ease, padding-top " + ITEM_DURATION + "ms ease, padding-bottom " + ITEM_DURATION + "ms ease";
 
       requestAnimationFrame(function () {
@@ -94,10 +106,7 @@
         link.style.maxHeight = "0px";
         link.style.paddingTop = "0px";
         link.style.paddingBottom = "0px";
-
-        /* Collapse the white submenu background by exactly the space being removed. */
-        var currentHeight = parseFloat(getComputedStyle(menu).height) || menuHeight;
-        menu.style.height = Math.max(0, currentHeight - itemHeight) + "px";
+        menu.style.height = targetHeight + "px";
       });
 
       var timer = setTimeout(function () {
