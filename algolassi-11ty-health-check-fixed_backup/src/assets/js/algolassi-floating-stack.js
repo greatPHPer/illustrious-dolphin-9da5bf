@@ -34,7 +34,6 @@
   function syncNewsLauncher(){var t=newsToastElement(),r=visibleRect(t),b=document.getElementById(NEWS_BUTTON_ID);if(r){hiddenNewsToast=null;ensureNewsButton(t);if(b)b.remove();}}
   function setBottom(el,b){if(el)el.style.bottom=Math.max(baseBottom(),b)+"px";}
   function setStackBottom(el,b){if(el)el.style.setProperty("bottom",Math.max(baseBottom(),b)+"px","important");}
-  function setChatBottom(el,b){if(el)el.style.setProperty("bottom",Math.max(baseBottom(),b)+"px","important");}
   function h(rect,fallback){return rect?rect.height:fallback;}
   function bottomAbove(rect){return rect?window.innerHeight-rect.top+GAP:baseBottom();}
   function radioLauncherAboveBottom(){var el=document.getElementById("algolassi-radio-reopen"),r=radioLauncher();if(!el||!r)return null;var bottom=parseFloat(el.style.bottom);if(!isFinite(bottom))bottom=window.innerHeight-r.bottom;return Math.max(baseBottom(),bottom+h(r,46)+GAP);}
@@ -42,31 +41,26 @@
     syncNewsLauncher();
     var news=newsToast(),nmini=newsLauncher(),rbEl=document.getElementById("algolassi-radio-reopen"),rb=radioLauncher(),rc=radioCard(),cbEl=document.getElementById("algolassi-chat-reopen-button"),cb=chatLauncher(),ch=document.getElementById("algolassi-chat-presence-host"),radioEl=document.getElementById("algolassi-radio-host");
 
-    /* Place the lower stack first. */
     var cursor=baseBottom();
-    if(nmini){setStackBottom(document.getElementById(NEWS_BUTTON_ID),cursor);cursor+=h(nmini,46)+GAP;}
-    else if(news){cursor=bottomAbove(news);}
-
-    if(rb){
-      setStackBottom(rbEl,cursor);
-    } else if(rc&&radioEl){
-      setBottom(radioEl,news?bottomAbove(news):baseBottom());
-    }
-
-    /* Chat must always be above Radio when Radio is minimized OR restored. */
-    if(rb){
-      cursor=radioLauncherAboveBottom() || bottomAbove(rb);
-    } else if(rc){
-      var placedRadio=radioCard();
-      cursor=bottomAbove(placedRadio);
+    if(nmini){
+      setStackBottom(document.getElementById(NEWS_BUTTON_ID),cursor);
+      cursor+=h(nmini,46)+GAP;
     } else if(news){
       cursor=bottomAbove(news);
-    } else if(nmini){
-      cursor+=GAP;
-    } else {
-      cursor=baseBottom();
     }
 
+    if(rb){
+      var radioBottom=cursor;
+      setStackBottom(rbEl,radioBottom);
+      rbEl.setAttribute("data-floating-stack-managed","true");
+      cursor=radioBottom+h(rb,46)+GAP;
+    } else if(rc&&radioEl){
+      radioEl.removeAttribute("data-floating-stack-managed");
+      setBottom(radioEl,news?bottomAbove(news):baseBottom());
+      cursor=bottomAbove(radioCard());
+    }
+
+    if(!rbEl){}
     if(ccSafe()){
       var cc=chatCard();
       if(cc&&ch){setBottom(ch,cursor);ch.style.zIndex="2147483004";}
