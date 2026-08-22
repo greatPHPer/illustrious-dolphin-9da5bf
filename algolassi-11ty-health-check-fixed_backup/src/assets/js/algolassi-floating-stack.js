@@ -8,10 +8,9 @@
   var timer = null;
   var newsObserver = null;
   var applyingNews = false;
+  var hiddenNewsToast = null;
 
-  function baseBottom() {
-    return window.innerWidth <= 600 ? BASE_MOBILE : BASE_DESKTOP;
-  }
+  function baseBottom() { return window.innerWidth <= 600 ? BASE_MOBILE : BASE_DESKTOP; }
 
   function visibleRect(el) {
     if (!el) return null;
@@ -26,19 +25,13 @@
   function newsToast() {
     var host = assistantHost();
     if (!host) return null;
-    var toast = host.querySelector(".algolassi-assistant-news");
-    return visibleRect(toast);
+    return visibleRect(host.querySelector(".algolassi-assistant-news"));
   }
-
-  function radioLauncher() {
-    return visibleRect(document.getElementById("algolassi-radio-reopen"));
-  }
-
+  function radioLauncher() { return visibleRect(document.getElementById("algolassi-radio-reopen")); }
   function chatLauncher() {
     var b = document.getElementById("algolassi-chat-reopen-button");
     return visibleRect(b && b.classList.contains("is-visible") ? b : null);
   }
-
   function chatCard() {
     var host = document.getElementById("algolassi-chat-presence-host");
     if (!host || host.classList.contains("algolassi-chat-toggle-hidden") || host.classList.contains("algolassi-chat-is-hidden")) return null;
@@ -64,14 +57,13 @@
         hideNewsToast(toast);
       }, false);
       head.appendChild(button);
-    } finally {
-      applyingNews = false;
-    }
+    } finally { applyingNews = false; }
   }
 
   function hideNewsToast(toast) {
     var host = assistantHost();
     if (!toast || !host || !host.contains(toast)) return;
+    hiddenNewsToast = toast;
     toast.classList.add("algolassi-assistant-toast-hide");
     window.setTimeout(function () {
       if (host.contains(toast)) host.removeChild(toast);
@@ -86,6 +78,18 @@
     if (b) b.remove();
   }
 
+  function reopenNews() {
+    var host = assistantHost();
+    if (!host || !hiddenNewsToast) return;
+    hiddenNewsToast.classList.remove("algolassi-assistant-toast-hide");
+    host.innerHTML = "";
+    host.appendChild(hiddenNewsToast);
+    ensureNewsButton(hiddenNewsToast);
+    removeNewsLauncher();
+    hiddenNewsToast = null;
+    settle();
+  }
+
   function showNewsLauncher() {
     if (document.getElementById(NEWS_BUTTON_ID)) return;
     var b = document.createElement("button");
@@ -98,8 +102,7 @@
     b.addEventListener("click", function (e) {
       e.preventDefault();
       e.stopPropagation();
-      removeNewsLauncher();
-      updateAll();
+      reopenNews();
       try { window.dispatchEvent(new Event("algolassi:news-reopen")); } catch (err) {}
     }, false);
     document.body.appendChild(b);
@@ -110,20 +113,10 @@
     var toast = newsToast();
     var launcher = document.getElementById(NEWS_BUTTON_ID);
     if (toast) {
+      hiddenNewsToast = null;
       ensureNewsButton(document.querySelector("#algolassi-assistant-host .algolassi-assistant-news"));
       if (launcher) launcher.remove();
     }
-  }
-
-  function floatingItems() {
-    var items = [];
-    var news = newsToast();
-    if (news) items.push({ el: document.getElementById("algolassi-assistant-host"), rect: news, kind: "news" });
-    var radio = radioLauncher();
-    if (radio) items.push({ el: document.getElementById("algolassi-radio-reopen"), rect: radio, kind: "radio" });
-    var chat = chatLauncher();
-    if (chat) items.push({ el: document.getElementById("algolassi-chat-reopen-button"), rect: chat, kind: "chat" });
-    return items;
   }
 
   function setBottom(el, bottom) {
@@ -132,31 +125,21 @@
 
   function updateAll() {
     syncNewsLauncher();
-
     var news = newsToast();
     var radio = radioLauncher();
     var chat = chatLauncher();
-    var bottom = baseBottom();
 
-    /* Priority/order from bottom upward: news -> radio -> chat. */
-    if (news) {
-      bottom = window.innerHeight - news.top + GAP;
-    } else if (radio) {
-      bottom = window.innerHeight - radio.top + GAP;
-    }
-
+    /* Stack order from bottom upward: news -> radio -> chat. */
     if (radio) {
-      if (news) setBottom(document.getElementById("algolassi-radio-reopen"), window.innerHeight - news.top + GAP);
-      else setBottom(document.getElementById("algolassi-radio-reopen"), baseBottom());
+      setBottom(document.getElementById("algolassi-radio-reopen"), news ? window.innerHeight - news.top + GAP : baseBottom());
     }
 
     if (chat) {
       var lower = radioLauncher() || news;
-      if (lower) setBottom(document.getElementById("algolassi-chat-reopen-button"), window.innerHeight - lower.top + GAP);
-      else setBottom(document.getElementById("algolassi-chat-reopen-button"), baseBottom());
+      setBottom(document.getElementById("algolassi-chat-reopen-button"), lower ? window.innerHeight - lower.top + GAP : baseBottom());
     }
 
-    /* If the full chat card is open, keep it above the currently visible lower item. */
+    /* Keep an open chat card above the lower floating item. */
     var card = chatCard();
     if (card) {
       var lowerCard = radioLauncher() || news;
