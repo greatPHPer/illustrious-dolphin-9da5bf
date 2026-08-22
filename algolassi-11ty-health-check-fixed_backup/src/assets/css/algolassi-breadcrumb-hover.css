@@ -20,6 +20,20 @@
   animation: algolassiBreadcrumbExitRipple 280ms ease-in-out;
 }
 
+/* Disable the old mouse-out / vanish system. The submenu and its items
+   must not run an exit animation when the pointer leaves the menu. */
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu,
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Keep the normal submenu appearance when it is not hovered. */
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a {
+  opacity: 1;
+  transform: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .breadcrumb-menu > a:hover {
     animation: none !important;
