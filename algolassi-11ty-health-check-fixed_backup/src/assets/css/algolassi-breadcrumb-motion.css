@@ -37,7 +37,7 @@
   transform-origin:center left;
   will-change:opacity,transform;
   animation-name:algolassiBreadcrumbExitRipple!important;
-  animation-duration:.42s!important;
+  animation-duration:.18s!important;
   animation-timing-function:cubic-bezier(.34,1.56,.64,1)!important;
   animation-iteration-count:1!important;
   animation-fill-mode:both!important;
