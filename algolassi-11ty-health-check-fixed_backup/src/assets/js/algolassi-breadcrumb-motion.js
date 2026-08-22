@@ -3,7 +3,7 @@
   "use strict";
 
   var STAGGER = 12;
-  var ITEM_DURATION = 420;
+  var ITEM_DURATION = 180;
   var EXTRA_BUFFER = 40;
   var timers = new WeakMap();
 
