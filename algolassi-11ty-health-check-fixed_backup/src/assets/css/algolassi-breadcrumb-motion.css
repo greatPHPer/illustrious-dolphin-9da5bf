@@ -1,4 +1,4 @@
-/* Algolassi breadcrumb motion - single close owner */
+/* Algolassi breadcrumb motion - hover + transparent closing state */
 @keyframes algolassiBreadcrumbHoverTilt {
   0% { transform: rotateZ(0deg); }
   45% { transform: rotateZ(-2.5deg); }
@@ -21,12 +21,12 @@
 }
 
 .breadcrumb-menu.motion-open { pointer-events: auto !important; }
-.breadcrumb-menu.motion-closing { pointer-events: none !important; transition: none !important; }
-
-/* The legacy nth-child exit rules in site.css are disabled while JS owns closing. */
-.breadcrumb-menu.motion-closing > a,
-.breadcrumb-menu.motion-closing > a:nth-child(n) {
-  animation: none !important;
+.breadcrumb-menu.motion-closing {
+  pointer-events: none !important;
+  transition: none !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .breadcrumb-menu.motion-open > a {
@@ -41,7 +41,8 @@
 .breadcrumb-menu.motion-closing > a {
   opacity: 1 !important;
   transform-origin: center left;
-  will-change: height, padding;
+  will-change: transform;
+  animation: none !important;
   overflow: hidden !important;
 }
 
