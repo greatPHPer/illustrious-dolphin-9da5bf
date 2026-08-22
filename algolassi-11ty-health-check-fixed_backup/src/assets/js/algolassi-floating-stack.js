@@ -33,6 +33,7 @@
   function showNewsLauncher(){if(document.getElementById(NEWS_BUTTON_ID))return;var b=document.createElement("button");b.id=NEWS_BUTTON_ID;b.type="button";b.textContent="📰";b.setAttribute("aria-label","Show news");b.title="Show news";b.style.cssText="position:fixed;right:14px;bottom:14px;z-index:2147483646;width:46px;height:46px;border:0;border-radius:50%;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);background:#fff;";b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();reopenNews();try{window.dispatchEvent(new Event("algolassi:news-reopen"));}catch(err){}},false);document.body.appendChild(b);updateAll();}
   function syncNewsLauncher(){var t=newsToastElement(),r=visibleRect(t),b=document.getElementById(NEWS_BUTTON_ID);if(r){hiddenNewsToast=null;ensureNewsButton(t);if(b)b.remove();}}
   function setBottom(el,b){if(el)el.style.bottom=Math.max(baseBottom(),b)+"px";}
+  function setStackBottom(el,b){if(el)el.style.setProperty("bottom",Math.max(baseBottom(),b)+"px","important");}
   function setChatBottom(el,b){if(el)el.style.setProperty("bottom",Math.max(baseBottom(),b)+"px","important");}
   function h(rect,fallback){return rect?rect.height:fallback;}
   function bottomAbove(rect){return rect?window.innerHeight-rect.top+GAP:baseBottom();}
@@ -43,11 +44,11 @@
 
     /* Place the lower stack first. */
     var cursor=baseBottom();
-    if(nmini){setBottom(document.getElementById(NEWS_BUTTON_ID),cursor);cursor+=h(nmini,46)+GAP;}
+    if(nmini){setStackBottom(document.getElementById(NEWS_BUTTON_ID),cursor);cursor+=h(nmini,46)+GAP;}
     else if(news){cursor=bottomAbove(news);}
 
     if(rb){
-      setBottom(rbEl,cursor);
+      setStackBottom(rbEl,cursor);
     } else if(rc&&radioEl){
       setBottom(radioEl,news?bottomAbove(news):baseBottom());
     }
@@ -68,9 +69,9 @@
 
     if(ccSafe()){
       var cc=chatCard();
-      if(cc&&ch){setChatBottom(ch,cursor);ch.style.zIndex="2147483004";}
+      if(cc&&ch){setBottom(ch,cursor);ch.style.zIndex="2147483004";}
     }
-    if(cb){setBottom(cbEl,cursor);cbEl.style.zIndex="2147483005";}
+    if(cb){setStackBottom(cbEl,cursor);cbEl.style.zIndex="2147483005";}
 
     if(assistantHost())assistantHost().style.zIndex="2147483000";
     if(radioEl)radioEl.style.zIndex="2147483001";
