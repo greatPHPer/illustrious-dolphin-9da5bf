@@ -1,10 +1,9 @@
 /* Algolassi breadcrumb motion - explicit open/closing states */
 
-/* One-way Z-axis tilt. No X-axis vibration, no reverse bounce, no fade. */
+/* One-way Z-axis tilt: one cycle, then the item vanishes at the cycle endpoint. */
 @keyframes algolassiBreadcrumbExitRipple{
   0%{opacity:1;transform:rotateZ(0deg) scale(1)}
-  72%{opacity:1;transform:rotateZ(-2.5deg) scale(1)}
-  99%{opacity:1;transform:rotateZ(-2.5deg) scale(1)}
+  88%{opacity:1;transform:rotateZ(-2.5deg) scale(1)}
   100%{opacity:0;transform:rotateZ(-2.5deg) scale(1)}
 }
 
