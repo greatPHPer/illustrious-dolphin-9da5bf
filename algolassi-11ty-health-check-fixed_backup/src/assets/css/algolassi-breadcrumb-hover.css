@@ -1,15 +1,27 @@
-/* Isolated breadcrumb submenu hover effect */
-@keyframes algolassiBreadcrumbItemHoverTilt {
-  0% { transform: rotateZ(0deg); }
-  50% { transform: rotateZ(-2.5deg); }
-  100% { transform: rotateZ(0deg); }
+/* Breadcrumb submenu hover effect - CSS only */
+@keyframes algolassiBreadcrumbExitRipple {
+  0% {
+    transform: rotateZ(0deg);
+  }
+  50% {
+    transform: rotateZ(-2.5deg);
+  }
+  100% {
+    transform: rotateZ(0deg);
+  }
 }
 
-.breadcrumb-menu > a.menu-item-tilted {
+.breadcrumb-menu > a {
   transform-origin: center center !important;
-  animation: algolassiBreadcrumbItemHoverTilt .28s ease-in-out both !important;
+}
+
+/* Only the submenu item directly under the pointer animates. */
+.breadcrumb-menu > a:hover {
+  animation: algolassiBreadcrumbExitRipple 280ms ease-in-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .breadcrumb-menu > a.menu-item-tilted { animation: none !important; }
+  .breadcrumb-menu > a:hover {
+    animation: none !important;
+  }
 }
