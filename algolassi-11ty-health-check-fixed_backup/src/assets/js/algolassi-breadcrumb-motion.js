@@ -27,9 +27,6 @@
     menu.style.paddingTop = "";
     menu.style.paddingBottom = "";
     menu.style.transition = "";
-    menu.style.backgroundColor = "";
-    menu.style.borderColor = "";
-    menu.style.boxShadow = "";
   }
 
   function clearTimer(item) {
@@ -65,12 +62,8 @@
       return;
     }
 
-    /* Keep the submenu's geometry unchanged. Only the items vanish.
-       The container is made transparent so an empty white box is never shown. */
-    menu.style.backgroundColor = "transparent";
-    menu.style.borderColor = "transparent";
-    menu.style.boxShadow = "none";
-
+    /* Keep the submenu's normal background, border and shadow.
+       Only the individual links participate in the vanish sequence. */
     links.forEach(function (link) {
       link.style.overflow = "hidden";
     });
