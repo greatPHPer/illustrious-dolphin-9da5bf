@@ -72,7 +72,8 @@
 
       var link = links[index];
       link.classList.add("motion-exit-item");
-      link.style.transition = "height " + ITEM_DURATION + "ms ease, padding-top " + ITEM_DURATION + "ms ease, padding-bottom " + ITEM_DURATION + "ms ease, transform " + ITEM_DURATION + "ms cubic-bezier(.22,1,.36,1)";
+      /* Deliberately do NOT transition transform here. The hover animation owns it. */
+      link.style.transition = "height " + ITEM_DURATION + "ms ease, padding-top " + ITEM_DURATION + "ms ease, padding-bottom " + ITEM_DURATION + "ms ease";
 
       requestAnimationFrame(function () {
         link.style.height = "0px";
@@ -80,7 +81,6 @@
         link.style.maxHeight = "0px";
         link.style.paddingTop = "0px";
         link.style.paddingBottom = "0px";
-        link.style.transform = "rotateZ(-2.5deg)";
       });
 
       var timer = setTimeout(function () {
