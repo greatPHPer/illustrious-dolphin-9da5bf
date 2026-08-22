@@ -5,14 +5,11 @@
   100% { transform: rotateZ(0deg); }
 }
 
-.breadcrumb-menu > a {
-  transform-origin: center center;
-}
-
-.breadcrumb-menu > a:hover {
-  animation: algolassiBreadcrumbItemHoverTilt .28s ease-in-out both;
+.breadcrumb-menu > a.menu-item-tilted {
+  transform-origin: center center !important;
+  animation: algolassiBreadcrumbItemHoverTilt .28s ease-in-out both !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .breadcrumb-menu > a:hover { animation: none; }
+  .breadcrumb-menu > a.menu-item-tilted { animation: none !important; }
 }
