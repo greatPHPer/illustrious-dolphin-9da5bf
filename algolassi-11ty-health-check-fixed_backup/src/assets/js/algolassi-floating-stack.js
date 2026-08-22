@@ -36,30 +36,47 @@
   function bottomAbove(rect){return rect?window.innerHeight-rect.top+GAP:baseBottom();}
   function updateAll(){
     syncNewsLauncher();
-    var news=newsToast(),nmini=newsLauncher(),rbEl=document.getElementById("algolassi-radio-reopen"),rb=radioLauncher(),rc=radioCard(),cbEl=document.getElementById("algolassi-chat-reopen-button"),cb=chatLauncher(),cc=chatCard(),ch=document.getElementById("algolassi-chat-presence-host"),radioEl=document.getElementById("algolassi-radio-host");
+    var news=newsToast(),nmini=newsLauncher(),rbEl=document.getElementById("algolassi-radio-reopen"),rb=radioLauncher(),rc=radioCard(),cbEl=document.getElementById("algolassi-chat-reopen-button"),cb=chatLauncher(),ch=document.getElementById("algolassi-chat-presence-host"),radioEl=document.getElementById("algolassi-radio-host");
+
+    /* 1) Place the lower stack first. */
     var cursor=baseBottom();
     if(nmini){setBottom(document.getElementById(NEWS_BUTTON_ID),cursor);cursor+=h(nmini,46)+GAP;}
     else if(news){cursor=bottomAbove(news);}
-    if(rb){setBottom(rbEl,cursor);cursor+=h(rb,46)+GAP;}
-    else if(rc&&radioEl){setBottom(radioEl,news?bottomAbove(news):baseBottom());}
-    if(cc&&ch){
-      var lower=rc||news||nmini;
-      setBottom(ch,lower?bottomAbove(lower):baseBottom());
-      ch.style.zIndex="2147483004";
-    } else if(cb){
-      var lowerLauncher=rb||nmini||news;
-      setBottom(cbEl,lowerLauncher?bottomAbove(lowerLauncher):baseBottom());
+
+    if(rb){
+      setBottom(rbEl,cursor);
+    } else if(rc&&radioEl){
+      setBottom(radioEl,news?bottomAbove(news):baseBottom());
+    }
+
+    /* Re-read Radio after positioning it. This is important because the Chat
+       position must be based on Radio's NEW rectangle, not its previous one. */
+    var placedRadio=radioLauncher()||radioCard();
+
+    if(rb){cursor=bottomAbove(placedRadio);}
+    else if(rc){cursor=bottomAbove(placedRadio);}
+    else if(news){cursor=bottomAbove(news);}
+    else if(nmini){cursor+=GAP;}
+    else{cursor=baseBottom();}
+
+    /* 2) Place restored/minimized Chat above the now-settled lower item. */
+    if(ccSafe()){ 
+      var cc=chatCard();
+      if(cc&&ch){
+        setBottom(ch,cursor);
+        ch.style.zIndex="2147483004";
+      }
+    }
+    if(cb){
+      setBottom(cbEl,cursor);
       cbEl.style.zIndex="2147483005";
     }
-    if(news){
-      if(radioEl)radioEl.style.zIndex="2147483001";
-      if(assistantHost())assistantHost().style.zIndex="2147483000";
-    } else {
-      if(radioEl)radioEl.style.zIndex="2147483001";
-      if(assistantHost())assistantHost().style.zIndex="2147483000";
-    }
+
+    if(assistantHost())assistantHost().style.zIndex="2147483000";
+    if(radioEl)radioEl.style.zIndex="2147483001";
     if(rbEl&&rb)rbEl.style.zIndex="2147483002";
   }
+  function ccSafe(){var h=document.getElementById("algolassi-chat-presence-host");return !!h&&!h.classList.contains("algolassi-chat-toggle-hidden")&&!h.classList.contains("algolassi-chat-is-hidden");}
   function settle(){updateAll();[0,20,40,80,120,200,300,500,800].forEach(function(d){setTimeout(updateAll,d);});}
   function start(){settle();window.addEventListener("resize",settle,{passive:true});window.addEventListener("scroll",updateAll,{passive:true});window.addEventListener("algolassi:radio-layout-change",settle);window.addEventListener("algolassi:spa-navigation",settle);window.addEventListener("algolassi:news-layout-change",settle);window.addEventListener("algolassi:news-reopen",settle);window.addEventListener("algolassi:chat-layout-change",settle);window.addEventListener("algolassi:chat-restored",settle);
     if(window.MutationObserver){newsObserver=new MutationObserver(function(){settle();});[document.getElementById("algolassi-chat-presence-host"),document.getElementById("algolassi-radio-host"),document.getElementById("algolassi-radio-reopen"),document.getElementById("algolassi-assistant-host")].forEach(function(x){if(x)newsObserver.observe(x,{childList:true,subtree:true,attributes:true,attributeFilter:["style","class","aria-hidden"]});});}
