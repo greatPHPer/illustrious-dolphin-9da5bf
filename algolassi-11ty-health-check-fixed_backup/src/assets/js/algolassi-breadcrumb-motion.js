@@ -1,4 +1,4 @@
-/* Algolassi breadcrumb motion - refined controller */
+/* Algolassi breadcrumb motion - synchronized item + submenu collapse */
 (function () {
   "use strict";
 
@@ -22,6 +22,9 @@
       link.classList.remove("motion-exit-item");
       link.style.cssText = "";
     }
+    menu.style.height = "";
+    menu.style.overflow = "";
+    menu.style.transition = "";
   }
 
   function clearTimer(item) {
@@ -57,6 +60,12 @@
       return;
     }
 
+    /* Give the submenu a real height so its white background collapses with the items. */
+    var menuHeight = menu.getBoundingClientRect().height;
+    menu.style.height = menuHeight + "px";
+    menu.style.overflow = "hidden";
+    menu.style.transition = "height " + ITEM_DURATION + "ms ease";
+
     links.forEach(function (link) {
       link.style.height = link.getBoundingClientRect().height + "px";
       link.style.overflow = "hidden";
@@ -66,13 +75,17 @@
       if (index < 0) {
         menu.classList.remove("motion-closing", "motion-open");
         menu.classList.add("motion-hidden");
+        menu.style.height = "";
+        menu.style.overflow = "";
+        menu.style.transition = "";
         timers.delete(item);
         return;
       }
 
       var link = links[index];
+      var itemHeight = link.getBoundingClientRect().height;
       link.classList.add("motion-exit-item");
-      /* Deliberately do NOT transition transform here. The hover animation owns it. */
+      /* Transform remains owned by the CSS hover animation. */
       link.style.transition = "height " + ITEM_DURATION + "ms ease, padding-top " + ITEM_DURATION + "ms ease, padding-bottom " + ITEM_DURATION + "ms ease";
 
       requestAnimationFrame(function () {
@@ -81,6 +94,10 @@
         link.style.maxHeight = "0px";
         link.style.paddingTop = "0px";
         link.style.paddingBottom = "0px";
+
+        /* Collapse the white submenu background by exactly the space being removed. */
+        var currentHeight = parseFloat(getComputedStyle(menu).height) || menuHeight;
+        menu.style.height = Math.max(0, currentHeight - itemHeight) + "px";
       });
 
       var timer = setTimeout(function () {
