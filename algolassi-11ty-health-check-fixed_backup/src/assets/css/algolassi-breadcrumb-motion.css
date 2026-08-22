@@ -1,4 +1,4 @@
-/* Algolassi breadcrumb motion - hover + transparent closing state */
+/* Algolassi breadcrumb motion - hover + closing state */
 @keyframes algolassiBreadcrumbHoverTilt {
   0% { transform: rotateZ(0deg); }
   45% { transform: rotateZ(-2.5deg); }
@@ -24,9 +24,6 @@
 .breadcrumb-menu.motion-closing {
   pointer-events: none !important;
   transition: none !important;
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
 }
 
 .breadcrumb-menu.motion-open > a {
