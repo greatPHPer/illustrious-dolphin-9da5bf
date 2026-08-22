@@ -28,6 +28,7 @@
     return visibleRect(host.querySelector(".algolassi-assistant-news"));
   }
   function radioLauncher() { return visibleRect(document.getElementById("algolassi-radio-reopen")); }
+  function radioCard() { return visibleRect(document.getElementById("algolassi-radio-host")); }
   function chatLauncher() {
     var b = document.getElementById("algolassi-chat-reopen-button");
     return visibleRect(b && b.classList.contains("is-visible") ? b : null);
@@ -123,28 +124,39 @@
     if (el) el.style.bottom = Math.max(baseBottom(), bottom) + "px";
   }
 
+  function bottomAbove(rect) {
+    return window.innerHeight - rect.top + GAP;
+  }
+
   function updateAll() {
     syncNewsLauncher();
     var news = newsToast();
-    var radio = radioLauncher();
+    var radioButton = radioLauncher();
+    var radio = radioCard();
     var chat = chatLauncher();
 
-    /* Stack order from bottom upward: news -> radio -> chat. */
-    if (radio) {
-      setBottom(document.getElementById("algolassi-radio-reopen"), news ? window.innerHeight - news.top + GAP : baseBottom());
+    /* Minimized stack: news -> radio -> chat. */
+    if (radioButton) {
+      setBottom(document.getElementById("algolassi-radio-reopen"), news ? bottomAbove(news) : baseBottom());
     }
 
     if (chat) {
-      var lower = radioLauncher() || news;
-      setBottom(document.getElementById("algolassi-chat-reopen-button"), lower ? window.innerHeight - lower.top + GAP : baseBottom());
+      var lowerLauncher = radioButton || news;
+      var lowerFull = radio || news;
+      var lower = lowerFull || lowerLauncher;
+      setBottom(document.getElementById("algolassi-chat-reopen-button"), lower ? bottomAbove(lower) : baseBottom());
     }
 
-    /* Keep an open chat card above the lower floating item. */
+    /* Restored/full controls must also participate in the same vertical stack.
+       If both radio and chat are open, put chat above the radio card instead of
+       letting both fixed-position hosts sit at the same bottom offset. */
     var card = chatCard();
     if (card) {
-      var lowerCard = radioLauncher() || news;
+      var lowerCard = radio || radioButton || news;
       var chatHost = document.getElementById("algolassi-chat-presence-host");
-      if (chatHost) chatHost.style.bottom = lowerCard ? Math.max(baseBottom(), window.innerHeight - lowerCard.top + GAP) + "px" : baseBottom() + "px";
+      if (chatHost) {
+        setBottom(chatHost, lowerCard ? bottomAbove(lowerCard) : baseBottom());
+      }
     }
   }
 
