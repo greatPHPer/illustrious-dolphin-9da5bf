@@ -21,14 +21,9 @@
     applyingNews=true;
     try{
       var b=document.createElement("button");
-      b.type="button";
-      b.className="algolassi-assistant-action algolassi-news-hide";
-      b.setAttribute("aria-label","Hide news");
-      b.title="Hide news";
-      b.textContent="✕ Hide";
+      b.type="button";b.className="algolassi-assistant-action algolassi-news-hide";b.setAttribute("aria-label","Hide news");b.title="Hide news";b.textContent="✕ Hide";
       b.style.cssText="margin-left:auto!important;flex-shrink:0;display:inline-flex!important;align-items:center;justify-content:center;border:0;border-radius:7px;background:#111827;color:#fff;font-size:12px;line-height:1;cursor:pointer;padding:6px 9px;white-space:nowrap;visibility:visible!important;opacity:1!important;pointer-events:auto!important;position:relative;z-index:2147483647;";
-      b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();hideNewsToast(toast);},false);
-      head.appendChild(b);
+      b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();hideNewsToast(toast);},false);head.appendChild(b);
     }finally{applyingNews=false;}
   }
   function hideNewsToast(toast){var h=assistantHost();if(!toast||!h||!h.contains(toast))return;hiddenNewsToast=toast;toast.classList.add("algolassi-assistant-toast-hide");setTimeout(function(){if(h.contains(toast))h.removeChild(toast);showNewsLauncher();updateAll();},200);try{window.dispatchEvent(new Event("algolassi:news-layout-change"));}catch(e){}}
@@ -40,18 +35,27 @@
   function h(rect,fallback){return rect?rect.height:fallback;}
   function updateAll(){
     syncNewsLauncher();
-    var news=newsToast(),nmini=newsLauncher(),rbEl=document.getElementById("algolassi-radio-reopen"),rb=radioLauncher(),rc=radioCard(),cbEl=document.getElementById("algolassi-chat-reopen-button"),cb=chatLauncher();
+    var news=newsToast(),nmini=newsLauncher(),rbEl=document.getElementById("algolassi-radio-reopen"),rb=radioLauncher(),rc=radioCard(),cbEl=document.getElementById("algolassi-chat-reopen-button"),cb=chatLauncher(),cc=chatCard(),ch=document.getElementById("algolassi-chat-presence-host");
     var cursor=baseBottom();
+
+    /* Deterministic stack: bottom -> News -> Radio -> Chat. */
     if(nmini){setBottom(document.getElementById(NEWS_BUTTON_ID),cursor);cursor+=h(nmini,46)+GAP;}
     else if(news){cursor=window.innerHeight-news.top+GAP;}
+
     if(rb){setBottom(rbEl,cursor);cursor+=h(rb,46)+GAP;}
     else if(rc){cursor=window.innerHeight-rc.top+GAP;}
-    if(cb)setBottom(cbEl,cursor);
-    var cc=chatCard(),ch=document.getElementById("algolassi-chat-presence-host");
-    if(cc&&ch)setBottom(ch,cursor);
+
+    if(cb){setBottom(cbEl,cursor);}
+    if(cc&&ch){setBottom(ch,cursor);}
+
+    /* Restored Chat must always sit above the currently visible lower stack item. */
+    if(ch&&cc){ch.style.zIndex="2147483004";}
+    if(cbEl&&cb){cbEl.style.zIndex="2147483005";}
+    var newsEl=assistantHost();if(newsEl)newsEl.style.zIndex="2147483000";
+    var radioEl=document.getElementById("algolassi-radio-host");if(radioEl)radioEl.style.zIndex="2147483001";
   }
-  function settle(){updateAll();[40,100,180,300,500].forEach(function(d){setTimeout(updateAll,d);});}
-  function start(){settle();window.addEventListener("resize",settle,{passive:true});window.addEventListener("scroll",updateAll,{passive:true});window.addEventListener("algolassi:radio-layout-change",settle);window.addEventListener("algolassi:spa-navigation",settle);window.addEventListener("algolassi:news-layout-change",settle);window.addEventListener("algolassi:news-reopen",settle);
+  function settle(){updateAll();[0,40,100,180,300,500].forEach(function(d){setTimeout(updateAll,d);});}
+  function start(){settle();window.addEventListener("resize",settle,{passive:true});window.addEventListener("scroll",updateAll,{passive:true});window.addEventListener("algolassi:radio-layout-change",settle);window.addEventListener("algolassi:spa-navigation",settle);window.addEventListener("algolassi:news-layout-change",settle);window.addEventListener("algolassi:news-reopen",settle);window.addEventListener("algolassi:chat-layout-change",settle);window.addEventListener("algolassi:chat-restored",settle);
     if(window.MutationObserver){newsObserver=new MutationObserver(function(){settle();});[document.getElementById("algolassi-chat-presence-host"),document.getElementById("algolassi-radio-host"),document.getElementById("algolassi-radio-reopen"),document.getElementById("algolassi-assistant-host")].forEach(function(x){if(x)newsObserver.observe(x,{childList:true,subtree:true,attributes:true,attributeFilter:["style","class","aria-hidden"]});});}
     if(window.ResizeObserver){var ro=new ResizeObserver(function(){settle();});[document.getElementById("algolassi-chat-presence-host"),document.getElementById("algolassi-radio-host"),document.getElementById("algolassi-radio-reopen"),document.getElementById("algolassi-assistant-host")].forEach(function(x){if(x)ro.observe(x);});}
     timer=setInterval(updateAll,250);
