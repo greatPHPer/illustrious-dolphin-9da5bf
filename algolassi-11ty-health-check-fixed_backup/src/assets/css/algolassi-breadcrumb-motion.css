@@ -1,5 +1,13 @@
 /* Algolassi breadcrumb motion - explicit open/closing states */
 
+/* Subtle Z-axis tilt + fade. No X-axis vibration. */
+@keyframes algolassiBreadcrumbExitRipple{
+  0%{opacity:1;transform:rotateZ(0deg) scale(1)}
+  35%{opacity:1;transform:rotateZ(-2.5deg) scale(1.01)}
+  70%{opacity:.72;transform:rotateZ(2deg) scale(.99)}
+  100%{opacity:0;transform:rotateZ(0deg) scale(.97)}
+}
+
 /* The existing base menu animation remains available, but JS now owns the exit state. */
 .breadcrumb-menu.motion-open,
 .breadcrumb-menu.motion-closing{
