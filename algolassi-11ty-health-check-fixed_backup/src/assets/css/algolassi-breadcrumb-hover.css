@@ -12,6 +12,7 @@
   100% { transform: rotateZ(0deg); }
 }
 
+/* These rules affect ONLY direct submenu links. */
 .breadcrumb-menu > a {
   transform-origin: center center !important;
   overflow: visible !important;
@@ -23,7 +24,6 @@
   animation: algolassiBreadcrumbHoverTilt 320ms ease-in-out both;
 }
 
-/* Only the currently active item may receive the exit animation. */
 .breadcrumb-menu > a.breadcrumb-exit-active {
   overflow: hidden !important;
   opacity: 1 !important;
