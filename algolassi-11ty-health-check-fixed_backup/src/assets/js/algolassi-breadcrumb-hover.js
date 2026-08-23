@@ -3,12 +3,10 @@
 
    Behavior:
    - A breadcrumb child displays the submenu belonging to its parent.
-   - The submenu is visually anchored to the child breadcrumb.
    - The selected submenu row aligns exactly with the child trigger.
-   - Rows above/below the trigger depend on the selected row's position.
+   - The submenu may extend above and below the trigger.
    - The final/current breadcrumb is also a child trigger.
-   - Parent breadcrumb items no longer open their own menus.
-   - No cascading / no side-by-side submenu positioning.
+   - No cascading / no side-by-side positioning.
    ========================================================= */
 (function () {
   "use strict";
@@ -38,15 +36,11 @@
   }
 
   /*
-     Position a child menu so its highlighted entry sits on the same
-     horizontal line as the breadcrumb child that opened it.
-
-     Example:
-       Parent menu has 6 entries and the selected child is #1:
-         selected row aligns with trigger -> remaining rows extend below.
-
-       Selected child is #5:
-         preceding rows extend above -> final row(s) extend below.
+     The child item itself is the containing block. Start the menu at
+     top:0, then move it by the difference between:
+       trigger center
+       selected submenu row center
+     This makes the two centers coincide exactly.
   */
   function alignChildMenu(item) {
     if (!item || window.innerWidth <= 700) return;
@@ -60,18 +54,21 @@
 
     if (!trigger || !selected) return;
 
-    /* Establish the CSS base position first so measurements are stable. */
-    menu.style.top = "calc(100% + 2px)";
+    /* Remove any old inline position before measuring. */
+    menu.style.top = "0px";
 
     var triggerRect = trigger.getBoundingClientRect();
     var selectedRect = selected.getBoundingClientRect();
+    var menuRect = menu.getBoundingClientRect();
 
     var triggerCenter = triggerRect.top + (triggerRect.height / 2);
     var selectedCenter = selectedRect.top + (selectedRect.height / 2);
-    var offset = triggerCenter - selectedCenter;
 
-    menu.style.top = "calc(100% + 2px + " +
-      Math.round(offset * 100) / 100 + "px)";
+    /* menuRect.top is the current top:0 position. */
+    var offset = triggerCenter - selectedCenter;
+    var targetTop = menuRect.top - item.getBoundingClientRect().top + offset;
+
+    menu.style.top = Math.round(targetTop * 100) / 100 + "px";
   }
 
   function alignAllChildMenus() {
@@ -80,12 +77,7 @@
     });
   }
 
-  /*
-     Build one child-menu for every breadcrumb level after the first.
-     The child receives a clone of its immediate parent's menu content.
-     This includes the final/current breadcrumb, which is a span rather
-     than a .breadcrumb-item in the template.
-  */
+  /* Build one child-menu for every breadcrumb level after the first. */
   function initializeChildMenus() {
     var items = Array.prototype.slice.call(
       document.querySelectorAll(breadcrumbSelector)
@@ -118,10 +110,9 @@
       childMenu.removeAttribute("data-menu");
       childMenu.removeAttribute("style");
 
-      /* The parent menu should only be exposed through its child. */
       parentMenu.classList.add("breadcrumb-child-menu-source-hidden");
-
       childItem.appendChild(childMenu);
+
       alignChildMenu(childItem);
     }
   }
@@ -159,10 +150,6 @@
     deactivate(link);
   }, true);
 
-  /*
-     Re-align as soon as the child trigger itself becomes active.
-     This catches both normal breadcrumb links and the final/current span.
-  */
   document.addEventListener("pointerenter", function (event) {
     var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
     if (!item) return;
@@ -172,10 +159,6 @@
     });
   }, true);
 
-  /*
-     Touch devices need an explicit open state because there is no hover.
-     Both normal child triggers and the final/current breadcrumb work here.
-  */
   document.addEventListener("click", function (event) {
     var trigger = event.target && event.target.closest ? event.target.closest(
       ".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current"
