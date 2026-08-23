@@ -6,7 +6,6 @@
    - The final/current breadcrumb also opens its parent's submenu
    - No cascading / no side-by-side submenu positioning
    - Child submenu width never exceeds its parent breadcrumb width
-   - Vertical position is controlled dynamically by the breadcrumb JS
    - No vanish/exit animation
    ========================================================= */
 
@@ -117,9 +116,10 @@
    CHILD BREADCRUMB MENU
 
    IMPORTANT:
-   Do not give this element a vertical base position with !important.
-   The JavaScript positions it dynamically so the highlighted submenu
-   row can line up with the child trigger and extend above/below it.
+   The vertical position is controlled by JavaScript. Do not add
+   a CSS `top` declaration here, especially with !important, because
+   that would override the calculated position used to align the
+   highlighted submenu row with the child trigger.
    ========================================================= */
 
 .breadcrumb-child-menu {
@@ -128,7 +128,6 @@
   opacity: 0 !important;
   pointer-events: none !important;
   position: absolute !important;
-  top: 0 !important;
   left: 0 !important;
   z-index: 10000 !important;
   min-width: 0 !important;
@@ -142,7 +141,7 @@
   box-shadow: 0 12px 28px rgba(16, 24, 40, .14), 0 2px 6px rgba(16, 24, 40, .06) !important;
   transform: translateY(-4px) scale(.985) !important;
   transform-origin: top left !important;
-  transition: opacity .14s ease, transform .18s cubic-bezier(.22,1,.36,1), visibility 0s linear .18s !important;
+  transition: opacity .14s ease, transform .18s cubic-bezier(.22, 1, .36, 1), visibility 0s linear .18s !important;
 }
 
 .breadcrumb-child-item:hover > .breadcrumb-child-menu,
@@ -227,7 +226,6 @@
   }
 
   .breadcrumb-child-menu {
-    top: 0 !important;
     left: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
