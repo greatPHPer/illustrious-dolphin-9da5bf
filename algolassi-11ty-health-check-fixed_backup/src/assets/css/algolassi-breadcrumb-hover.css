@@ -1,10 +1,9 @@
 /* =========================================================
    ALGOLASSI ADVANCED BREADCRUMB
-   Branch: 6.0-advanced-breadcrumb
 
    Visual goals:
-   - Segmented breadcrumb like a modern navigation trail
    - A breadcrumb child opens its parent's submenu below itself
+   - The final/current breadcrumb also opens its parent's submenu
    - No cascading / no side-by-side submenu positioning
    - Clean surface with existing emoji icons retained
    - No vanish/exit animation
@@ -93,9 +92,21 @@
   line-height: 1.35 !important;
 }
 
+/* The final/current breadcrumb is also a child trigger. */
+.breadcrumb-current.breadcrumb-child-item {
+  position: relative !important;
+  cursor: pointer !important;
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease !important;
+}
+
+.breadcrumb-current.breadcrumb-child-item:hover,
+.breadcrumb-current.breadcrumb-child-item:focus-within {
+  background: #f5f9ff !important;
+  border-color: #e3ecfb !important;
+}
+
 /* =========================================================
-   ORIGINAL MENUS ARE USED AS CONTENT SOURCES ONLY.
-   They remain in the DOM but are not displayed from the parent.
+   ORIGINAL MENUS ARE CONTENT SOURCES ONLY
    ========================================================= */
 
 .breadcrumb-menu.breadcrumb-child-menu-source-hidden {
@@ -104,10 +115,6 @@
 
 /* =========================================================
    CHILD BREADCRUMB MENU
-
-   The menu belongs to the child breadcrumb item, but its entries
-   are cloned from the immediate parent's original menu.
-   It opens directly underneath the child.
    ========================================================= */
 
 .breadcrumb-child-menu {
@@ -184,7 +191,7 @@
   border: 0 !important;
 }
 
-/* Neutralize the legacy parent-menu animation/positioning rules. */
+/* Neutralize legacy parent-menu animation/positioning rules. */
 .breadcrumb-item > .breadcrumb-menu:not(.breadcrumb-child-menu-source-hidden) {
   visibility: hidden !important;
   opacity: 0 !important;
