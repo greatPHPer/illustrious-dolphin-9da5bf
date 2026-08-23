@@ -10,9 +10,20 @@
   transform-origin: center center !important;
 }
 
+/* Cancel the legacy exit animation that still exists in site.css. */
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a,
+.breadcrumb-menu:not(.open) > a {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: translateX(0) scale(1) !important;
+}
+
 /* Only the hovered menu item tilts and returns to its original position. */
+.breadcrumb-item:hover > .breadcrumb-menu > a:hover,
+.breadcrumb-item:focus-within > .breadcrumb-menu > a:hover,
+.breadcrumb-menu.open > a:hover,
 .breadcrumb-menu > a:hover {
-  animation: algolassiBreadcrumbHoverTilt 320ms ease-in-out both;
+  animation: algolassiBreadcrumbHoverTilt 320ms ease-in-out both !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
