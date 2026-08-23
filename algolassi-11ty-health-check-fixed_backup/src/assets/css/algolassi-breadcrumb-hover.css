@@ -10,9 +10,16 @@
   transform-origin: center center !important;
 }
 
-/* Only the hovered menu item tilts and returns to its original position. */
+/*
+   site.css still contains a legacy animation:none rule with a more
+   specific selector. Keep that old rule untouched, but let the actual
+   hovered submenu item explicitly win when hover is active.
+*/
+.breadcrumb-item:hover > .breadcrumb-menu > a:hover,
+.breadcrumb-item:focus-within > .breadcrumb-menu > a:hover,
+.breadcrumb-menu.open > a:hover,
 .breadcrumb-menu > a:hover {
-  animation: algolassiBreadcrumbHoverTilt 320ms ease-in-out both;
+  animation: algolassiBreadcrumbHoverTilt 320ms ease-in-out both !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
