@@ -1,11 +1,12 @@
 /* =========================================================
    ALGOLASSI ADVANCED BREADCRUMB
 
-   Behavior:
-   - A breadcrumb child opens its parent's submenu.
-   - The highlighted submenu row is vertically aligned with the child.
-   - The menu can extend above and below the child.
-   - No cascading / no side-by-side positioning.
+   Visual goals:
+   - A breadcrumb child opens its parent's submenu below itself
+   - The final/current breadcrumb also opens its parent's submenu
+   - No cascading / no side-by-side submenu positioning
+   - Child submenu width never exceeds its parent breadcrumb width
+   - No vanish/exit animation
    ========================================================= */
 
 @keyframes algolassiBreadcrumbHoverTilt {
@@ -94,29 +95,40 @@
 .breadcrumb-current.breadcrumb-child-item {
   position: relative !important;
   cursor: pointer !important;
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease !important;
 }
+
+.breadcrumb-current.breadcrumb-child-item:hover,
+.breadcrumb-current.breadcrumb-child-item:focus-within {
+  background: #f5f9ff !important;
+  border-color: #e3ecfb !important;
+}
+
+/* =========================================================
+   ORIGINAL MENUS ARE CONTENT SOURCES ONLY
+   ========================================================= */
 
 .breadcrumb-menu.breadcrumb-child-menu-source-hidden {
   display: none !important;
 }
 
-/*
-   The submenu is anchored to the child item itself at top:0.
-   JavaScript computes the vertical offset required to put the
-   selected row on the same center line as the child trigger.
-*/
+/* =========================================================
+   CHILD BREADCRUMB MENU
+   ========================================================= */
+
 .breadcrumb-child-menu {
   display: block !important;
   visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
   position: absolute !important;
-  top: 0 !important;
+  top: calc(100% + 2px) !important;
   left: 0 !important;
   z-index: 10000 !important;
-  min-width: 310px !important;
-  width: max-content !important;
-  max-width: min(520px, 90vw) !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
   padding: 7px 0 !important;
   border: 1px solid #e6eaf0 !important;
   border-radius: 6px !important;
@@ -139,19 +151,22 @@
 
 .breadcrumb-child-menu > a {
   display: block !important;
-  width: auto !important;
-  margin: 0 7px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
   padding: 9px 11px !important;
+  box-sizing: border-box !important;
   border-radius: 5px !important;
   color: #475467 !important;
   background: transparent !important;
   opacity: 1 !important;
   visibility: visible !important;
   transform: none !important;
-  overflow: visible !important;
+  overflow: hidden !important;
   font-size: 16px !important;
   line-height: 1.35 !important;
-  white-space: nowrap !important;
+  white-space: normal !important;
+  text-overflow: ellipsis !important;
   text-decoration: none !important;
   transition: background-color .12s ease, color .12s ease !important;
   animation: none !important;
@@ -165,7 +180,7 @@
 }
 
 .breadcrumb-child-menu > a.breadcrumb-dropdown-current {
-  margin: 3px 7px !important;
+  margin: 0 !important;
   padding: 9px 11px !important;
   border-radius: 5px !important;
   color: #1769e0 !important;
@@ -206,9 +221,10 @@
   }
 
   .breadcrumb-child-menu {
+    top: calc(100% + 2px) !important;
     left: 0 !important;
-    min-width: 250px !important;
-    max-width: calc(100vw - 30px) !important;
+    width: 100% !important;
+    max-width: 100% !important;
     transform: translateY(-4px) scale(.985) !important;
   }
 
@@ -219,7 +235,6 @@
   }
 
   .breadcrumb-child-menu > a {
-    white-space: normal !important;
     font-size: 14px !important;
   }
 }
