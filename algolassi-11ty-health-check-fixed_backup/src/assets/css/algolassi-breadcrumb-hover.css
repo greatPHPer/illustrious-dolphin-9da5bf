@@ -1,36 +1,246 @@
-/* Algolassi breadcrumb hover motion - hover only */
+/* =========================================================
+   ALGOLASSI ADVANCED BREADCRUMB
+   Branch: 6.0-advanced-breadcrumb
+
+   Visual goals:
+   - Segmented breadcrumb like a modern navigation trail
+   - Dropdown anchored directly to its breadcrumb segment
+   - Clean monochrome-ish surface with existing emoji icons retained
+   - No vanish/exit animation
+   - Only the hovered submenu item gets a small Z tilt
+   ========================================================= */
+
 @keyframes algolassiBreadcrumbHoverTilt {
-  0% { transform: rotateZ(0deg); }
-  45% { transform: rotateZ(-2.5deg); }
+  0%   { transform: rotateZ(0deg); }
+  45%  { transform: rotateZ(-2.5deg); }
   100% { transform: rotateZ(0deg); }
 }
 
-/* Keep breadcrumb aligned with the same content column as .page-content. */
+/* Keep the breadcrumb on the same content column as the page. */
 .breadcrumbs {
-  max-width: 900px;
-  margin: 0 auto 24px auto;
+  width: min(900px, 100%);
+  max-width: 900px !important;
+  margin: 0 auto 24px auto !important;
+  padding: 8px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 0 !important;
+  font-size: 15px !important;
+  line-height: 1.4 !important;
+  color: #344054 !important;
 }
 
-/* Direct submenu links retain their normal appearance. */
+/* Each breadcrumb segment behaves like an individual navigation chip. */
+.breadcrumb-item {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+}
+
+.breadcrumb-trigger {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-height: 42px !important;
+  padding: 8px 12px !important;
+  border: 1px solid transparent !important;
+  border-radius: 5px !important;
+  color: #1769e0 !important;
+  background: #fff !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  line-height: 1.35 !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease !important;
+}
+
+.breadcrumb-trigger:hover,
+.breadcrumb-item:focus-within > .breadcrumb-trigger {
+  background: #f5f9ff !important;
+  border-color: #e3ecfb !important;
+  text-decoration: none !important;
+}
+
+/* Small dropdown triangle remains part of the segment. */
+.breadcrumb-arrow {
+  margin-left: 2px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  color: #1769e0 !important;
+}
+
+/* The slash remains a visual connector, not a clickable element. */
+.breadcrumb-separator {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 5px !important;
+  color: #667085 !important;
+  font-size: 18px !important;
+  font-weight: 400 !important;
+}
+
+/* Current page is visually distinct but remains part of the breadcrumb. */
+.breadcrumb-current {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 42px !important;
+  padding: 8px 12px !important;
+  border-radius: 5px !important;
+  color: #1769e0 !important;
+  background: #f4f8ff !important;
+  font-size: 16px !important;
+  font-weight: 650 !important;
+  line-height: 1.35 !important;
+}
+
+/* =========================================================
+   ANCHORED DROPDOWN PANEL
+   ========================================================= */
+
+.breadcrumb-menu {
+  display: block !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: calc(100% + 2px) !important;
+  left: 0 !important;
+  z-index: 10000 !important;
+  min-width: 310px !important;
+  width: max-content !important;
+  max-width: min(520px, 90vw) !important;
+  padding: 7px 0 !important;
+  border: 1px solid #e6eaf0 !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  box-shadow: 0 12px 28px rgba(16, 24, 40, .14), 0 2px 6px rgba(16, 24, 40, .06) !important;
+  transform: translateY(-4px) scale(.985) !important;
+  transform-origin: top left !important;
+  transition: opacity .14s ease, transform .18s cubic-bezier(.22,1,.36,1), visibility 0s linear .18s !important;
+}
+
+.breadcrumb-item:hover > .breadcrumb-menu,
+.breadcrumb-item:focus-within > .breadcrumb-menu,
+.breadcrumb-menu.open {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) scale(1) !important;
+  transition-delay: 0s !important;
+}
+
+/* Dropdown entries are always present; there is deliberately no exit animation. */
 .breadcrumb-menu > a {
-  transform-origin: center center !important;
+  display: block !important;
+  width: auto !important;
+  margin: 0 7px !important;
+  padding: 9px 11px !important;
+  border-radius: 5px !important;
+  color: #475467 !important;
+  background: transparent !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  overflow: visible !important;
+  font-size: 16px !important;
+  line-height: 1.35 !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  transition: background-color .12s ease, color .12s ease !important;
+  animation: none !important;
 }
 
-/*
-   site.css still contains a legacy animation:none rule with a more
-   specific selector. Keep that old rule untouched, but let the actual
-   hovered submenu item explicitly win when hover is active.
-*/
+.breadcrumb-menu > a:hover {
+  background: #f4f8ff !important;
+  color: #1769e0 !important;
+  text-decoration: none !important;
+  animation: algolassiBreadcrumbHoverTilt 320ms ease-in-out both !important;
+}
+
+/* Current dropdown entry gets the same soft highlighted treatment as the reference. */
+.breadcrumb-menu > a.breadcrumb-dropdown-current {
+  margin: 3px 7px !important;
+  padding: 9px 11px !important;
+  border-radius: 5px !important;
+  color: #1769e0 !important;
+  background: #f2f7ff !important;
+  font-weight: 700 !important;
+}
+
+.breadcrumb-menu > a.breadcrumb-dropdown-current:hover {
+  color: #1769e0 !important;
+  background: #e9f2ff !important;
+  border: 0 !important;
+}
+
+/* Explicitly defeat the old site.css exit-ripple selectors on this branch. */
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu > a,
+.breadcrumb-menu:not(.open) > a {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* But the menu itself stays closed until its parent is active. */
+.breadcrumb-item:not(:hover):not(:focus-within) > .breadcrumb-menu:not(.open) {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Legacy animation:none on the parent does not suppress the actual hover tilt. */
 .breadcrumb-item:hover > .breadcrumb-menu > a:hover,
 .breadcrumb-item:focus-within > .breadcrumb-menu > a:hover,
-.breadcrumb-menu.open > a:hover,
-.breadcrumb-menu > a:hover {
-  animation: algolassiBreadcrumbHoverTilt 150ms ease-in-out both !important;
+.breadcrumb-menu.open > a:hover {
+  animation: algolassiBreadcrumbHoverTilt 320ms ease-in-out both !important;
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .breadcrumbs {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 6px 0 !important;
+    font-size: 14px !important;
+  }
+
+  .breadcrumb-trigger,
+  .breadcrumb-current {
+    min-height: 38px !important;
+    padding: 7px 9px !important;
+    font-size: 14px !important;
+  }
+
+  .breadcrumb-separator {
+    padding: 0 3px !important;
+    font-size: 16px !important;
+  }
+
+  .breadcrumb-menu {
+    min-width: 250px !important;
+    max-width: calc(100vw - 30px) !important;
+  }
+
+  .breadcrumb-menu > a {
+    white-space: normal !important;
+    font-size: 14px !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .breadcrumb-menu,
+  .breadcrumb-menu > a,
   .breadcrumb-menu > a:hover {
     animation: none !important;
-    transform: none !important;
+    transition: none !important;
   }
 }
