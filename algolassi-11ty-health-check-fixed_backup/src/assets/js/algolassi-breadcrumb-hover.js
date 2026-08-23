@@ -1,8 +1,16 @@
-/* Explicit breadcrumb submenu hover state + successive-child alignment */
+/* =========================================================
+   ALGOLASSI BREADCRUMB CHILD MENU
+
+   Behavior:
+   - A breadcrumb child displays the submenu belonging to its parent.
+   - The submenu appears directly below the child breadcrumb item.
+   - Parent breadcrumb items no longer open their own menus.
+   - No cascading / no side-by-side submenu positioning.
+   ========================================================= */
 (function () {
   "use strict";
 
-  var selector = ".breadcrumb-menu > a";
+  var selector = ".breadcrumb-menu > a, .breadcrumb-child-menu > a";
   var breadcrumbSelector = ".breadcrumbs .breadcrumb-item";
 
   function activate(link) {
@@ -16,65 +24,63 @@
     if (link) link.classList.remove("menu-item-tilted");
   }
 
-  /*
-     Find the breadcrumb item immediately following the parent item.
-     The breadcrumb markup puts a separator between levels, so we
-     deliberately walk forward until the next .breadcrumb-item.
-  */
-  function getSuccessiveBreadcrumbItem(item) {
-    if (!item) return null;
-
-    var sibling = item.nextElementSibling;
-    while (sibling) {
-      if (sibling.matches && sibling.matches(breadcrumbSelector)) {
-        return sibling;
+  function directChild(parent, selector) {
+    if (!parent) return null;
+    for (var i = 0; i < parent.children.length; i++) {
+      if (parent.children[i].matches && parent.children[i].matches(selector)) {
+        return parent.children[i];
       }
-      sibling = sibling.nextElementSibling;
     }
-
     return null;
   }
 
   /*
-     Align the highlighted submenu entry with the visible successive
-     breadcrumb item. We compare vertical centers, so the selected
-     child sits exactly on the same horizontal line as its breadcrumb
-     counterpart regardless of which child is selected or how many
-     entries the current submenu contains.
+     Build one child-menu for every breadcrumb level after the first.
+     The child receives a clone of its immediate parent's menu content.
   */
-  function alignCascade(menu) {
-    if (!menu || window.innerWidth <= 700) {
-      if (menu) menu.style.removeProperty("top");
-      return;
+  function initializeChildMenus() {
+    var items = Array.prototype.slice.call(
+      document.querySelectorAll(breadcrumbSelector)
+    );
+
+    items.forEach(function (item) {
+      item.classList.remove("breadcrumb-child-item");
+
+      var generated = directChild(item, ".breadcrumb-child-menu");
+      if (generated) generated.remove();
+
+      var ownMenu = directChild(item, ".breadcrumb-menu");
+      if (ownMenu) {
+        ownMenu.classList.remove("breadcrumb-child-menu-source-hidden");
+      }
+    });
+
+    for (var i = 1; i < items.length; i++) {
+      var parentItem = items[i - 1];
+      var childItem = items[i];
+      var parentMenu = directChild(parentItem, ".breadcrumb-menu");
+
+      if (!parentMenu) continue;
+
+      childItem.classList.add("breadcrumb-child-item");
+
+      var childMenu = parentMenu.cloneNode(true);
+      childMenu.classList.remove("breadcrumb-menu");
+      childMenu.classList.add("breadcrumb-child-menu");
+      childMenu.removeAttribute("data-menu");
+      childMenu.removeAttribute("style");
+
+      /* The parent menu should only be exposed through its child. */
+      parentMenu.classList.add("breadcrumb-child-menu-source-hidden");
+
+      childItem.appendChild(childMenu);
     }
-
-    var parentItem = menu.parentElement;
-    var selected = menu.querySelector("a.breadcrumb-dropdown-current");
-    var successiveItem = getSuccessiveBreadcrumbItem(parentItem);
-
-    if (!parentItem || !selected || !successiveItem) {
-      menu.style.top = "0px";
-      return;
-    }
-
-    /* Start from the CSS cascade position, then measure the real layout. */
-    menu.style.top = "0px";
-
-    var selectedRect = selected.getBoundingClientRect();
-    var successiveTarget =
-      successiveItem.querySelector(":scope > .breadcrumb-trigger, :scope > .breadcrumb-current") ||
-      successiveItem;
-    var targetRect = successiveTarget.getBoundingClientRect();
-
-    var selectedCenter = selectedRect.top + (selectedRect.height / 2);
-    var targetCenter = targetRect.top + (targetRect.height / 2);
-    var offset = targetCenter - selectedCenter;
-
-    menu.style.top = Math.round(offset * 100) / 100 + "px";
   }
 
-  function alignAllCascades() {
-    document.querySelectorAll(".breadcrumb-menu").forEach(alignCascade);
+  function closeAllMenus(except) {
+    document.querySelectorAll(".breadcrumb-menu.open, .breadcrumb-child-menu.open").forEach(function (menu) {
+      if (menu !== except) menu.classList.remove("open");
+    });
   }
 
   document.addEventListener("pointerover", function (event) {
@@ -85,7 +91,6 @@
     if (from === link) return;
 
     activate(link);
-    alignCascade(link.closest(".breadcrumb-menu"));
   }, true);
 
   document.addEventListener("pointerout", function (event) {
@@ -94,30 +99,45 @@
 
     var to = event.relatedTarget && event.relatedTarget.closest ? event.relatedTarget.closest(selector) : null;
     if (to === link) return;
+
     deactivate(link);
   }, true);
 
-  document.addEventListener("pointerenter", function (event) {
-    var parentItem = event.target && event.target.closest ? event.target.closest(".breadcrumb-item") : null;
-    if (!parentItem) return;
+  /*
+     Touch devices need an explicit open state because there is no hover.
+     The child menu belongs to the child item, so that is the menu we open.
+  */
+  document.addEventListener("click", function (event) {
+    var trigger = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item > .breadcrumb-trigger") : null;
+    if (!trigger) return;
 
-    var menu = parentItem.querySelector(":scope > .breadcrumb-menu");
-    if (menu) alignCascade(menu);
+    if (!window.matchMedia("(hover: none) and (pointer: coarse)").matches) {
+      return;
+    }
+
+    var item = trigger.closest(".breadcrumb-child-item");
+    var menu = directChild(item, ".breadcrumb-child-menu");
+    if (!menu) return;
+
+    if (!menu.classList.contains("open")) {
+      event.preventDefault();
+      closeAllMenus(menu);
+      menu.classList.add("open");
+    }
   }, true);
 
-  window.addEventListener("resize", alignAllCascades, { passive: true });
-  window.addEventListener("load", alignAllCascades);
+  function init() {
+    initializeChildMenus();
+  }
+
+  window.addEventListener("load", init);
   window.addEventListener("algolassi:spa-navigation", function () {
-    requestAnimationFrame(alignAllCascades);
+    requestAnimationFrame(init);
   });
 
-  /* The breadcrumb lives inside the SPA-swapped .site-main, so re-align
-     after any DOM replacement as well as on the initial page load. */
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", function () {
-      requestAnimationFrame(alignAllCascades);
-    }, { once: true });
+    document.addEventListener("DOMContentLoaded", init, { once: true });
   } else {
-    requestAnimationFrame(alignAllCascades);
+    requestAnimationFrame(init);
   }
 })();
