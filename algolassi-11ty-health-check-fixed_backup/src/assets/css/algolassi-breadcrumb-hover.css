@@ -5,6 +5,12 @@
   100% { transform: rotateZ(0deg); }
 }
 
+/* Keep breadcrumb aligned with the same content column as .page-content. */
+.breadcrumbs {
+  max-width: 900px;
+  margin: 0 auto 24px auto;
+}
+
 /* Direct submenu links retain their normal appearance. */
 .breadcrumb-menu > a {
   transform-origin: center center !important;
