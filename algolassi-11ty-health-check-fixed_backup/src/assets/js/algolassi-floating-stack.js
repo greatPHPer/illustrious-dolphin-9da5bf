@@ -2,7 +2,7 @@
 (function () {
   "use strict";
   var GAP=14, BASE_DESKTOP=18, BASE_MOBILE=10, NEWS_BUTTON_ID="algolassi-news-reopen";
-  var timer=null, newsObserver=null, applyingNews=false, hiddenNewsToast=null;
+  var timer=null, newsObserver=null, applyingNews=false, hiddenNewsToast=null, scrollFrame=null;
   function baseBottom(){return window.innerWidth<=600?BASE_MOBILE:BASE_DESKTOP;}
   function visibleRect(el){if(!el)return null;var cs=getComputedStyle(el);if(cs.display==="none"||cs.visibility==="hidden"||cs.opacity==="0"||el.getAttribute("aria-hidden")==="true")return null;var r=el.getBoundingClientRect();return r.width>0&&r.height>0?r:null;}
   function assistantHost(){return document.getElementById("algolassi-assistant-host");}
@@ -30,9 +30,6 @@
   function hideNewsToast(toast){
     var h=assistantHost();
     if(!toast||!h||!h.contains(toast))return;
-    /* Keep a clean clone for restoration. The original news toast has its own
-       auto-hide timer in algolassi-assistant.js, so restoring the original
-       DOM node can resurrect an already-expired timer. */
     try{
       hiddenNewsToast=toast.cloneNode(true);
       var clonedHide=hiddenNewsToast.querySelector(".algolassi-news-hide");
@@ -65,7 +62,6 @@
   function updateAll(){
     syncNewsLauncher();
     var news=newsToast(),nmini=newsLauncher(),rbEl=document.getElementById("algolassi-radio-reopen"),rb=radioLauncher(),rc=radioCard(),cbEl=document.getElementById("algolassi-chat-reopen-button"),cb=chatLauncher(),ch=document.getElementById("algolassi-chat-presence-host"),radioEl=document.getElementById("algolassi-radio-host");
-
     var cursor=baseBottom();
     if(nmini){
       setStackBottom(document.getElementById(NEWS_BUTTON_ID),cursor);
@@ -73,7 +69,6 @@
     } else if(news){
       cursor=bottomAbove(news);
     }
-
     if(rb){
       var radioBottom=cursor;
       setStackBottom(rbEl,radioBottom);
@@ -84,21 +79,34 @@
       setBottom(radioEl,news?bottomAbove(news):baseBottom());
       cursor=bottomAbove(radioCard());
     }
-
     if(!rbEl){}
     if(ccSafe()){
       var cc=chatCard();
       if(cc&&ch){setBottom(ch,cursor);ch.style.zIndex="2147483004";}
     }
     if(cb){setStackBottom(cbEl,cursor);cbEl.style.zIndex="2147483005";}
-
     if(assistantHost())assistantHost().style.zIndex="2147483000";
     if(radioEl)radioEl.style.zIndex="2147483001";
     if(rbEl&&rb)rbEl.style.zIndex="2147483002";
   }
   function ccSafe(){var h=document.getElementById("algolassi-chat-presence-host");return !!h&&!h.classList.contains("algolassi-chat-toggle-hidden")&&!h.classList.contains("algolassi-chat-is-hidden");}
+  function scheduleScrollUpdate(){
+    if(scrollFrame!==null)return;
+    var raf=window.requestAnimationFrame||function(fn){return window.setTimeout(fn,16);};
+    scrollFrame=raf(function(){scrollFrame=null;updateAll();});
+  }
   function settle(){updateAll();[0,20,40,80,120,200,300,500,800].forEach(function(d){setTimeout(updateAll,d);});}
-  function start(){settle();window.addEventListener("resize",settle,{passive:true});window.addEventListener("scroll",updateAll,{passive:true});window.addEventListener("algolassi:radio-layout-change",settle);window.addEventListener("algolassi:spa-navigation",settle);window.addEventListener("algolassi:news-layout-change",settle);window.addEventListener("algolassi:news-reopen",settle);window.addEventListener("algolassi:chat-layout-change",settle);window.addEventListener("algolassi:chat-restored",settle);
+  function start(){
+    settle();
+    window.addEventListener("resize",settle,{passive:true});
+    window.addEventListener("scroll",scheduleScrollUpdate,{passive:true});
+    if(window.visualViewport){window.visualViewport.addEventListener("scroll",scheduleScrollUpdate,{passive:true});window.visualViewport.addEventListener("resize",scheduleScrollUpdate,{passive:true});}
+    window.addEventListener("algolassi:radio-layout-change",settle);
+    window.addEventListener("algolassi:spa-navigation",settle);
+    window.addEventListener("algolassi:news-layout-change",settle);
+    window.addEventListener("algolassi:news-reopen",settle);
+    window.addEventListener("algolassi:chat-layout-change",settle);
+    window.addEventListener("algolassi:chat-restored",settle);
     if(window.MutationObserver){newsObserver=new MutationObserver(function(){settle();});[document.getElementById("algolassi-chat-presence-host"),document.getElementById("algolassi-radio-host"),document.getElementById("algolassi-radio-reopen"),document.getElementById("algolassi-assistant-host")].forEach(function(x){if(x)newsObserver.observe(x,{childList:true,subtree:true,attributes:true,attributeFilter:["style","class","aria-hidden"]});});}
     if(window.ResizeObserver){var ro=new ResizeObserver(function(){settle();});[document.getElementById("algolassi-chat-presence-host"),document.getElementById("algolassi-radio-host"),document.getElementById("algolassi-radio-reopen"),document.getElementById("algolassi-assistant-host")].forEach(function(x){if(x)ro.observe(x);});}
     timer=setInterval(updateAll,250);
