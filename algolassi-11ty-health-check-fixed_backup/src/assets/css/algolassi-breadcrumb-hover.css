@@ -19,7 +19,7 @@
 .breadcrumb-item:focus-within > .breadcrumb-menu > a:hover,
 .breadcrumb-menu.open > a:hover,
 .breadcrumb-menu > a:hover {
-  animation: algolassiBreadcrumbHoverTilt 320ms ease-in-out both !important;
+  animation: algolassiBreadcrumbHoverTilt 150ms ease-in-out both !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
