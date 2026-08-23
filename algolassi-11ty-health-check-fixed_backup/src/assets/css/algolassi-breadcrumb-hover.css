@@ -1,51 +1,23 @@
-/* Breadcrumb submenu hover + strictly sequential exit animation */
-@keyframes algolassiBreadcrumbExitRipple {
-  0% { opacity: 1; transform: rotateZ(0deg) scale(1); }
-  28% { opacity: 1; transform: rotateZ(-2.5deg) scale(.86); }
-  58% { opacity: 1; transform: rotateZ(-2.5deg) scale(1.08); }
-  100% { opacity: 0; transform: rotateZ(-2.5deg) scale(0); }
-}
-
+/* Algolassi breadcrumb hover motion - hover only */
 @keyframes algolassiBreadcrumbHoverTilt {
   0% { transform: rotateZ(0deg); }
   45% { transform: rotateZ(-2.5deg); }
   100% { transform: rotateZ(0deg); }
 }
 
-/* These rules affect ONLY direct submenu links. */
+/* Direct submenu links retain their normal appearance. */
 .breadcrumb-menu > a {
   transform-origin: center center !important;
-  overflow: visible !important;
-  visibility: visible !important;
-  opacity: 1 !important;
 }
 
+/* Only the hovered menu item tilts and returns to its original position. */
 .breadcrumb-menu > a:hover {
   animation: algolassiBreadcrumbHoverTilt 320ms ease-in-out both;
 }
 
-.breadcrumb-menu > a.breadcrumb-exit-active {
-  overflow: hidden !important;
-  opacity: 1 !important;
-  animation: algolassiBreadcrumbExitRipple 2s ease-in-out forwards !important;
-}
-
-.breadcrumb-menu > a.breadcrumb-exit-complete {
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-@media (max-width: 700px) {
-  .breadcrumb-menu > a.breadcrumb-exit-active {
-    animation: algolassiBreadcrumbExitRipple 2s ease-in-out forwards !important;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .breadcrumb-menu > a,
-  .breadcrumb-menu > a:hover,
-  .breadcrumb-menu > a.breadcrumb-exit-active {
+  .breadcrumb-menu > a:hover {
     animation: none !important;
+    transform: none !important;
   }
 }
