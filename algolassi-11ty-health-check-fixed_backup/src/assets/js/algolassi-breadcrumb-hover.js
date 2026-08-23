@@ -4,6 +4,7 @@
    Behavior:
    - A breadcrumb child displays the submenu belonging to its parent.
    - The submenu appears directly below the child breadcrumb item.
+   - The final/current breadcrumb is also a child trigger.
    - Parent breadcrumb items no longer open their own menus.
    - No cascading / no side-by-side submenu positioning.
    ========================================================= */
@@ -11,7 +12,7 @@
   "use strict";
 
   var selector = ".breadcrumb-menu > a, .breadcrumb-child-menu > a";
-  var breadcrumbSelector = ".breadcrumbs .breadcrumb-item";
+  var breadcrumbSelector = ".breadcrumbs .breadcrumb-item, .breadcrumbs > .breadcrumb-current";
 
   function activate(link) {
     if (!link) return;
@@ -37,6 +38,8 @@
   /*
      Build one child-menu for every breadcrumb level after the first.
      The child receives a clone of its immediate parent's menu content.
+     This includes the final/current breadcrumb, which is a span rather
+     than a .breadcrumb-item in the template.
   */
   function initializeChildMenus() {
     var items = Array.prototype.slice.call(
@@ -105,10 +108,12 @@
 
   /*
      Touch devices need an explicit open state because there is no hover.
-     The child menu belongs to the child item, so that is the menu we open.
+     Both normal child triggers and the final/current breadcrumb work here.
   */
   document.addEventListener("click", function (event) {
-    var trigger = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item > .breadcrumb-trigger") : null;
+    var trigger = event.target && event.target.closest ? event.target.closest(
+      ".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current"
+    ) : null;
     if (!trigger) return;
 
     if (!window.matchMedia("(hover: none) and (pointer: coarse)").matches) {
