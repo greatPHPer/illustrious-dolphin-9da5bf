@@ -1,24 +1,17 @@
 /* =========================================================
    ALGOLASSI ADVANCED BREADCRUMB
-
-   Visual goals:
-   - A breadcrumb child opens its parent's submenu below itself
-   - The final/current breadcrumb also opens its parent's submenu
-   - No cascading / no side-by-side submenu positioning
-   - Child submenu width never exceeds its parent breadcrumb width
-   - No vanish/exit animation
    ========================================================= */
 
 @keyframes algolassiBreadcrumbHoverTilt {
-  0%   { transform: rotateZ(0deg); }
-  45%  { transform: rotateZ(-2.5deg); }
+  0% { transform: rotateZ(0deg); }
+  45% { transform: rotateZ(-2.5deg); }
   100% { transform: rotateZ(0deg); }
 }
 
 .breadcrumbs {
   width: min(900px, 100%);
   max-width: 900px !important;
-  margin: 0 auto 24px auto !important;
+  margin: 0 auto 24px !important;
   padding: 8px 0 !important;
   display: flex !important;
   align-items: center !important;
@@ -52,7 +45,6 @@
   white-space: nowrap !important;
   text-decoration: none !important;
   cursor: pointer !important;
-  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease !important;
 }
 
 .breadcrumb-trigger:hover,
@@ -76,7 +68,6 @@
   padding: 0 5px !important;
   color: #667085 !important;
   font-size: 18px !important;
-  font-weight: 400 !important;
 }
 
 .breadcrumb-current {
@@ -95,7 +86,6 @@
 .breadcrumb-current.breadcrumb-child-item {
   position: relative !important;
   cursor: pointer !important;
-  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease !important;
 }
 
 .breadcrumb-current.breadcrumb-child-item:hover,
@@ -104,10 +94,7 @@
   border-color: #e3ecfb !important;
 }
 
-/* =========================================================
-   ORIGINAL MENUS ARE CONTENT SOURCES ONLY
-   ========================================================= */
-
+/* Original menus are content sources only. */
 .breadcrumb-menu.breadcrumb-child-menu-source-hidden {
   display: none !important;
 }
@@ -116,12 +103,10 @@
    CHILD BREADCRUMB MENU
 
    IMPORTANT:
-   The vertical position is controlled by JavaScript. Do not add
-   a CSS `top` declaration here, especially with !important, because
-   that would override the calculated position used to align the
-   highlighted submenu row with the child trigger.
+   JavaScript owns the vertical top position. There must be no CSS
+   `top` declaration here, otherwise it conflicts with the dynamic
+   selected-row/trigger alignment.
    ========================================================= */
-
 .breadcrumb-child-menu {
   display: block !important;
   visibility: hidden !important;
@@ -134,6 +119,13 @@
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
+
+  /* Never allow the dropdown itself to exceed the visible viewport. */
+  max-height: calc(100vh - 16px) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable !important;
+
   padding: 7px 0 !important;
   border: 1px solid #e6eaf0 !important;
   border-radius: 6px !important;
@@ -173,7 +165,6 @@
   white-space: normal !important;
   text-overflow: ellipsis !important;
   text-decoration: none !important;
-  transition: background-color .12s ease, color .12s ease !important;
   animation: none !important;
 }
 
@@ -185,16 +176,12 @@
 }
 
 .breadcrumb-child-menu > a.breadcrumb-dropdown-current {
-  margin: 0 !important;
-  padding: 9px 11px !important;
-  border-radius: 5px !important;
   color: #1769e0 !important;
   background: #f2f7ff !important;
   font-weight: 700 !important;
 }
 
 .breadcrumb-child-menu > a.breadcrumb-dropdown-current:hover {
-  color: #1769e0 !important;
   background: #e9f2ff !important;
   border: 0 !important;
 }
@@ -229,6 +216,7 @@
     left: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
+    max-height: calc(100vh - 12px) !important;
     transform: translateY(-4px) scale(.985) !important;
   }
 
