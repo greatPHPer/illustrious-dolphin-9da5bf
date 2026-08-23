@@ -6,6 +6,7 @@
    - The selected submenu row aligns exactly with the child trigger.
    - The submenu may extend above and below the trigger.
    - The final/current breadcrumb is also a child trigger.
+   - Submenu width is never wider than its parent breadcrumb item.
    - No cascading / no side-by-side positioning.
    ========================================================= */
 (function () {
@@ -36,6 +37,43 @@
   }
 
   /*
+     The menu belongs visually to the child item, but its maximum width
+     comes from the breadcrumb parent that supplied the menu content.
+     Set the width first, then measure the now-final menu layout so text
+     wrapping cannot disturb the vertical alignment calculation.
+  */
+  function constrainChildMenuWidth(item) {
+    if (!item) return;
+
+    var menu = directChild(item, ".breadcrumb-child-menu");
+    if (!menu) return;
+
+    var parentItem = item.previousElementSibling;
+
+    /* Ignore the separator between breadcrumb levels. */
+    while (parentItem && !(parentItem.matches && parentItem.matches(".breadcrumb-item"))) {
+      parentItem = parentItem.previousElementSibling;
+    }
+
+    if (!parentItem) {
+      parentItem = item.parentElement && item.parentElement.querySelector
+        ? item.parentElement.querySelector(".breadcrumb-item")
+        : null;
+    }
+
+    if (!parentItem) return;
+
+    var parentTrigger = directChild(parentItem, ".breadcrumb-trigger") || parentItem;
+    var parentWidth = parentTrigger.getBoundingClientRect().width;
+
+    if (!Number.isFinite(parentWidth) || parentWidth <= 0) return;
+
+    menu.style.width = Math.round(parentWidth * 100) / 100 + "px";
+    menu.style.maxWidth = Math.round(parentWidth * 100) / 100 + "px";
+    menu.style.boxSizing = "border-box";
+  }
+
+  /*
      The child item itself is the containing block. Start the menu at
      top:0, then move it by the difference between:
        trigger center
@@ -54,19 +92,23 @@
 
     if (!trigger || !selected) return;
 
-    /* Remove any old inline position before measuring. */
+    /* Width must be fixed before measuring menu rows. */
+    constrainChildMenuWidth(item);
+
+    /* Force a stable base position for measurement. */
     menu.style.top = "0px";
 
     var triggerRect = trigger.getBoundingClientRect();
     var selectedRect = selected.getBoundingClientRect();
     var menuRect = menu.getBoundingClientRect();
+    var itemRect = item.getBoundingClientRect();
 
     var triggerCenter = triggerRect.top + (triggerRect.height / 2);
     var selectedCenter = selectedRect.top + (selectedRect.height / 2);
 
-    /* menuRect.top is the current top:0 position. */
+    /* Convert the required viewport offset into the child's local top. */
     var offset = triggerCenter - selectedCenter;
-    var targetTop = menuRect.top - item.getBoundingClientRect().top + offset;
+    var targetTop = menuRect.top - itemRect.top + offset;
 
     menu.style.top = Math.round(targetTop * 100) / 100 + "px";
   }
@@ -92,6 +134,9 @@
       var ownMenu = directChild(item, ".breadcrumb-menu");
       if (ownMenu) {
         ownMenu.classList.remove("breadcrumb-child-menu-source-hidden");
+        ownMenu.style.removeProperty("width");
+        ownMenu.style.removeProperty("max-width");
+        ownMenu.style.removeProperty("box-sizing");
       }
     });
 
@@ -113,6 +158,8 @@
       parentMenu.classList.add("breadcrumb-child-menu-source-hidden");
       childItem.appendChild(childMenu);
 
+      /* Width first, alignment second. */
+      constrainChildMenuWidth(childItem);
       alignChildMenu(childItem);
     }
   }
@@ -176,6 +223,7 @@
     if (!menu.classList.contains("open")) {
       event.preventDefault();
       closeAllMenus(menu);
+      constrainChildMenuWidth(item);
       alignChildMenu(item);
       menu.classList.add("open");
     }
@@ -183,7 +231,9 @@
 
   function init() {
     initializeChildMenus();
-    requestAnimationFrame(alignAllChildMenus);
+    requestAnimationFrame(function () {
+      alignAllChildMenus();
+    });
   }
 
   window.addEventListener("resize", function () {
