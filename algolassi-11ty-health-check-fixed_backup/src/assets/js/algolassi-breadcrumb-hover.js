@@ -3,7 +3,9 @@
 
    Behavior:
    - A breadcrumb child displays the submenu belonging to its parent.
-   - The submenu appears directly below the child breadcrumb item.
+   - The submenu is visually anchored to the child breadcrumb.
+   - The selected submenu row aligns exactly with the child trigger.
+   - Rows above/below the trigger depend on the selected row's position.
    - The final/current breadcrumb is also a child trigger.
    - Parent breadcrumb items no longer open their own menus.
    - No cascading / no side-by-side submenu positioning.
@@ -33,6 +35,49 @@
       }
     }
     return null;
+  }
+
+  /*
+     Position a child menu so its highlighted entry sits on the same
+     horizontal line as the breadcrumb child that opened it.
+
+     Example:
+       Parent menu has 6 entries and the selected child is #1:
+         selected row aligns with trigger -> remaining rows extend below.
+
+       Selected child is #5:
+         preceding rows extend above -> final row(s) extend below.
+  */
+  function alignChildMenu(item) {
+    if (!item || window.innerWidth <= 700) return;
+
+    var menu = directChild(item, ".breadcrumb-child-menu");
+    if (!menu) return;
+
+    var trigger = directChild(item, ".breadcrumb-trigger") ||
+                  (item.classList.contains("breadcrumb-current") ? item : null);
+    var selected = menu.querySelector("a.breadcrumb-dropdown-current");
+
+    if (!trigger || !selected) return;
+
+    /* Establish the CSS base position first so measurements are stable. */
+    menu.style.top = "calc(100% + 2px)";
+
+    var triggerRect = trigger.getBoundingClientRect();
+    var selectedRect = selected.getBoundingClientRect();
+
+    var triggerCenter = triggerRect.top + (triggerRect.height / 2);
+    var selectedCenter = selectedRect.top + (selectedRect.height / 2);
+    var offset = triggerCenter - selectedCenter;
+
+    menu.style.top = "calc(100% + 2px + " +
+      Math.round(offset * 100) / 100 + "px)";
+  }
+
+  function alignAllChildMenus() {
+    document.querySelectorAll(".breadcrumb-child-item").forEach(function (item) {
+      alignChildMenu(item);
+    });
   }
 
   /*
@@ -77,6 +122,7 @@
       parentMenu.classList.add("breadcrumb-child-menu-source-hidden");
 
       childItem.appendChild(childMenu);
+      alignChildMenu(childItem);
     }
   }
 
@@ -94,6 +140,13 @@
     if (from === link) return;
 
     activate(link);
+
+    var item = link.closest(".breadcrumb-child-item");
+    if (item) {
+      requestAnimationFrame(function () {
+        alignChildMenu(item);
+      });
+    }
   }, true);
 
   document.addEventListener("pointerout", function (event) {
@@ -104,6 +157,19 @@
     if (to === link) return;
 
     deactivate(link);
+  }, true);
+
+  /*
+     Re-align as soon as the child trigger itself becomes active.
+     This catches both normal breadcrumb links and the final/current span.
+  */
+  document.addEventListener("pointerenter", function (event) {
+    var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
+    if (!item) return;
+
+    requestAnimationFrame(function () {
+      alignChildMenu(item);
+    });
   }, true);
 
   /*
@@ -127,13 +193,19 @@
     if (!menu.classList.contains("open")) {
       event.preventDefault();
       closeAllMenus(menu);
+      alignChildMenu(item);
       menu.classList.add("open");
     }
   }, true);
 
   function init() {
     initializeChildMenus();
+    requestAnimationFrame(alignAllChildMenus);
   }
+
+  window.addEventListener("resize", function () {
+    requestAnimationFrame(alignAllChildMenus);
+  }, { passive: true });
 
   window.addEventListener("load", init);
   window.addEventListener("algolassi:spa-navigation", function () {
