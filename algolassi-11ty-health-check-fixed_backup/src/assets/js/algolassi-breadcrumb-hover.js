@@ -198,7 +198,12 @@
   document.addEventListener("pointerenter", function (event) {
     var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
     if (!item) return;
-    initializeMenuScroll(item);
+
+    var menu = directChild(item, ".breadcrumb-child-menu");
+    if (!menu || menu.dataset.scrollInitialized === "true") return;
+
+    menu.scrollTop = Math.max(0, menu.scrollHeight - menu.clientHeight);
+    menu.dataset.scrollInitialized = "true";
   }, true);
 
   document.addEventListener("pointerleave", function (event) {
