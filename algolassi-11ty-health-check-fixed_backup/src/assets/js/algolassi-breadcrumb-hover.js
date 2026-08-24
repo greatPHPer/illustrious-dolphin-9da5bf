@@ -134,6 +134,12 @@
     if (menu) delete menu.dataset.scrollInitialized;
   }
 
+  function resetAllMenuScrollInitialization() {
+    document.querySelectorAll(".breadcrumb-child-item").forEach(function (item) {
+      resetMenuScrollInitialization(item);
+    });
+  }
+
   function alignAllChildMenus() {
     document.querySelectorAll(".breadcrumb-child-item").forEach(function (item) {
       alignChildMenu(item);
@@ -225,12 +231,12 @@
 
     if (isMobile) {
       var openMenu = document.querySelector(".breadcrumb-child-menu.open");
-      if (openMenu && !event.target.closest(".breadcrumb-child-menu") &&
-          !event.target.closest(".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current")) {
-        openMenu.classList.remove("open");
+      var clickedInsideMenu = event.target.closest(".breadcrumb-child-menu");
+      var clickedTrigger = event.target.closest(".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current");
 
-        var openItem = openMenu.closest(".breadcrumb-child-item");
-        resetMenuScrollInitialization(openItem);
+      if (openMenu && !clickedInsideMenu && !clickedTrigger) {
+        openMenu.classList.remove("open");
+        resetAllMenuScrollInitialization();
       }
     }
 
