@@ -39,6 +39,26 @@
     }
     if (!parentItem) return;
 
+    /* The third breadcrumb slot uses a fixed 250px submenu. */
+    var breadcrumbs = item.closest(".breadcrumbs");
+    var breadcrumbItems = breadcrumbs
+      ? breadcrumbs.querySelectorAll(".breadcrumb-item, .breadcrumb-current")
+      : [];
+    var slotIndex = -1;
+    for (var i = 0; i < breadcrumbItems.length; i++) {
+      if (breadcrumbItems[i] === item) {
+        slotIndex = i + 1;
+        break;
+      }
+    }
+
+    if (slotIndex === 3) {
+      menu.style.width = "250px";
+      menu.style.maxWidth = "250px";
+      menu.style.boxSizing = "border-box";
+      return;
+    }
+
     var parentTrigger = directChild(parentItem, ".breadcrumb-trigger") || parentItem;
     var parentWidth = parentTrigger.getBoundingClientRect().width;
     if (!Number.isFinite(parentWidth) || parentWidth <= 0) return;
@@ -203,7 +223,9 @@
 
   document.addEventListener("pointerenter", function (event) {
     var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
-    if (!item || event.target !== item) return;
+    if (!item) return;
+
+    if (event.target !== item) return;
 
     var menu = directChild(item, ".breadcrumb-child-menu");
     if (!menu || menu.dataset.scrollInitialized === "true") return;
