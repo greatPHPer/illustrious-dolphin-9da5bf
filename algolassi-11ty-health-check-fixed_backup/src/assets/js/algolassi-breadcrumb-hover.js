@@ -228,6 +228,9 @@
       if (openMenu && !event.target.closest(".breadcrumb-child-menu") &&
           !event.target.closest(".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current")) {
         openMenu.classList.remove("open");
+
+        var openItem = openMenu.closest(".breadcrumb-child-item");
+        resetMenuScrollInitialization(openItem);
       }
     }
 
