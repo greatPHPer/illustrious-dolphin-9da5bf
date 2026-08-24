@@ -26,23 +26,9 @@
     return null;
   }
 
-  function isLastBreadcrumbItem(item) {
-    var items = item && item.parentElement
-      ? item.parentElement.querySelectorAll(".breadcrumb-item, .breadcrumb-current")
-      : [];
-    return items.length > 0 && items[items.length - 1] === item;
-  }
-
   function constrainChildMenuWidth(item) {
     var menu = directChild(item, ".breadcrumb-child-menu");
     if (!menu) return;
-
-    if (isLastBreadcrumbItem(item)) {
-      menu.style.removeProperty("width");
-      menu.style.removeProperty("max-width");
-      menu.style.removeProperty("box-sizing");
-      return;
-    }
 
     var parentItem = item.previousElementSibling;
     while (parentItem && !(parentItem.matches && parentItem.matches(".breadcrumb-item"))) {
@@ -57,9 +43,15 @@
     var parentWidth = parentTrigger.getBoundingClientRect().width;
     if (!Number.isFinite(parentWidth) || parentWidth <= 0) return;
 
-    menu.style.width = parentWidth + "px";
-    menu.style.maxWidth = parentWidth + "px";
-    menu.style.boxSizing = "border-box";
+    if (item.nextElementSibling && item.nextElementSibling.matches && item.nextElementSibling.matches(".breadcrumb-child-item")) {
+      menu.style.width = parentWidth + "px";
+      menu.style.maxWidth = parentWidth + "px";
+      menu.style.boxSizing = "border-box";
+    } else {
+      menu.style.removeProperty("width");
+      menu.style.removeProperty("max-width");
+      menu.style.removeProperty("box-sizing");
+    }
   }
 
   function alignChildMenu(item) {
@@ -101,7 +93,7 @@
     var naturalHeight = menu.scrollHeight;
     var finalMaxHeight = naturalHeight;
 
-    if (overflowingTopHeight > 0) {
+    if (overflowingTopHeight > 4) {
       finalMaxHeight = Math.max(1, naturalHeight - overflowingTopHeight);
       menu.style.top = (-overflowingTopHeight) + "px";
     }
@@ -211,7 +203,7 @@
 
   document.addEventListener("pointerenter", function (event) {
     var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
-    if (!item) return;
+    if (!item || event.target !== item) return;
 
     var menu = directChild(item, ".breadcrumb-child-menu");
     if (!menu || menu.dataset.scrollInitialized === "true") return;
