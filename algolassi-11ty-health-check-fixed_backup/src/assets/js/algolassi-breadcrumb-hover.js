@@ -62,6 +62,9 @@
 
     constrainChildMenuWidth(item);
 
+    /* Preserve the user's current position while recalculating layout. */
+    var savedScrollTop = menu.scrollTop;
+
     menu.style.maxHeight = "none";
     menu.style.overflowY = "auto";
     menu.style.top = "0px";
@@ -101,6 +104,12 @@
       menu.style.maxHeight = "1px";
       menu.style.overflowY = "auto";
     }
+
+    /* Restore the existing scroll position after recalculating the menu. */
+    menu.scrollTop = Math.min(
+      savedScrollTop,
+      Math.max(0, menu.scrollHeight - menu.clientHeight)
+    );
   }
 
   function alignAllChildMenus() {
@@ -192,9 +201,6 @@
     constrainChildMenuWidth(item);
     alignChildMenu(item);
     menu.classList.add("open");
-    requestAnimationFrame(function () {
-      menu.scrollTop = Math.max(0, menu.scrollHeight - menu.clientHeight);
-    });
   }, true);
 
   function init() {
