@@ -65,7 +65,6 @@
     menu.style.maxHeight = "none";
     menu.style.overflowY = "auto";
     menu.style.top = "0px";
-    menu.scrollTop = 0;
 
     var triggerRect = trigger.getBoundingClientRect();
     var selectedRect = selected.getBoundingClientRect();
@@ -77,17 +76,6 @@
     var targetTop = triggerCenter - selectedCenter;
     menu.style.top = targetTop + "px";
 
-    /*
-       targetTop is relative to .breadcrumb-child-item.
-       For the requested overflow model, compare that local top with the
-       breadcrumb container's own viewport Y position.
-
-       Example:
-         menu top          = -196px
-         breadcrumbs top  =  110px
-         effective top    =  -86px
-         hidden portion   =   86px
-    */
     var breadcrumbs = item.closest(".breadcrumbs");
     var breadcrumbsRect = breadcrumbs ? breadcrumbs.getBoundingClientRect() : null;
     var breadcrumbsOffsetY = breadcrumbsRect ? breadcrumbsRect.top : 0;
@@ -97,13 +85,11 @@
     var naturalHeight = menu.scrollHeight;
     var finalMaxHeight = naturalHeight;
 
-    /* Only shrink when the calculated menu top actually crosses the viewport top. */
     if (overflowingTopHeight > 0) {
       finalMaxHeight = Math.max(1, naturalHeight - overflowingTopHeight);
       menu.style.top = (-overflowingTopHeight) + "px";
     }
 
-    /* Keep a menu that is not above the viewport at its natural height. */
     if (effectiveMenuTop >= 0) {
       finalMaxHeight = naturalHeight;
     }
@@ -115,9 +101,6 @@
       menu.style.maxHeight = "1px";
       menu.style.overflowY = "auto";
     }
-
-    /* Put the scrollbar at the absolute bottom of the menu when scrollable. */
-    menu.scrollTop = Math.max(0, menu.scrollHeight - menu.clientHeight);
   }
 
   function alignAllChildMenus() {
@@ -209,6 +192,9 @@
     constrainChildMenuWidth(item);
     alignChildMenu(item);
     menu.classList.add("open");
+    requestAnimationFrame(function () {
+      menu.scrollTop = Math.max(0, menu.scrollHeight - menu.clientHeight);
+    });
   }, true);
 
   function init() {
