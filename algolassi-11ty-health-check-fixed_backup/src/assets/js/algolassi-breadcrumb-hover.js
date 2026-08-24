@@ -49,10 +49,6 @@
     menu.style.boxSizing = "border-box";
   }
 
-  function clamp(value, minimum, maximum) {
-    return Math.min(Math.max(value, minimum), maximum);
-  }
-
   function alignChildMenu(item) {
     if (!item || window.innerWidth <= 700) return;
 
@@ -78,8 +74,8 @@
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
     var selectedCenter = selectedRect.top + selectedRect.height / 2;
 
-    /* Temporary hard-coded test: move the menu 100px upward. */
-    var targetTop = (triggerCenter - selectedCenter) - 100;
+    /* Temporary hard-coded test: move the menu 100px downward. */
+    var targetTop = (triggerCenter - selectedCenter) + 100;
     var desiredViewportTop = itemRect.top + targetTop;
     menu.style.top = targetTop + "px";
 
@@ -102,7 +98,7 @@
       menu.style.overflowY = "auto";
     }
 
-    /* Test requested: put the scrollbar at the end of the menu content. */
+    /* Keep the scrollbar at the end of the menu content for this test. */
     var maximumScroll = Math.max(0, menu.scrollHeight - menu.clientHeight);
     menu.scrollTop = maximumScroll;
   }
