@@ -62,6 +62,7 @@
 
     constrainChildMenuWidth(item);
 
+    /* Remove dynamic height constraints before measuring the natural menu. */
     menu.style.maxHeight = "none";
     menu.style.overflowY = "auto";
     menu.style.top = "0px";
@@ -69,7 +70,6 @@
 
     var triggerRect = trigger.getBoundingClientRect();
     var selectedRect = selected.getBoundingClientRect();
-    var itemRect = item.getBoundingClientRect();
 
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
     var selectedCenter = selectedRect.top + selectedRect.height / 2;
@@ -79,59 +79,38 @@
     menu.style.top = targetTop + "px";
 
     /*
-       `menu.style.top` is local to the breadcrumb-child's containing block.
-       Convert it to document coordinates before deciding whether the menu
-       actually overflows above the viewport.
+       IMPORTANT: targetTop is relative to the breadcrumb-child item.
+       Do not infer viewport overflow from that local value.
 
-       offsetTop gives the breadcrumb child's document position; scrollY is
-       the current document overflow above the viewport. Therefore the amount
-       hidden above the viewport is:
-
-           documentTopOfMenu - scrollY
-
-       when negative.
+       Read the actual rendered menu position after applying targetTop.
+       This is the exact portion of the submenu that is invisible above the
+       browser viewport and nothing more.
     */
-    var childDocumentTop = item.offsetTop;
-    var parent = item.offsetParent;
-    while (parent) {
-      childDocumentTop += parent.offsetTop;
-      parent = parent.offsetParent;
-    }
-
-    var menuDocumentTop = childDocumentTop + targetTop;
-    var hiddenAbove = Math.max(0, window.scrollY - menuDocumentTop);
+    var menuRect = menu.getBoundingClientRect();
+    var hiddenAbove = Math.max(0, -menuRect.top);
 
     var naturalHeight = menu.scrollHeight;
-    var heightAfterHiddenTop = Math.max(0, naturalHeight - hiddenAbove);
+    var finalMaxHeight = naturalHeight - hiddenAbove;
 
-    /*
-       If the menu is above the viewport, shrink only by the hidden portion.
-       Otherwise leave the natural menu height alone. The bottom of the
-       viewport remains the final physical limit.
-    */
-    var finalMaxHeight = naturalHeight;
-    if (hiddenAbove > 0) {
-      finalMaxHeight = heightAfterHiddenTop;
+    /* Never let the visible portion extend past the viewport bottom. */
+    if (finalMaxHeight > 0 && menuRect.top >= 0) {
+      finalMaxHeight = Math.min(
+        finalMaxHeight,
+        Math.max(0, window.innerHeight - menuRect.top - viewportPadding)
+      );
+    } else if (finalMaxHeight > 0 && menuRect.top < 0) {
+      finalMaxHeight = Math.min(
+        finalMaxHeight,
+        window.innerHeight - viewportPadding
+      );
     }
 
-    var menuViewportTop = menuDocumentTop - window.scrollY;
-    var visibleMenuTop = Math.max(viewportPadding, menuViewportTop);
-    var spaceToBottom = Math.max(0, window.innerHeight - visibleMenuTop - viewportPadding);
+    finalMaxHeight = Math.max(1, Math.floor(finalMaxHeight));
 
-    /* Only the bottom edge can further limit a menu that starts in view. */
-    if (hiddenAbove === 0 && spaceToBottom > 0) {
-      finalMaxHeight = Math.min(finalMaxHeight, spaceToBottom);
-    }
+    menu.style.maxHeight = finalMaxHeight + "px";
+    menu.style.overflowY = naturalHeight > finalMaxHeight + 1 ? "auto" : "hidden";
 
-    if (finalMaxHeight > 0) {
-      menu.style.maxHeight = Math.floor(finalMaxHeight) + "px";
-      menu.style.overflowY = naturalHeight > finalMaxHeight + 1 ? "auto" : "hidden";
-    } else {
-      menu.style.maxHeight = "1px";
-      menu.style.overflowY = "auto";
-    }
-
-    /* Put the scrollbar at the absolute bottom of the available menu. */
+    /* Always position the scrollbar at the ultimate bottom of this menu. */
     menu.scrollTop = Math.max(0, menu.scrollHeight - menu.clientHeight);
   }
 
