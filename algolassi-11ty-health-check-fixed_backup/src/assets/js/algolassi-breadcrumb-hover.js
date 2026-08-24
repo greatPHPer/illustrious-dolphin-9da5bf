@@ -62,7 +62,6 @@
 
     constrainChildMenuWidth(item);
 
-    /* Remove dynamic height constraints before measuring the natural menu. */
     menu.style.maxHeight = "none";
     menu.style.overflowY = "auto";
     menu.style.top = "0px";
@@ -79,29 +78,36 @@
     menu.style.top = targetTop + "px";
 
     /*
-       IMPORTANT: targetTop is relative to the breadcrumb-child item.
-       Do not infer viewport overflow from that local value.
+       IMPORTANT:
+       targetTop is local to .breadcrumb-child-item. For the overflow rule,
+       the requested reference point is the .breadcrumbs container itself.
 
-       Read the actual rendered menu position after applying targetTop.
-       This is the exact portion of the submenu that is invisible above the
-       browser viewport and nothing more.
+       Therefore:
+           menuTop + breadcrumbsOffsetY
+
+       gives the menu's effective top relative to the browser viewport in the
+       current breadcrumb layout. Only a negative result represents the
+       portion actually invisible above the browser's top edge.
     */
-    var menuRect = menu.getBoundingClientRect();
-    var hiddenAbove = Math.max(0, -menuRect.top);
+    var breadcrumbs = item.closest(".breadcrumbs");
+    var breadcrumbsRect = breadcrumbs ? breadcrumbs.getBoundingClientRect() : null;
+    var breadcrumbsOffsetY = breadcrumbsRect ? breadcrumbsRect.top : 0;
+    var menuTopRelativeToBrowser = targetTop + breadcrumbsOffsetY;
+    var overflowingTopHeight = Math.max(0, -menuTopRelativeToBrowser);
 
     var naturalHeight = menu.scrollHeight;
-    var finalMaxHeight = naturalHeight - hiddenAbove;
+    var finalMaxHeight = naturalHeight - overflowingTopHeight;
 
-    /* Never let the visible portion extend past the viewport bottom. */
-    if (finalMaxHeight > 0 && menuRect.top >= 0) {
+    /* Keep the visible menu inside the browser viewport bottom. */
+    if (finalMaxHeight > 0 && menuTopRelativeToBrowser >= 0) {
       finalMaxHeight = Math.min(
         finalMaxHeight,
-        Math.max(0, window.innerHeight - menuRect.top - viewportPadding)
+        Math.max(0, window.innerHeight - menuTopRelativeToBrowser - viewportPadding)
       );
-    } else if (finalMaxHeight > 0 && menuRect.top < 0) {
+    } else if (finalMaxHeight > 0 && menuTopRelativeToBrowser < 0) {
       finalMaxHeight = Math.min(
         finalMaxHeight,
-        window.innerHeight - viewportPadding
+        Math.max(0, window.innerHeight - viewportPadding)
       );
     }
 
@@ -110,7 +116,7 @@
     menu.style.maxHeight = finalMaxHeight + "px";
     menu.style.overflowY = naturalHeight > finalMaxHeight + 1 ? "auto" : "hidden";
 
-    /* Always position the scrollbar at the ultimate bottom of this menu. */
+    /* Always place the scrollbar at the absolute bottom of the menu. */
     menu.scrollTop = Math.max(0, menu.scrollHeight - menu.clientHeight);
   }
 
