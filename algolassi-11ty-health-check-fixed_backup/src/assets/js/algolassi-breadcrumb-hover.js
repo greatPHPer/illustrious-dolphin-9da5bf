@@ -90,6 +90,9 @@
       finalMaxHeight = Math.min(naturalHeight, spaceToBottom);
     }
 
+    /* Temporary hard-coded test: reduce max-height by 100px independently. */
+    finalMaxHeight = Math.max(1, finalMaxHeight - 100);
+
     if (finalMaxHeight > 0) {
       menu.style.maxHeight = Math.floor(finalMaxHeight) + "px";
       menu.style.overflowY = naturalHeight > finalMaxHeight + 1 ? "auto" : "hidden";
