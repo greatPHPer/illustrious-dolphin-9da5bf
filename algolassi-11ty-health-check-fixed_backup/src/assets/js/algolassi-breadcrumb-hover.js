@@ -6,7 +6,6 @@
 
   var selector = ".breadcrumb-menu > a, .breadcrumb-child-menu > a";
   var breadcrumbSelector = ".breadcrumbs .breadcrumb-item, .breadcrumbs > .breadcrumb-current";
-  var viewportPadding = 8;
 
   function activate(link) {
     if (!link) return;
@@ -112,6 +111,23 @@
     );
   }
 
+  function initializeMenuScroll(item) {
+    var menu = directChild(item, ".breadcrumb-child-menu");
+    if (!menu || menu.dataset.scrollInitialized === "true") return;
+
+    requestAnimationFrame(function () {
+      if (!menu.isConnected) return;
+      alignChildMenu(item);
+      menu.scrollTop = Math.max(0, menu.scrollHeight - menu.clientHeight);
+      menu.dataset.scrollInitialized = "true";
+    });
+  }
+
+  function resetMenuScrollInitialization(item) {
+    var menu = directChild(item, ".breadcrumb-child-menu");
+    if (menu) delete menu.dataset.scrollInitialized;
+  }
+
   function alignAllChildMenus() {
     document.querySelectorAll(".breadcrumb-child-item").forEach(function (item) {
       alignChildMenu(item);
@@ -184,7 +200,13 @@
   document.addEventListener("pointerenter", function (event) {
     var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
     if (!item) return;
-    requestAnimationFrame(function () { alignChildMenu(item); });
+    initializeMenuScroll(item);
+  }, true);
+
+  document.addEventListener("pointerleave", function (event) {
+    var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
+    if (!item) return;
+    resetMenuScrollInitialization(item);
   }, true);
 
   document.addEventListener("click", function (event) {
@@ -201,6 +223,7 @@
     constrainChildMenuWidth(item);
     alignChildMenu(item);
     menu.classList.add("open");
+    initializeMenuScroll(item);
   }, true);
 
   function init() {
