@@ -196,8 +196,8 @@
   }, true);
 
   document.addEventListener("pointerenter", function (event) {
-    var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
-    if (!item) return;
+    var item = event.target;
+    if (!item || !item.matches || !item.matches(".breadcrumb-child-item")) return;
 
     var menu = directChild(item, ".breadcrumb-child-menu");
     if (!menu || menu.dataset.scrollInitialized === "true") return;
