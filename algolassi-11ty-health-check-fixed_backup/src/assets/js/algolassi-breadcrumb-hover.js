@@ -93,7 +93,7 @@
     var naturalHeight = menu.scrollHeight;
     var finalMaxHeight = naturalHeight;
 
-    if (overflowingTopHeight > 0) {
+    if (overflowingTopHeight > 4) {
       finalMaxHeight = Math.max(1, naturalHeight - overflowingTopHeight);
       menu.style.top = (-overflowingTopHeight) + "px";
     }
@@ -115,35 +115,6 @@
       savedScrollTop,
       Math.max(0, menu.scrollHeight - menu.clientHeight)
     );
-  }
-
-  function initializeMenuScroll(item) {
-    var menu = directChild(item, ".breadcrumb-child-menu");
-    if (!menu || menu.dataset.scrollInitialized === "true") return;
-
-    requestAnimationFrame(function () {
-      if (!menu.isConnected) return;
-      alignChildMenu(item);
-      menu.scrollTop = Math.max(0, menu.scrollHeight - menu.clientHeight);
-      menu.dataset.scrollInitialized = "true";
-    });
-  }
-
-  function resetMenuScrollInitialization(item) {
-    var menu = directChild(item, ".breadcrumb-child-menu");
-    if (menu) delete menu.dataset.scrollInitialized;
-  }
-
-  function resetAllMenuScrollInitialization() {
-    document.querySelectorAll(".breadcrumb-child-item").forEach(function (item) {
-      resetMenuScrollInitialization(item);
-    });
-  }
-
-  function alignAllChildMenus() {
-    document.querySelectorAll(".breadcrumb-child-item").forEach(function (item) {
-      alignChildMenu(item);
-    });
   }
 
   function initializeChildMenus() {
@@ -191,6 +162,25 @@
     });
   }
 
+  function resetMenuScrollInitialization(item) {
+    var menu = item && directChild(item, ".breadcrumb-child-menu");
+    if (menu) delete menu.dataset.scrollInitialized;
+  }
+
+  function resetAllMenuScrollInitialization() {
+    document.querySelectorAll(".breadcrumb-child-menu").forEach(function (menu) {
+      delete menu.dataset.scrollInitialized;
+    });
+  }
+
+  function initializeMenuScroll(item) {
+    var menu = directChild(item, ".breadcrumb-child-menu");
+    if (!menu || menu.dataset.scrollInitialized === "true") return;
+
+    menu.scrollTop = Math.max(0, menu.scrollHeight - menu.clientHeight);
+    menu.dataset.scrollInitialized = "true";
+  }
+
   document.addEventListener("pointerover", function (event) {
     var link = event.target && event.target.closest ? event.target.closest(selector) : null;
     if (!link) return;
@@ -228,32 +218,51 @@
 
   document.addEventListener("click", function (event) {
     var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-
-    if (isMobile) {
-      var openMenu = document.querySelector(".breadcrumb-child-menu.open");
-      var clickedInsideMenu = event.target.closest(".breadcrumb-child-menu");
-      var clickedTrigger = event.target.closest(".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current");
-
-      if (openMenu && !clickedInsideMenu && !clickedTrigger) {
-        openMenu.classList.remove("open");
-        resetAllMenuScrollInitialization();
-      }
-    }
-
-    var trigger = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current") : null;
-    if (!trigger) return;
     if (!isMobile) return;
 
-    var item = trigger.closest(".breadcrumb-child-item");
-    var menu = directChild(item, ".breadcrumb-child-menu");
-    if (!menu || menu.classList.contains("open")) return;
+    var trigger = event.target && event.target.closest
+      ? event.target.closest(".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current")
+      : null;
 
-    event.preventDefault();
-    closeAllMenus(menu);
-    constrainChildMenuWidth(item);
-    alignChildMenu(item);
-    menu.classList.add("open");
-    initializeMenuScroll(item);
+    var openMenu = document.querySelector(".breadcrumb-child-menu.open");
+
+    if (trigger) {
+      var item = trigger.closest(".breadcrumb-child-item");
+      var menu = directChild(item, ".breadcrumb-child-menu");
+      if (!menu) return;
+
+      /* A different breadcrumb section is a menu switch, not navigation. */
+      if (openMenu && openMenu !== menu) {
+        event.preventDefault();
+        resetAllMenuScrollInitialization();
+        closeAllMenus(menu);
+        constrainChildMenuWidth(item);
+        alignChildMenu(item);
+        menu.classList.add("open");
+        initializeMenuScroll(item);
+        return;
+      }
+
+      /* First tap opens the corresponding child menu. */
+      if (!menu.classList.contains("open")) {
+        event.preventDefault();
+        closeAllMenus(menu);
+        constrainChildMenuWidth(item);
+        alignChildMenu(item);
+        menu.classList.add("open");
+        initializeMenuScroll(item);
+        return;
+      }
+
+      return;
+    }
+
+    /* Tapping outside any breadcrumb menu closes it and resets the tap state. */
+    if (openMenu && !event.target.closest(".breadcrumb-child-menu")) {
+      event.preventDefault();
+      closeAllMenus();
+      resetAllMenuScrollInitialization();
+    }
   }, true);
 
   function init() {
