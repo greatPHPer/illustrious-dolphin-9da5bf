@@ -78,25 +78,24 @@
     var desiredViewportTop = itemRect.top + targetTop;
     menu.style.top = targetTop + "px";
 
+    /* Natural full dropdown height before viewport clipping. */
     var naturalHeight = menu.scrollHeight;
-    var hiddenAbove = Math.max(0, -desiredViewportTop);
-    var heightAfterHiddenTop = Math.max(0, naturalHeight - hiddenAbove);
-    var visibleTop = Math.max(viewportPadding, desiredViewportTop);
-    var spaceToBottom = Math.max(0, window.innerHeight - visibleTop - viewportPadding);
-    var finalMaxHeight = Math.min(heightAfterHiddenTop, spaceToBottom || heightAfterHiddenTop);
 
-    if (hiddenAbove === 0) {
-      finalMaxHeight = Math.min(naturalHeight, spaceToBottom);
-    }
+    /* Only reduce the dropdown height when its top is above the viewport. */
+    var overflowingTopHeight = Math.max(0, -desiredViewportTop);
+    var finalMaxHeight;
 
-    if (finalMaxHeight > 0) {
+    if (overflowingTopHeight > 0) {
+      finalMaxHeight = Math.max(1, naturalHeight - overflowingTopHeight);
       menu.style.maxHeight = Math.floor(finalMaxHeight) + "px";
       menu.style.overflowY = naturalHeight > finalMaxHeight + 1 ? "auto" : "hidden";
     } else {
-      menu.style.maxHeight = "1px";
-      menu.style.overflowY = "auto";
+      finalMaxHeight = naturalHeight;
+      menu.style.maxHeight = Math.floor(finalMaxHeight) + "px";
+      menu.style.overflowY = "hidden";
     }
 
+    /* Put the scrollbar at the absolute end of the shortened menu. */
     var maximumScroll = Math.max(0, menu.scrollHeight - menu.clientHeight);
     menu.scrollTop = maximumScroll;
   }
