@@ -104,7 +104,6 @@
       menu.style.overflowY = "auto";
     }
 
-    /* Restore the existing scroll position after recalculating the menu. */
     menu.scrollTop = Math.min(
       savedScrollTop,
       Math.max(0, menu.scrollHeight - menu.clientHeight)
@@ -198,7 +197,7 @@
   document.addEventListener("pointerenter", function (event) {
     var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
     if (!item) return;
-    initializeMenuScroll(item);
+    /* Intentionally no scroll/alignment work here. */
   }, true);
 
   document.addEventListener("pointerleave", function (event) {
