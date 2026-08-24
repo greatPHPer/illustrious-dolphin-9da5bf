@@ -1,16 +1,5 @@
 /* =========================================================
    ALGOLASSI BREADCRUMB CHILD MENU
-
-   Behavior:
-   - A breadcrumb child displays the submenu belonging to its parent.
-   - The selected submenu row aligns exactly with the child trigger.
-   - The submenu may extend above and below the trigger.
-   - The true calculated top is preserved, even when above the viewport.
-   - When the menu is taller than the viewport, its own scrollbar is used.
-   - The visible scroll area extends through the bottom of the viewport.
-   - The final/current breadcrumb is also a child trigger.
-   - Submenu width is never wider than its parent breadcrumb item.
-   - No cascading / no side-by-side positioning.
    ========================================================= */
 (function () {
   "use strict";
@@ -18,7 +7,6 @@
   var selector = ".breadcrumb-menu > a, .breadcrumb-child-menu > a";
   var breadcrumbSelector = ".breadcrumbs .breadcrumb-item, .breadcrumbs > .breadcrumb-current";
   var viewportPadding = 8;
-  var minimumMenuHeight = 80;
 
   function activate(link) {
     if (!link) return;
@@ -34,16 +22,12 @@
   function directChild(parent, selector) {
     if (!parent) return null;
     for (var i = 0; i < parent.children.length; i++) {
-      if (parent.children[i].matches && parent.children[i].matches(selector)) {
-        return parent.children[i];
-      }
+      if (parent.children[i].matches && parent.children[i].matches(selector)) return parent.children[i];
     }
     return null;
   }
 
   function constrainChildMenuWidth(item) {
-    if (!item) return;
-
     var menu = directChild(item, ".breadcrumb-child-menu");
     if (!menu) return;
 
@@ -51,22 +35,17 @@
     while (parentItem && !(parentItem.matches && parentItem.matches(".breadcrumb-item"))) {
       parentItem = parentItem.previousElementSibling;
     }
-
     if (!parentItem) {
-      parentItem = item.parentElement && item.parentElement.querySelector
-        ? item.parentElement.querySelector(".breadcrumb-item")
-        : null;
+      parentItem = item.parentElement && item.parentElement.querySelector ? item.parentElement.querySelector(".breadcrumb-item") : null;
     }
-
     if (!parentItem) return;
 
     var parentTrigger = directChild(parentItem, ".breadcrumb-trigger") || parentItem;
     var parentWidth = parentTrigger.getBoundingClientRect().width;
-
     if (!Number.isFinite(parentWidth) || parentWidth <= 0) return;
 
-    menu.style.width = Math.round(parentWidth * 100) / 100 + "px";
-    menu.style.maxWidth = Math.round(parentWidth * 100) / 100 + "px";
+    menu.style.width = parentWidth + "px";
+    menu.style.maxWidth = parentWidth + "px";
     menu.style.boxSizing = "border-box";
   }
 
@@ -74,13 +53,6 @@
     return Math.min(Math.max(value, minimum), maximum);
   }
 
-  /*
-     Keep the exact selected-row/trigger alignment. Do NOT clamp the menu's
-     top into the viewport: an above-screen top is intentional. Instead the
-     menu receives enough scrollable height to cover the viewport through its
-     bottom edge. The menu's own scroll position is then set so the selected
-     row remains aligned with the trigger whenever physically possible.
-  */
   function alignChildMenu(item) {
     if (!item || window.innerWidth <= 700) return;
 
@@ -90,13 +62,12 @@
     var trigger = directChild(item, ".breadcrumb-trigger") ||
                   (item.classList.contains("breadcrumb-current") ? item : null);
     var selected = menu.querySelector("a.breadcrumb-dropdown-current");
-
     if (!trigger || !selected) return;
 
     constrainChildMenuWidth(item);
 
-    /* Reset constraints before measuring the natural menu layout. */
-    menu.style.maxHeight = "";
+    /* Remove all dynamic constraints before measuring the natural menu. */
+    menu.style.maxHeight = "none";
     menu.style.overflowY = "auto";
     menu.style.top = "0px";
     menu.scrollTop = 0;
@@ -106,44 +77,47 @@
     var menuRect = menu.getBoundingClientRect();
     var itemRect = item.getBoundingClientRect();
 
-    var triggerCenter = triggerRect.top + (triggerRect.height / 2);
-    var selectedCenter = selectedRect.top + (selectedRect.height / 2);
+    var triggerCenter = triggerRect.top + triggerRect.height / 2;
+    var selectedCenter = selectedRect.top + selectedRect.height / 2;
 
-    /* Calculate the exact, unconstrained alignment position. */
-    var offset = triggerCenter - selectedCenter;
-    var targetTop = menuRect.top - itemRect.top + offset;
+    /* First establish the exact selected-row/trigger alignment. */
+    var targetTop = (menuRect.top - itemRect.top) + (triggerCenter - selectedCenter);
     var desiredViewportTop = itemRect.top + targetTop;
+    menu.style.top = targetTop + "px";
 
-    /* Preserve the true top, including negative / above-screen positions. */
-    menu.style.top = Math.round(targetTop * 100) / 100 + "px";
+    /* Natural content height, before any viewport clipping. */
+    var naturalHeight = menu.scrollHeight;
+    var hiddenAbove = Math.max(0, -desiredViewportTop);
 
     /*
-       The scroll container should run to the viewport bottom. If its real
-       top is above the viewport, use the full viewport height. If its top is
-       inside the viewport, use the remaining height below that top.
+       The requested rule:
+       visible max-height = natural menu height minus the portion hidden
+       above the viewport. It is also capped by the space available down to
+       the viewport bottom.
     */
+    var heightAfterHiddenTop = Math.max(0, naturalHeight - hiddenAbove);
     var visibleTop = Math.max(viewportPadding, desiredViewportTop);
-    var availableHeight = window.innerHeight - visibleTop - viewportPadding;
+    var spaceToBottom = Math.max(0, window.innerHeight - visibleTop - viewportPadding);
+    var finalMaxHeight = Math.min(heightAfterHiddenTop, spaceToBottom || heightAfterHiddenTop);
 
-    if (availableHeight < minimumMenuHeight) {
-      availableHeight = Math.max(
-        minimumMenuHeight,
-        window.innerHeight - (viewportPadding * 2)
-      );
+    /* If the menu is already fully inside the viewport, use its natural height. */
+    if (hiddenAbove === 0) {
+      finalMaxHeight = Math.min(naturalHeight, spaceToBottom);
     }
 
-    menu.style.maxHeight = Math.floor(availableHeight) + "px";
-    menu.style.overflowY = "auto";
+    if (finalMaxHeight > 0) {
+      menu.style.maxHeight = Math.floor(finalMaxHeight) + "px";
+      menu.style.overflowY = naturalHeight > finalMaxHeight + 1 ? "auto" : "hidden";
+    } else {
+      menu.style.maxHeight = "1px";
+      menu.style.overflowY = "auto";
+    }
 
-    /*
-       After the final height is applied, scroll the menu so the selected row
-       remains on the trigger line. This does not alter the menu's real top.
-    */
-    var selectedCenterInContent = selected.offsetTop + (selected.offsetHeight / 2);
+    /* Keep the highlighted row as close as physically possible to the trigger. */
+    var selectedCenterInContent = selected.offsetTop + selected.offsetHeight / 2;
     var desiredSelectedCenterInMenu = triggerCenter - desiredViewportTop;
     var maximumScroll = Math.max(0, menu.scrollHeight - menu.clientHeight);
     var requiredScroll = selectedCenterInContent - desiredSelectedCenterInMenu;
-
     menu.scrollTop = clamp(requiredScroll, 0, maximumScroll);
   }
 
@@ -153,15 +127,11 @@
     });
   }
 
-  /* Build one child-menu for every breadcrumb level after the first. */
   function initializeChildMenus() {
-    var items = Array.prototype.slice.call(
-      document.querySelectorAll(breadcrumbSelector)
-    );
+    var items = Array.prototype.slice.call(document.querySelectorAll(breadcrumbSelector));
 
     items.forEach(function (item) {
       item.classList.remove("breadcrumb-child-item");
-
       var generated = directChild(item, ".breadcrumb-child-menu");
       if (generated) generated.remove();
 
@@ -178,7 +148,6 @@
       var parentItem = items[i - 1];
       var childItem = items[i];
       var parentMenu = directChild(parentItem, ".breadcrumb-menu");
-
       if (!parentMenu) continue;
 
       childItem.classList.add("breadcrumb-child-item");
@@ -206,77 +175,51 @@
   document.addEventListener("pointerover", function (event) {
     var link = event.target && event.target.closest ? event.target.closest(selector) : null;
     if (!link) return;
-
     var from = event.relatedTarget && event.relatedTarget.closest ? event.relatedTarget.closest(selector) : null;
     if (from === link) return;
-
     activate(link);
-
     var item = link.closest(".breadcrumb-child-item");
-    if (item) {
-      requestAnimationFrame(function () {
-        alignChildMenu(item);
-      });
-    }
+    if (item) requestAnimationFrame(function () { alignChildMenu(item); });
   }, true);
 
   document.addEventListener("pointerout", function (event) {
     var link = event.target && event.target.closest ? event.target.closest(selector) : null;
     if (!link) return;
-
     var to = event.relatedTarget && event.relatedTarget.closest ? event.relatedTarget.closest(selector) : null;
     if (to === link) return;
-
     deactivate(link);
   }, true);
 
   document.addEventListener("pointerenter", function (event) {
     var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
     if (!item) return;
-
-    requestAnimationFrame(function () {
-      alignChildMenu(item);
-    });
+    requestAnimationFrame(function () { alignChildMenu(item); });
   }, true);
 
   document.addEventListener("click", function (event) {
-    var trigger = event.target && event.target.closest ? event.target.closest(
-      ".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current"
-    ) : null;
+    var trigger = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current") : null;
     if (!trigger) return;
-
-    if (!window.matchMedia("(hover: none) and (pointer: coarse)").matches) {
-      return;
-    }
+    if (!window.matchMedia("(hover: none) and (pointer: coarse)").matches) return;
 
     var item = trigger.closest(".breadcrumb-child-item");
     var menu = directChild(item, ".breadcrumb-child-menu");
-    if (!menu) return;
+    if (!menu || menu.classList.contains("open")) return;
 
-    if (!menu.classList.contains("open")) {
-      event.preventDefault();
-      closeAllMenus(menu);
-      constrainChildMenuWidth(item);
-      alignChildMenu(item);
-      menu.classList.add("open");
-    }
+    event.preventDefault();
+    closeAllMenus(menu);
+    constrainChildMenuWidth(item);
+    alignChildMenu(item);
+    menu.classList.add("open");
   }, true);
 
   function init() {
     initializeChildMenus();
-    requestAnimationFrame(function () {
-      alignAllChildMenus();
-    });
+    requestAnimationFrame(alignAllChildMenus);
   }
 
-  window.addEventListener("resize", function () {
-    requestAnimationFrame(alignAllChildMenus);
-  }, { passive: true });
-
+  window.addEventListener("resize", function () { requestAnimationFrame(alignAllChildMenus); }, { passive: true });
   window.addEventListener("load", init);
-  window.addEventListener("algolassi:spa-navigation", function () {
-    requestAnimationFrame(init);
-  });
+  window.addEventListener("algolassi:spa-navigation", function () { requestAnimationFrame(init); });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init, { once: true });
