@@ -5,9 +5,9 @@
    - A breadcrumb child displays the submenu belonging to its parent.
    - The selected submenu row aligns exactly with the child trigger.
    - The submenu may extend above and below the trigger.
-   - When it would leave the viewport, its top is clamped and the menu
-     becomes scrollable while keeping the selected row as aligned as
-     the available viewport space allows.
+   - The true calculated top is preserved, even when above the viewport.
+   - When the menu is taller than the viewport, its own scrollbar is used.
+   - The visible scroll area extends through the bottom of the viewport.
    - The final/current breadcrumb is also a child trigger.
    - Submenu width is never wider than its parent breadcrumb item.
    - No cascading / no side-by-side positioning.
@@ -75,10 +75,11 @@
   }
 
   /*
-     Align the selected row with the trigger first. Then keep the menu
-     itself inside the viewport. If there is not enough physical space,
-     the menu gets a viewport-sized scroll area and scrollTop is adjusted
-     so the selected row stays as close as possible to the trigger.
+     Keep the exact selected-row/trigger alignment. Do NOT clamp the menu's
+     top into the viewport: an above-screen top is intentional. Instead the
+     menu receives enough scrollable height to cover the viewport through its
+     bottom edge. The menu's own scroll position is then set so the selected
+     row remains aligned with the trigger whenever physically possible.
   */
   function alignChildMenu(item) {
     if (!item || window.innerWidth <= 700) return;
@@ -94,7 +95,7 @@
 
     constrainChildMenuWidth(item);
 
-    /* Reset the viewport constraint before measuring the natural layout. */
+    /* Reset constraints before measuring the natural menu layout. */
     menu.style.maxHeight = "";
     menu.style.overflowY = "auto";
     menu.style.top = "0px";
@@ -108,38 +109,38 @@
     var triggerCenter = triggerRect.top + (triggerRect.height / 2);
     var selectedCenter = selectedRect.top + (selectedRect.height / 2);
 
-    /* First calculate the perfect selected-row/trigger alignment. */
+    /* Calculate the exact, unconstrained alignment position. */
     var offset = triggerCenter - selectedCenter;
     var targetTop = menuRect.top - itemRect.top + offset;
     var desiredViewportTop = itemRect.top + targetTop;
 
-    /* Keep at least a small usable part of the menu inside the viewport. */
-    var maximumViewportTop = Math.max(
-      viewportPadding,
-      window.innerHeight - viewportPadding - minimumMenuHeight
-    );
+    /* Preserve the true top, including negative / above-screen positions. */
+    menu.style.top = Math.round(targetTop * 100) / 100 + "px";
 
-    var clampedViewportTop = clamp(
-      desiredViewportTop,
-      viewportPadding,
-      maximumViewportTop
-    );
+    /*
+       The scroll container should run to the viewport bottom. If its real
+       top is above the viewport, use the full viewport height. If its top is
+       inside the viewport, use the remaining height below that top.
+    */
+    var visibleTop = Math.max(viewportPadding, desiredViewportTop);
+    var availableHeight = window.innerHeight - visibleTop - viewportPadding;
 
-    var availableHeight = Math.max(
-      minimumMenuHeight,
-      window.innerHeight - clampedViewportTop - viewportPadding
-    );
+    if (availableHeight < minimumMenuHeight) {
+      availableHeight = Math.max(
+        minimumMenuHeight,
+        window.innerHeight - (viewportPadding * 2)
+      );
+    }
 
-    menu.style.top = Math.round((clampedViewportTop - itemRect.top) * 100) / 100 + "px";
     menu.style.maxHeight = Math.floor(availableHeight) + "px";
     menu.style.overflowY = "auto";
 
     /*
-       When clamping changes the menu's physical top, use the menu's own
-       scrollbar to bring the selected row toward the trigger line.
+       After the final height is applied, scroll the menu so the selected row
+       remains on the trigger line. This does not alter the menu's real top.
     */
     var selectedCenterInContent = selected.offsetTop + (selected.offsetHeight / 2);
-    var desiredSelectedCenterInMenu = triggerCenter - clampedViewportTop;
+    var desiredSelectedCenterInMenu = triggerCenter - desiredViewportTop;
     var maximumScroll = Math.max(0, menu.scrollHeight - menu.clientHeight);
     var requiredScroll = selectedCenterInContent - desiredSelectedCenterInMenu;
 
