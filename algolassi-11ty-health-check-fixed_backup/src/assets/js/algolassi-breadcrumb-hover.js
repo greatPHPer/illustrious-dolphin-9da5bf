@@ -100,6 +100,7 @@
     /* Only shrink when the calculated menu top actually crosses the viewport top. */
     if (overflowingTopHeight > 0) {
       finalMaxHeight = Math.max(1, naturalHeight - overflowingTopHeight);
+      menu.style.top = (-overflowingTopHeight) + "px";
     }
 
     /* Keep a menu that is not above the viewport at its natural height. */
