@@ -26,9 +26,23 @@
     return null;
   }
 
+  function isLastBreadcrumbItem(item) {
+    var items = item && item.parentElement
+      ? item.parentElement.querySelectorAll(".breadcrumb-item, .breadcrumb-current")
+      : [];
+    return items.length > 0 && items[items.length - 1] === item;
+  }
+
   function constrainChildMenuWidth(item) {
     var menu = directChild(item, ".breadcrumb-child-menu");
     if (!menu) return;
+
+    if (isLastBreadcrumbItem(item)) {
+      menu.style.removeProperty("width");
+      menu.style.removeProperty("max-width");
+      menu.style.removeProperty("box-sizing");
+      return;
+    }
 
     var parentItem = item.previousElementSibling;
     while (parentItem && !(parentItem.matches && parentItem.matches(".breadcrumb-item"))) {
@@ -196,8 +210,8 @@
   }, true);
 
   document.addEventListener("pointerenter", function (event) {
-    var item = event.target;
-    if (!item || !item.matches || !item.matches(".breadcrumb-child-item")) return;
+    var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
+    if (!item) return;
 
     var menu = directChild(item, ".breadcrumb-child-menu");
     if (!menu || menu.dataset.scrollInitialized === "true") return;
