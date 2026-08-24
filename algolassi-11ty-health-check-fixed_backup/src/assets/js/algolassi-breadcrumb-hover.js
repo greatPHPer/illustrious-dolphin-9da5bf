@@ -74,8 +74,7 @@
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
     var selectedCenter = selectedRect.top + selectedRect.height / 2;
 
-    /* Temporary hard-coded test: move the menu 100px downward. */
-    var targetTop = (triggerCenter - selectedCenter) + 100;
+    var targetTop = triggerCenter - selectedCenter;
     var desiredViewportTop = itemRect.top + targetTop;
     menu.style.top = targetTop + "px";
 
@@ -90,9 +89,6 @@
       finalMaxHeight = Math.min(naturalHeight, spaceToBottom);
     }
 
-    /* Temporary hard-coded test: reduce max-height by 100px independently. */
-    finalMaxHeight = Math.max(1, finalMaxHeight - 100);
-
     if (finalMaxHeight > 0) {
       menu.style.maxHeight = Math.floor(finalMaxHeight) + "px";
       menu.style.overflowY = naturalHeight > finalMaxHeight + 1 ? "auto" : "hidden";
@@ -101,7 +97,6 @@
       menu.style.overflowY = "auto";
     }
 
-    /* Keep the scrollbar at the end of the menu content for this test. */
     var maximumScroll = Math.max(0, menu.scrollHeight - menu.clientHeight);
     menu.scrollTop = maximumScroll;
   }
