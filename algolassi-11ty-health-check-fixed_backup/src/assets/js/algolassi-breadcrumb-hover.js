@@ -66,7 +66,6 @@
 
     constrainChildMenuWidth(item);
 
-    /* Remove all dynamic constraints before measuring the natural menu. */
     menu.style.maxHeight = "none";
     menu.style.overflowY = "auto";
     menu.style.top = "0px";
@@ -79,27 +78,13 @@
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
     var selectedCenter = selectedRect.top + selectedRect.height / 2;
 
-    /*
-       The menu is positioned relative to the child item.  At top:0, the
-       selected row's viewport position is already represented by
-       selectedCenter, so only the center-to-center delta is needed here.
-       Do not add the menuRect/itemRect offset again; that double-counts an
-       existing menu displacement and pushes the menu too far upward.
-    */
-    var targetTop = triggerCenter - selectedCenter;
+    /* Temporary hard-coded test: move the menu 100px upward. */
+    var targetTop = (triggerCenter - selectedCenter) - 100;
     var desiredViewportTop = itemRect.top + targetTop;
     menu.style.top = targetTop + "px";
 
-    /* Natural content height, before any viewport clipping. */
     var naturalHeight = menu.scrollHeight;
     var hiddenAbove = Math.max(0, -desiredViewportTop);
-
-    /*
-       Visible max-height is the natural menu height minus the portion hidden
-       above the viewport, capped by the space available down to the viewport
-       bottom. The menu itself is deliberately allowed to remain above the
-       viewport; only its scrollable visible portion is constrained.
-    */
     var heightAfterHiddenTop = Math.max(0, naturalHeight - hiddenAbove);
     var visibleTop = Math.max(viewportPadding, desiredViewportTop);
     var spaceToBottom = Math.max(0, window.innerHeight - visibleTop - viewportPadding);
@@ -117,12 +102,9 @@
       menu.style.overflowY = "auto";
     }
 
-    /* Keep the highlighted row as close as physically possible to the trigger. */
-    var selectedCenterInContent = selected.offsetTop + selected.offsetHeight / 2;
-    var desiredSelectedCenterInMenu = triggerCenter - desiredViewportTop;
+    /* Test requested: put the scrollbar at the end of the menu content. */
     var maximumScroll = Math.max(0, menu.scrollHeight - menu.clientHeight);
-    var requiredScroll = selectedCenterInContent - desiredSelectedCenterInMenu;
-    menu.scrollTop = clamp(requiredScroll, 0, maximumScroll);
+    menu.scrollTop = maximumScroll;
   }
 
   function alignAllChildMenus() {
