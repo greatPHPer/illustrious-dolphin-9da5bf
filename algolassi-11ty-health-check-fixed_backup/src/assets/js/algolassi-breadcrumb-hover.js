@@ -69,6 +69,7 @@
 
     var triggerRect = trigger.getBoundingClientRect();
     var selectedRect = selected.getBoundingClientRect();
+
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
     var selectedCenter = selectedRect.top + selectedRect.height / 2;
 
@@ -77,23 +78,32 @@
     menu.style.top = targetTop + "px";
 
     /*
-       targetTop is local to the breadcrumb child. The only value that should
-       affect max-height is the part of the rendered menu actually hidden above
-       the browser's top edge.
+       targetTop is relative to .breadcrumb-child-item.
+       For the requested overflow model, compare that local top with the
+       breadcrumb container's own viewport Y position.
+
+       Example:
+         menu top          = -196px
+         breadcrumbs top  =  110px
+         effective top    =  -86px
+         hidden portion   =   86px
     */
-    var menuRect = menu.getBoundingClientRect();
-    var overflowingTopHeight = Math.max(0, -menuRect.top);
+    var breadcrumbs = item.closest(".breadcrumbs");
+    var breadcrumbsRect = breadcrumbs ? breadcrumbs.getBoundingClientRect() : null;
+    var breadcrumbsOffsetY = breadcrumbsRect ? breadcrumbsRect.top : 0;
+    var effectiveMenuTop = targetTop + breadcrumbsOffsetY;
+    var overflowingTopHeight = Math.max(0, -effectiveMenuTop);
 
     var naturalHeight = menu.scrollHeight;
     var finalMaxHeight = naturalHeight;
 
-    /* Only shrink when the menu really crosses the browser's top edge. */
+    /* Only shrink when the calculated menu top actually crosses the viewport top. */
     if (overflowingTopHeight > 0) {
       finalMaxHeight = Math.max(1, naturalHeight - overflowingTopHeight);
     }
 
-    /* If the menu starts below the viewport top, its natural height is left alone. */
-    if (menuRect.top >= 0) {
+    /* Keep a menu that is not above the viewport at its natural height. */
+    if (effectiveMenuTop >= 0) {
       finalMaxHeight = naturalHeight;
     }
 
