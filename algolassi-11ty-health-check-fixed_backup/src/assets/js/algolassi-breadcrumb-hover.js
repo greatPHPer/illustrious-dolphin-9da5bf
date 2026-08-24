@@ -39,26 +39,6 @@
     }
     if (!parentItem) return;
 
-    /* The third breadcrumb slot uses a fixed 250px submenu. */
-    var breadcrumbs = item.closest(".breadcrumbs");
-    var breadcrumbItems = breadcrumbs
-      ? breadcrumbs.querySelectorAll(".breadcrumb-item, .breadcrumb-current")
-      : [];
-    var slotIndex = -1;
-    for (var i = 0; i < breadcrumbItems.length; i++) {
-      if (breadcrumbItems[i] === item) {
-        slotIndex = i + 1;
-        break;
-      }
-    }
-
-    if (slotIndex === 3) {
-      menu.style.width = "250px";
-      menu.style.maxWidth = "250px";
-      menu.style.boxSizing = "border-box";
-      return;
-    }
-
     var parentTrigger = directChild(parentItem, ".breadcrumb-trigger") || parentItem;
     var parentWidth = parentTrigger.getBoundingClientRect().width;
     if (!Number.isFinite(parentWidth) || parentWidth <= 0) return;
@@ -113,7 +93,7 @@
     var naturalHeight = menu.scrollHeight;
     var finalMaxHeight = naturalHeight;
 
-    if (overflowingTopHeight > 4) {
+    if (overflowingTopHeight > 0) {
       finalMaxHeight = Math.max(1, naturalHeight - overflowingTopHeight);
       menu.style.top = (-overflowingTopHeight) + "px";
     }
@@ -241,9 +221,19 @@
   }, true);
 
   document.addEventListener("click", function (event) {
+    var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+
+    if (isMobile) {
+      var openMenu = document.querySelector(".breadcrumb-child-menu.open");
+      if (openMenu && !event.target.closest(".breadcrumb-child-menu") &&
+          !event.target.closest(".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current")) {
+        openMenu.classList.remove("open");
+      }
+    }
+
     var trigger = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current") : null;
     if (!trigger) return;
-    if (!window.matchMedia("(hover: none) and (pointer: coarse)").matches) return;
+    if (!isMobile) return;
 
     var item = trigger.closest(".breadcrumb-child-item");
     var menu = directChild(item, ".breadcrumb-child-menu");
