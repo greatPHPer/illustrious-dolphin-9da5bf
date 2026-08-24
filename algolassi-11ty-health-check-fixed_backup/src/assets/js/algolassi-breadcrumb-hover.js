@@ -74,30 +74,65 @@
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
     var selectedCenter = selectedRect.top + selectedRect.height / 2;
 
+    /* Keep the selected submenu row aligned with the child trigger. */
     var targetTop = triggerCenter - selectedCenter;
-    var desiredViewportTop = itemRect.top + targetTop;
     menu.style.top = targetTop + "px";
 
-    /* Natural full dropdown height before viewport clipping. */
+    /*
+       `menu.style.top` is local to the breadcrumb-child's containing block.
+       Convert it to document coordinates before deciding whether the menu
+       actually overflows above the viewport.
+
+       offsetTop gives the breadcrumb child's document position; scrollY is
+       the current document overflow above the viewport. Therefore the amount
+       hidden above the viewport is:
+
+           documentTopOfMenu - scrollY
+
+       when negative.
+    */
+    var childDocumentTop = item.offsetTop;
+    var parent = item.offsetParent;
+    while (parent) {
+      childDocumentTop += parent.offsetTop;
+      parent = parent.offsetParent;
+    }
+
+    var menuDocumentTop = childDocumentTop + targetTop;
+    var hiddenAbove = Math.max(0, window.scrollY - menuDocumentTop);
+
     var naturalHeight = menu.scrollHeight;
+    var heightAfterHiddenTop = Math.max(0, naturalHeight - hiddenAbove);
 
-    /* Only reduce the dropdown height when its top is above the viewport. */
-    var overflowingTopHeight = Math.max(0, -desiredViewportTop);
-    var finalMaxHeight;
+    /*
+       If the menu is above the viewport, shrink only by the hidden portion.
+       Otherwise leave the natural menu height alone. The bottom of the
+       viewport remains the final physical limit.
+    */
+    var finalMaxHeight = naturalHeight;
+    if (hiddenAbove > 0) {
+      finalMaxHeight = heightAfterHiddenTop;
+    }
 
-    if (overflowingTopHeight > 0) {
-      finalMaxHeight = Math.max(1, naturalHeight - overflowingTopHeight);
+    var menuViewportTop = menuDocumentTop - window.scrollY;
+    var visibleMenuTop = Math.max(viewportPadding, menuViewportTop);
+    var spaceToBottom = Math.max(0, window.innerHeight - visibleMenuTop - viewportPadding);
+
+    /* Only the bottom edge can further limit a menu that starts in view. */
+    if (hiddenAbove === 0 && spaceToBottom > 0) {
+      finalMaxHeight = Math.min(finalMaxHeight, spaceToBottom);
+    }
+
+    if (finalMaxHeight > 0) {
       menu.style.maxHeight = Math.floor(finalMaxHeight) + "px";
       menu.style.overflowY = naturalHeight > finalMaxHeight + 1 ? "auto" : "hidden";
     } else {
-      finalMaxHeight = naturalHeight;
-      menu.style.maxHeight = Math.floor(finalMaxHeight) + "px";
-      menu.style.overflowY = "hidden";
+      menu.style.maxHeight = "1px";
+      menu.style.overflowY = "auto";
     }
 
-    /* Put the scrollbar at the absolute end of the shortened menu. */
-    var maximumScroll = Math.max(0, menu.scrollHeight - menu.clientHeight);
-    menu.scrollTop = maximumScroll;
+    /* Put the scrollbar at the absolute bottom of the available menu. */
+    menu.scrollTop = Math.max(0, menu.scrollHeight - menu.clientHeight);
   }
 
   function alignAllChildMenus() {
