@@ -185,8 +185,6 @@
     var from = event.relatedTarget && event.relatedTarget.closest ? event.relatedTarget.closest(selector) : null;
     if (from === link) return;
     activate(link);
-    var item = link.closest(".breadcrumb-child-item");
-    if (item) requestAnimationFrame(function () { alignChildMenu(item); });
   }, true);
 
   document.addEventListener("pointerout", function (event) {
