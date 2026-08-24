@@ -608,33 +608,3 @@
 
 
 </div>
-
-
-<script>
-(function () {
-  document.querySelectorAll('.breadcrumb-trigger').forEach(function (trigger) {
-    trigger.addEventListener('click', function (event) {
-      if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
-        var item = trigger.closest('.breadcrumb-item');
-        var menu = item ? item.querySelector('.breadcrumb-menu') : null;
-
-        if (!menu) {
-          return;
-        }
-
-        var isOpen = menu.classList.contains('open');
-
-        if (!isOpen) {
-          event.preventDefault();
-
-          document.querySelectorAll('.breadcrumb-menu.open').forEach(function (otherMenu) {
-            otherMenu.classList.remove('open');
-          });
-
-          menu.classList.add('open');
-        }
-      }
-    });
-  });
-})();
-</script>
