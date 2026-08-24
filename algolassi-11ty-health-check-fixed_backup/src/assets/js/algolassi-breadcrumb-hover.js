@@ -74,14 +74,19 @@
 
     var triggerRect = trigger.getBoundingClientRect();
     var selectedRect = selected.getBoundingClientRect();
-    var menuRect = menu.getBoundingClientRect();
     var itemRect = item.getBoundingClientRect();
 
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
     var selectedCenter = selectedRect.top + selectedRect.height / 2;
 
-    /* First establish the exact selected-row/trigger alignment. */
-    var targetTop = (menuRect.top - itemRect.top) + (triggerCenter - selectedCenter);
+    /*
+       The menu is positioned relative to the child item.  At top:0, the
+       selected row's viewport position is already represented by
+       selectedCenter, so only the center-to-center delta is needed here.
+       Do not add the menuRect/itemRect offset again; that double-counts an
+       existing menu displacement and pushes the menu too far upward.
+    */
+    var targetTop = triggerCenter - selectedCenter;
     var desiredViewportTop = itemRect.top + targetTop;
     menu.style.top = targetTop + "px";
 
@@ -90,17 +95,16 @@
     var hiddenAbove = Math.max(0, -desiredViewportTop);
 
     /*
-       The requested rule:
-       visible max-height = natural menu height minus the portion hidden
-       above the viewport. It is also capped by the space available down to
-       the viewport bottom.
+       Visible max-height is the natural menu height minus the portion hidden
+       above the viewport, capped by the space available down to the viewport
+       bottom. The menu itself is deliberately allowed to remain above the
+       viewport; only its scrollable visible portion is constrained.
     */
     var heightAfterHiddenTop = Math.max(0, naturalHeight - hiddenAbove);
     var visibleTop = Math.max(viewportPadding, desiredViewportTop);
     var spaceToBottom = Math.max(0, window.innerHeight - visibleTop - viewportPadding);
     var finalMaxHeight = Math.min(heightAfterHiddenTop, spaceToBottom || heightAfterHiddenTop);
 
-    /* If the menu is already fully inside the viewport, use its natural height. */
     if (hiddenAbove === 0) {
       finalMaxHeight = Math.min(naturalHeight, spaceToBottom);
     }
