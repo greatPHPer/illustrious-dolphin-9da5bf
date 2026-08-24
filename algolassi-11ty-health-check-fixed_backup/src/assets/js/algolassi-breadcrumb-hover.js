@@ -5,6 +5,9 @@
    - A breadcrumb child displays the submenu belonging to its parent.
    - The selected submenu row aligns exactly with the child trigger.
    - The submenu may extend above and below the trigger.
+   - When it would leave the viewport, its top is clamped and the menu
+     becomes scrollable while keeping the selected row as aligned as
+     the available viewport space allows.
    - The final/current breadcrumb is also a child trigger.
    - Submenu width is never wider than its parent breadcrumb item.
    - No cascading / no side-by-side positioning.
@@ -14,6 +17,8 @@
 
   var selector = ".breadcrumb-menu > a, .breadcrumb-child-menu > a";
   var breadcrumbSelector = ".breadcrumbs .breadcrumb-item, .breadcrumbs > .breadcrumb-current";
+  var viewportPadding = 8;
+  var minimumMenuHeight = 80;
 
   function activate(link) {
     if (!link) return;
@@ -36,12 +41,6 @@
     return null;
   }
 
-  /*
-     The menu belongs visually to the child item, but its maximum width
-     comes from the breadcrumb parent that supplied the menu content.
-     Set the width first, then measure the now-final menu layout so text
-     wrapping cannot disturb the vertical alignment calculation.
-  */
   function constrainChildMenuWidth(item) {
     if (!item) return;
 
@@ -49,8 +48,6 @@
     if (!menu) return;
 
     var parentItem = item.previousElementSibling;
-
-    /* Ignore the separator between breadcrumb levels. */
     while (parentItem && !(parentItem.matches && parentItem.matches(".breadcrumb-item"))) {
       parentItem = parentItem.previousElementSibling;
     }
@@ -73,12 +70,15 @@
     menu.style.boxSizing = "border-box";
   }
 
+  function clamp(value, minimum, maximum) {
+    return Math.min(Math.max(value, minimum), maximum);
+  }
+
   /*
-     The child item itself is the containing block. Start the menu at
-     top:0, then move it by the difference between:
-       trigger center
-       selected submenu row center
-     This makes the two centers coincide exactly.
+     Align the selected row with the trigger first. Then keep the menu
+     itself inside the viewport. If there is not enough physical space,
+     the menu gets a viewport-sized scroll area and scrollTop is adjusted
+     so the selected row stays as close as possible to the trigger.
   */
   function alignChildMenu(item) {
     if (!item || window.innerWidth <= 700) return;
@@ -92,11 +92,13 @@
 
     if (!trigger || !selected) return;
 
-    /* Width must be fixed before measuring menu rows. */
     constrainChildMenuWidth(item);
 
-    /* Force a stable base position for measurement. */
+    /* Reset the viewport constraint before measuring the natural layout. */
+    menu.style.maxHeight = "";
+    menu.style.overflowY = "auto";
     menu.style.top = "0px";
+    menu.scrollTop = 0;
 
     var triggerRect = trigger.getBoundingClientRect();
     var selectedRect = selected.getBoundingClientRect();
@@ -106,11 +108,42 @@
     var triggerCenter = triggerRect.top + (triggerRect.height / 2);
     var selectedCenter = selectedRect.top + (selectedRect.height / 2);
 
-    /* Convert the required viewport offset into the child's local top. */
+    /* First calculate the perfect selected-row/trigger alignment. */
     var offset = triggerCenter - selectedCenter;
     var targetTop = menuRect.top - itemRect.top + offset;
+    var desiredViewportTop = itemRect.top + targetTop;
 
-    menu.style.top = Math.round(targetTop * 100) / 100 + "px";
+    /* Keep at least a small usable part of the menu inside the viewport. */
+    var maximumViewportTop = Math.max(
+      viewportPadding,
+      window.innerHeight - viewportPadding - minimumMenuHeight
+    );
+
+    var clampedViewportTop = clamp(
+      desiredViewportTop,
+      viewportPadding,
+      maximumViewportTop
+    );
+
+    var availableHeight = Math.max(
+      minimumMenuHeight,
+      window.innerHeight - clampedViewportTop - viewportPadding
+    );
+
+    menu.style.top = Math.round((clampedViewportTop - itemRect.top) * 100) / 100 + "px";
+    menu.style.maxHeight = Math.floor(availableHeight) + "px";
+    menu.style.overflowY = "auto";
+
+    /*
+       When clamping changes the menu's physical top, use the menu's own
+       scrollbar to bring the selected row toward the trigger line.
+    */
+    var selectedCenterInContent = selected.offsetTop + (selected.offsetHeight / 2);
+    var desiredSelectedCenterInMenu = triggerCenter - clampedViewportTop;
+    var maximumScroll = Math.max(0, menu.scrollHeight - menu.clientHeight);
+    var requiredScroll = selectedCenterInContent - desiredSelectedCenterInMenu;
+
+    menu.scrollTop = clamp(requiredScroll, 0, maximumScroll);
   }
 
   function alignAllChildMenus() {
@@ -158,7 +191,6 @@
       parentMenu.classList.add("breadcrumb-child-menu-source-hidden");
       childItem.appendChild(childMenu);
 
-      /* Width first, alignment second. */
       constrainChildMenuWidth(childItem);
       alignChildMenu(childItem);
     }
