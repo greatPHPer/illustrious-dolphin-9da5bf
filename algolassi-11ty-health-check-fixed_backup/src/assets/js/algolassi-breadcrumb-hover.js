@@ -247,10 +247,12 @@
         event.stopImmediatePropagation();
         resetAllMenuScrollInitialization();
         closeAllMenus(menu);
-        constrainChildMenuWidth(clickedItem);
-        alignChildMenu(clickedItem);
-        menu.classList.add("open");
-        initializeMenuScroll(clickedItem);
+        requestAnimationFrame(function () {
+          constrainChildMenuWidth(clickedItem);
+          alignChildMenu(clickedItem);
+          menu.classList.add("open");
+          initializeMenuScroll(clickedItem);
+        });
         return;
       }
 
@@ -258,10 +260,12 @@
         event.preventDefault();
         event.stopImmediatePropagation();
         closeAllMenus(menu);
-        constrainChildMenuWidth(clickedItem);
-        alignChildMenu(clickedItem);
-        menu.classList.add("open");
-        initializeMenuScroll(clickedItem);
+        requestAnimationFrame(function () {
+          constrainChildMenuWidth(clickedItem);
+          alignChildMenu(clickedItem);
+          menu.classList.add("open");
+          initializeMenuScroll(clickedItem);
+        });
         return;
       }
 
