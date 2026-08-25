@@ -238,7 +238,7 @@
     resetMenuScrollInitialization(item);
   }, true);
 
-  document.addEventListener("click", function (event) {
+  document.addEventListener("pointerdown", function (event) {
     var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
     if (!isMobile) return;
 
