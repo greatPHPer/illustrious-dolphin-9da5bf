@@ -82,37 +82,36 @@
     var menuRect = menu.getBoundingClientRect();
 
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
-
+    
     // Calculate the selected item's true distance from the top of the menu container
     var selectedCenterRelative = (selectedRect.top - menuRect.top) + (selectedRect.height / 2);
 
     // 2. Ideal Viewport Top Position (Unconstrained)
     var idealViewportTop = triggerCenter - selectedCenterRelative;
-
-    var minTopSpace = 16;
+    
+    var minTopSpace = 16; 
     var maxBottomSpace = window.innerHeight - 16;
     var naturalHeight = menuRect.height;
-
+    
     // 3. Constrain to Top Bounds
     var expectedViewportTop = Math.max(idealViewportTop, minTopSpace);
-
+    
     // 4. Calculate Required Scroll to maintain visual alignment
     var requiredScrollTop = expectedViewportTop - idealViewportTop;
 
-    // 5. The Magic Constraints: Calculate Max Height limits
-    // It must be small enough to allow the required scroll, AND small enough to fit the viewport
+    // 5. Calculate Max Height limits to permit both viewport fit and scrolling
     var maxHeightToPermitScroll = naturalHeight - requiredScrollTop;
     var maxHeightToFitViewport = maxBottomSpace - expectedViewportTop;
-
+    
     var finalMaxHeight = Math.min(naturalHeight, maxHeightToPermitScroll, maxHeightToFitViewport);
-    finalMaxHeight = Math.max(1, finalMaxHeight); // Prevent negative heights
+    finalMaxHeight = Math.max(1, finalMaxHeight);
 
     // 6. Convert absolute viewport position to relative CSS 'top' shift
     var targetTop = expectedViewportTop - menuRect.top;
 
     // 7. Apply calculated styles, forcing them past the CSS file using !important
     menu.style.setProperty("top", targetTop + "px", "important");
-
+    
     if (finalMaxHeight < naturalHeight || requiredScrollTop > 0) {
       menu.style.setProperty("max-height", Math.floor(finalMaxHeight) + "px", "important");
       menu.style.setProperty("overflow-y", "auto", "important");
@@ -164,7 +163,6 @@
       childItem.appendChild(childMenu);
 
       constrainChildMenuWidth(childItem);
-      alignChildMenu(childItem);
     }
   }
 
@@ -193,35 +191,10 @@
     });
   }
 
-  function alignAllChildMenus() {
-    document.querySelectorAll(".breadcrumb-child-item").forEach(function (item) {
-      alignChildMenu(item);
-    });
-  }
-
   function closeAllMenus(except) {
     document.querySelectorAll(".breadcrumb-menu.open, .breadcrumb-child-menu.open").forEach(function (menu) {
       if (menu !== except) menu.classList.remove("open");
     });
-  }
-
-  function resetMenuScrollInitialization(item) {
-    var menu = item && directChild(item, ".breadcrumb-child-menu");
-    if (menu) delete menu.dataset.scrollInitialized;
-  }
-
-  function resetAllMenuScrollInitialization() {
-    document.querySelectorAll(".breadcrumb-child-menu").forEach(function (menu) {
-      delete menu.dataset.scrollInitialized;
-    });
-  }
-
-  function initializeMenuScroll(item) {
-    var menu = directChild(item, ".breadcrumb-child-menu");
-    if (!menu || menu.dataset.scrollInitialized === "true") return;
-
-    menu.scrollTop = Math.max(0, menu.scrollHeight - menu.clientHeight);
-    menu.dataset.scrollInitialized = "true";
   }
 
   document.addEventListener("pointerover", function (event) {
@@ -245,17 +218,8 @@
     if (!item) return;
     if (event.target !== item) return;
 
-    var menu = directChild(item, ".breadcrumb-child-menu");
-    if (!menu || menu.dataset.scrollInitialized === "true") return;
-
-    menu.scrollTop = Math.max(0, menu.scrollHeight - menu.clientHeight);
-    menu.dataset.scrollInitialized = "true";
-  }, true);
-
-  document.addEventListener("pointerleave", function (event) {
-    var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
-    if (!item) return;
-    resetMenuScrollInitialization(item);
+    // Just-In-Time real-time calculation on hover
+    alignChildMenu(item);
   }, true);
 
   document.addEventListener("pointerdown", function (event) {
@@ -271,8 +235,6 @@
 
     var openMenu = document.querySelector(".breadcrumb-child-menu.open");
 
-    // On mobile, breadcrumb items are menu triggers only.
-    // Their href attributes have been removed; child-menu links remain navigable.
     if (clickedItem && !clickedMenu) {
       var menu = directChild(clickedItem, ".breadcrumb-child-menu");
       if (!menu) return;
@@ -281,12 +243,10 @@
       event.stopImmediatePropagation();
 
       if (openMenu && openMenu !== menu) {
-        resetAllMenuScrollInitialization();
         closeAllMenus(menu);
         constrainChildMenuWidth(clickedItem);
         alignChildMenu(clickedItem);
         menu.classList.add("open");
-        initializeMenuScroll(clickedItem);
         return;
       }
 
@@ -295,7 +255,6 @@
         constrainChildMenuWidth(clickedItem);
         alignChildMenu(clickedItem);
         menu.classList.add("open");
-        initializeMenuScroll(clickedItem);
       }
 
       return;
@@ -305,19 +264,16 @@
       event.preventDefault();
       event.stopImmediatePropagation();
       closeAllMenus();
-      resetAllMenuScrollInitialization();
     }
   }, true);
 
   function init() {
     initializeChildMenus();
     syncMobileBreadcrumbLinks();
-    requestAnimationFrame(alignAllChildMenus);
   }
 
   window.addEventListener("resize", function () {
     syncMobileBreadcrumbLinks();
-    requestAnimationFrame(alignAllChildMenus);
   }, { passive: true });
   window.addEventListener("load", init);
   window.addEventListener("algolassi:spa-navigation", function () { requestAnimationFrame(init); });
