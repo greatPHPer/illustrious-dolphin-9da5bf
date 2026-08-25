@@ -82,27 +82,27 @@
     var menuRect = menu.getBoundingClientRect();
 
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
-    
+
     // Calculate the selected item's true distance from the top of the menu container
     var selectedCenterRelative = (selectedRect.top - menuRect.top) + (selectedRect.height / 2);
 
     // 2. Ideal Viewport Top Position (Unconstrained)
     var idealViewportTop = triggerCenter - selectedCenterRelative;
-    
-    var minTopSpace = 16; 
+
+    var minTopSpace = 16;
     var maxBottomSpace = window.innerHeight - 16;
     var naturalHeight = menuRect.height;
-    
+
     // 3. Constrain to Top Bounds
     var expectedViewportTop = Math.max(idealViewportTop, minTopSpace);
-    
+
     // 4. Calculate Required Scroll to maintain visual alignment
     var requiredScrollTop = expectedViewportTop - idealViewportTop;
 
     // 5. Calculate Max Height limits to permit both viewport fit and scrolling
     var maxHeightToPermitScroll = naturalHeight - requiredScrollTop;
     var maxHeightToFitViewport = maxBottomSpace - expectedViewportTop;
-    
+
     var finalMaxHeight = Math.min(naturalHeight, maxHeightToPermitScroll, maxHeightToFitViewport);
     finalMaxHeight = Math.max(1, finalMaxHeight);
 
@@ -111,7 +111,7 @@
 
     // 7. Apply calculated styles, forcing them past the CSS file using !important
     menu.style.setProperty("top", targetTop + "px", "important");
-    
+
     if (finalMaxHeight < naturalHeight || requiredScrollTop > 0) {
       menu.style.setProperty("max-height", Math.floor(finalMaxHeight) + "px", "important");
       menu.style.setProperty("overflow-y", "auto", "important");
@@ -197,6 +197,29 @@
     });
   }
 
+  // Opens the child menu safely on mobile touch devices without triggering phantom taps
+  function openMenuSafely(clickedItem, menu) {
+    closeAllMenus(menu);
+    constrainChildMenuWidth(clickedItem);
+    alignChildMenu(clickedItem);
+
+    // Disable clicks on newly opened dropdown temporarily during initial tap gesture
+    menu.style.setProperty("pointer-events", "none", "important");
+    menu.classList.add("open");
+
+    var unlockPointer = function () {
+      // 150ms delay blocks the trailing synthetic click event fired by Android touch browsers
+      setTimeout(function () {
+        if (menu) menu.style.removeProperty("pointer-events");
+      }, 150);
+      window.removeEventListener("pointerup", unlockPointer, true);
+      window.removeEventListener("touchend", unlockPointer, true);
+    };
+
+    window.addEventListener("pointerup", unlockPointer, true);
+    window.addEventListener("touchend", unlockPointer, true);
+  }
+
   document.addEventListener("pointerover", function (event) {
     var link = event.target && event.target.closest ? event.target.closest(selector) : null;
     if (!link) return;
@@ -243,18 +266,12 @@
       event.stopImmediatePropagation();
 
       if (openMenu && openMenu !== menu) {
-        closeAllMenus(menu);
-        constrainChildMenuWidth(clickedItem);
-        alignChildMenu(clickedItem);
-        menu.classList.add("open");
+        openMenuSafely(clickedItem, menu);
         return;
       }
 
       if (!menu.classList.contains("open")) {
-        closeAllMenus(menu);
-        constrainChildMenuWidth(clickedItem);
-        alignChildMenu(clickedItem);
-        menu.classList.add("open");
+        openMenuSafely(clickedItem, menu);
       }
 
       return;
