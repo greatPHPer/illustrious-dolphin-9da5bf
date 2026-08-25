@@ -82,39 +82,37 @@
     var menuRect = menu.getBoundingClientRect();
 
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
-    
+
     // Calculate the selected item's true distance from the top of the menu container
     var selectedCenterRelative = (selectedRect.top - menuRect.top) + (selectedRect.height / 2);
 
-    // 2. Calculate ideal viewport position to perfectly align centers
-    var expectedViewportTop = triggerCenter - selectedCenterRelative;
-    
-    var minTopSpace = 16; 
+    // 2. Ideal Viewport Top Position (Unconstrained)
+    var idealViewportTop = triggerCenter - selectedCenterRelative;
+
+    var minTopSpace = 16;
     var maxBottomSpace = window.innerHeight - 16;
-    
-    var naturalHeight = menu.scrollHeight;
-    var finalMaxHeight = naturalHeight;
-    var requiredScrollTop = 0;
+    var naturalHeight = menuRect.height;
 
-    // 3. Handle Top Overflow (Push container down, save required scroll offset)
-    if (expectedViewportTop < minTopSpace) {
-      var overflowTopAmount = minTopSpace - expectedViewportTop;
-      expectedViewportTop = minTopSpace; 
-      requiredScrollTop = overflowTopAmount; 
-    }
+    // 3. Constrain to Top Bounds
+    var expectedViewportTop = Math.max(idealViewportTop, minTopSpace);
 
-    // 4. Handle Bottom Overflow (Calculate max-height)
-    var expectedViewportBottom = expectedViewportTop + naturalHeight;
-    if (expectedViewportBottom > maxBottomSpace) {
-       finalMaxHeight = Math.max(1, maxBottomSpace - expectedViewportTop);
-    }
+    // 4. Calculate Required Scroll to maintain visual alignment
+    var requiredScrollTop = expectedViewportTop - idealViewportTop;
 
-    // 5. Convert viewport position to relative CSS 'top' shift (-245.8px is calculated here)
+    // 5. The Magic Constraints: Calculate Max Height limits
+    // It must be small enough to allow the required scroll, AND small enough to fit the viewport
+    var maxHeightToPermitScroll = naturalHeight - requiredScrollTop;
+    var maxHeightToFitViewport = maxBottomSpace - expectedViewportTop;
+
+    var finalMaxHeight = Math.min(naturalHeight, maxHeightToPermitScroll, maxHeightToFitViewport);
+    finalMaxHeight = Math.max(1, finalMaxHeight); // Prevent negative heights
+
+    // 6. Convert absolute viewport position to relative CSS 'top' shift
     var targetTop = expectedViewportTop - menuRect.top;
 
-    // 6. Apply calculated styles, forcing them past the CSS file using !important
+    // 7. Apply calculated styles, forcing them past the CSS file using !important
     menu.style.setProperty("top", targetTop + "px", "important");
-    
+
     if (finalMaxHeight < naturalHeight || requiredScrollTop > 0) {
       menu.style.setProperty("max-height", Math.floor(finalMaxHeight) + "px", "important");
       menu.style.setProperty("overflow-y", "auto", "important");
@@ -127,7 +125,7 @@
     menu.style.removeProperty("transform");
     menu.style.removeProperty("transition");
 
-    // 7. Apply scroll position to realign the highlighted item if top was constrained
+    // 8. Apply scroll position to automatically align the highlighted item
     menu.scrollTop = requiredScrollTop;
   }
 
