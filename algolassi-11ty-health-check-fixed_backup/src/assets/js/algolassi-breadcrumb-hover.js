@@ -30,6 +30,17 @@
     var menu = directChild(item, ".breadcrumb-child-menu");
     if (!menu) return;
 
+    var breadcrumbItems = document.querySelectorAll(breadcrumbSelector);
+    var itemIndex = Array.prototype.indexOf.call(breadcrumbItems, item);
+
+    // The 3rd breadcrumb level (C#, .NET, ASP.NET Core, etc.) gets a fixed 250px menu width.
+    if (itemIndex === 2) {
+      menu.style.width = "250px";
+      menu.style.maxWidth = "250px";
+      menu.style.boxSizing = "border-box";
+      return;
+    }
+
     var parentItem = item.previousElementSibling;
     while (parentItem && !(parentItem.matches && parentItem.matches(".breadcrumb-item"))) {
       parentItem = parentItem.previousElementSibling;
@@ -83,27 +94,27 @@
     var menuRect = menu.getBoundingClientRect();
 
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
-    
+
     // Calculate the selected item's true distance from the top of the menu container
     var selectedCenterRelative = (selectedRect.top - menuRect.top) + (selectedRect.height / 2);
 
     // 2. Ideal Viewport Top Position (Unconstrained)
     var idealViewportTop = triggerCenter - selectedCenterRelative;
-    
-    var minTopSpace = 16; 
+
+    var minTopSpace = 16;
     var maxBottomSpace = window.innerHeight - 16;
     var naturalHeight = menuRect.height;
-    
+
     // 3. Constrain to Top Bounds
     var expectedViewportTop = Math.max(idealViewportTop, minTopSpace);
-    
+
     // 4. Calculate Required Scroll to maintain visual alignment
     var requiredScrollTop = expectedViewportTop - idealViewportTop;
 
     // 5. Calculate Max Height limits to permit both viewport fit and scrolling
     var maxHeightToPermitScroll = naturalHeight - requiredScrollTop;
     var maxHeightToFitViewport = maxBottomSpace - expectedViewportTop;
-    
+
     var finalMaxHeight = Math.min(naturalHeight, maxHeightToPermitScroll, maxHeightToFitViewport);
     finalMaxHeight = Math.max(1, finalMaxHeight);
 
@@ -112,7 +123,7 @@
 
     // 7. Apply calculated styles, forcing them past the CSS file using !important
     menu.style.setProperty("top", targetTop + "px", "important");
-    
+
     if (finalMaxHeight < naturalHeight || requiredScrollTop > 0) {
       menu.style.setProperty("max-height", Math.floor(finalMaxHeight) + "px", "important");
       menu.style.setProperty("overflow-y", "auto", "important");
