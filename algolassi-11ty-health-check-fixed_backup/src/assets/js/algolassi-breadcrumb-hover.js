@@ -229,42 +229,44 @@
     var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
     if (!isMobile) return;
 
-    var trigger = event.target && event.target.closest
-      ? event.target.closest(".breadcrumb-child-item > .breadcrumb-trigger, .breadcrumb-child-item.breadcrumb-current")
+    var clickedItem = event.target && event.target.closest
+      ? event.target.closest(".breadcrumb-child-item")
+      : null;
+    var clickedMenu = event.target && event.target.closest
+      ? event.target.closest(".breadcrumb-child-menu")
       : null;
 
     var openMenu = document.querySelector(".breadcrumb-child-menu.open");
 
-    if (trigger) {
-      var item = trigger.closest(".breadcrumb-child-item");
-      var menu = directChild(item, ".breadcrumb-child-menu");
+    if (clickedItem && !clickedMenu) {
+      var menu = directChild(clickedItem, ".breadcrumb-child-menu");
       if (!menu) return;
 
       if (openMenu && openMenu !== menu) {
         event.preventDefault();
         resetAllMenuScrollInitialization();
         closeAllMenus(menu);
-        constrainChildMenuWidth(item);
-        alignChildMenu(item);
+        constrainChildMenuWidth(clickedItem);
+        alignChildMenu(clickedItem);
         menu.classList.add("open");
-        initializeMenuScroll(item);
+        initializeMenuScroll(clickedItem);
         return;
       }
 
       if (!menu.classList.contains("open")) {
         event.preventDefault();
         closeAllMenus(menu);
-        constrainChildMenuWidth(item);
-        alignChildMenu(item);
+        constrainChildMenuWidth(clickedItem);
+        alignChildMenu(clickedItem);
         menu.classList.add("open");
-        initializeMenuScroll(item);
+        initializeMenuScroll(clickedItem);
         return;
       }
 
       return;
     }
 
-    if (openMenu && !event.target.closest(".breadcrumb-child-menu")) {
+    if (openMenu && !clickedMenu) {
       event.preventDefault();
       closeAllMenus();
       resetAllMenuScrollInitialization();
