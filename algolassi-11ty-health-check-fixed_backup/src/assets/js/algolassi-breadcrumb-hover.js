@@ -156,6 +156,23 @@
     }
   }
 
+  function syncMobileBreadcrumbLinks() {
+    var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    var links = document.querySelectorAll(".breadcrumb-child-item > .breadcrumb-trigger");
+
+    links.forEach(function (link) {
+      if (isMobile) {
+        if (link.hasAttribute("href")) {
+          link.dataset.desktopHref = link.getAttribute("href");
+          link.removeAttribute("href");
+        }
+      } else if (link.dataset.desktopHref) {
+        link.setAttribute("href", link.dataset.desktopHref);
+        delete link.dataset.desktopHref;
+      }
+    });
+  }
+
   function alignAllChildMenus() {
     document.querySelectorAll(".breadcrumb-child-item").forEach(function (item) {
       alignChildMenu(item);
@@ -234,8 +251,8 @@
 
     var openMenu = document.querySelector(".breadcrumb-child-menu.open");
 
-    // A breadcrumb item is a menu trigger only on mobile.
-    // Links inside the child menu remain normal navigation links.
+    // On mobile, breadcrumb items are menu triggers only.
+    // Their href attributes have been removed; child-menu links remain navigable.
     if (clickedItem && !clickedMenu) {
       var menu = directChild(clickedItem, ".breadcrumb-child-menu");
       if (!menu) return;
@@ -274,10 +291,14 @@
 
   function init() {
     initializeChildMenus();
+    syncMobileBreadcrumbLinks();
     requestAnimationFrame(alignAllChildMenus);
   }
 
-  window.addEventListener("resize", function () { requestAnimationFrame(alignAllChildMenus); }, { passive: true });
+  window.addEventListener("resize", function () {
+    syncMobileBreadcrumbLinks();
+    requestAnimationFrame(alignAllChildMenus);
+  }, { passive: true });
   window.addEventListener("load", init);
   window.addEventListener("algolassi:spa-navigation", function () { requestAnimationFrame(init); });
 
