@@ -94,7 +94,7 @@
     var naturalHeight = menu.scrollHeight;
     var finalMaxHeight = naturalHeight;
 
-    if (overflowingTopHeight > 4) {
+    if (overflowingTopHeight > 16) {
       finalMaxHeight = Math.max(1, naturalHeight - overflowingTopHeight);
       menu.style.top = (-overflowingTopHeight) + "px";
     }
