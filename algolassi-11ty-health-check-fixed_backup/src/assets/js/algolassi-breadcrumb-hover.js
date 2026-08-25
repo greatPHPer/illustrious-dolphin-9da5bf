@@ -191,10 +191,12 @@
     if (!menu) return;
 
     menu.dataset.mobileLinksReady = "false";
+    menu.style.pointerEvents = "none";
 
     window.setTimeout(function () {
       if (!menu.isConnected) return;
       menu.dataset.mobileLinksReady = "true";
+      menu.style.pointerEvents = "auto";
     }, 300);
   }
 
