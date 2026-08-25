@@ -244,6 +244,7 @@
 
       if (openMenu && openMenu !== menu) {
         event.preventDefault();
+        event.stopImmediatePropagation();
         resetAllMenuScrollInitialization();
         closeAllMenus(menu);
         constrainChildMenuWidth(clickedItem);
@@ -255,6 +256,7 @@
 
       if (!menu.classList.contains("open")) {
         event.preventDefault();
+        event.stopImmediatePropagation();
         closeAllMenus(menu);
         constrainChildMenuWidth(clickedItem);
         alignChildMenu(clickedItem);
@@ -268,6 +270,7 @@
 
     if (openMenu && !clickedMenu) {
       event.preventDefault();
+      event.stopImmediatePropagation();
       closeAllMenus();
       resetAllMenuScrollInitialization();
     }
