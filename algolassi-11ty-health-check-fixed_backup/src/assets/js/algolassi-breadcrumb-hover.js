@@ -200,23 +200,6 @@
     }, 300);
   }
 
-  document.addEventListener("click", function (event) {
-    var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-    if (!isMobile) return;
-
-    var childLink = event.target && event.target.closest
-      ? event.target.closest(".breadcrumb-child-menu a")
-      : null;
-
-    if (childLink) {
-      var menu = childLink.closest(".breadcrumb-child-menu");
-      if (menu && menu.dataset.mobileLinksReady !== "true") {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-      }
-    }
-  }, true);
-
   document.addEventListener("pointerup", function () {
     var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
     if (!isMobile) return;
