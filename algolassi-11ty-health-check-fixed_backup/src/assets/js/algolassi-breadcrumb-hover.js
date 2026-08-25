@@ -156,6 +156,12 @@
     }
   }
 
+  function alignAllChildMenus() {
+    document.querySelectorAll(".breadcrumb-child-item").forEach(function (item) {
+      alignChildMenu(item);
+    });
+  }
+
   function closeAllMenus(except) {
     document.querySelectorAll(".breadcrumb-menu.open, .breadcrumb-child-menu.open").forEach(function (menu) {
       if (menu !== except) menu.classList.remove("open");
@@ -231,7 +237,6 @@
       var menu = directChild(item, ".breadcrumb-child-menu");
       if (!menu) return;
 
-      /* A different breadcrumb section is a menu switch, not navigation. */
       if (openMenu && openMenu !== menu) {
         event.preventDefault();
         resetAllMenuScrollInitialization();
@@ -243,7 +248,6 @@
         return;
       }
 
-      /* First tap opens the corresponding child menu. */
       if (!menu.classList.contains("open")) {
         event.preventDefault();
         closeAllMenus(menu);
@@ -257,7 +261,6 @@
       return;
     }
 
-    /* Tapping outside any breadcrumb menu closes it and resets the tap state. */
     if (openMenu && !event.target.closest(".breadcrumb-child-menu")) {
       event.preventDefault();
       closeAllMenus();
