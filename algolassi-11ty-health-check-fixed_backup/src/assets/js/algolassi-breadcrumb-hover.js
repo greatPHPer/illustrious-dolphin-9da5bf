@@ -67,54 +67,68 @@
 
     constrainChildMenuWidth(item);
 
-    var savedScrollTop = menu.scrollTop;
-
+    // 1. Reset menu completely to get true natural metrics
     menu.style.maxHeight = "none";
-    menu.style.overflowY = "auto";
+    menu.style.overflowY = "visible";
     menu.style.top = "0px";
 
     var triggerRect = trigger.getBoundingClientRect();
     var selectedRect = selected.getBoundingClientRect();
+    var menuRect = menu.getBoundingClientRect();
 
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
     var selectedCenter = selectedRect.top + selectedRect.height / 2;
 
+    // 2. Calculate initial upward shift to align highlighted item with trigger
     var targetTop = triggerCenter - selectedCenter;
-    menu.style.top = targetTop + "px";
 
-    var breadcrumbs = item.closest(".breadcrumbs");
-    var breadcrumbsRect = breadcrumbs ? breadcrumbs.getBoundingClientRect() : null;
-    var breadcrumbsOffsetY = breadcrumbsRect ? breadcrumbsRect.top : 0;
-    var breadcrumbsViewportBottom = breadcrumbsRect ? breadcrumbsRect.bottom : 0;
-    var effectiveMenuTop = targetTop + breadcrumbsOffsetY;
-    var overflowingTopHeight = breadcrumbsViewportBottom > 0
-      ? Math.max(0, -effectiveMenuTop)
-      : 0;
-
+    // 3. Find out where this places the menu in the actual viewport
+    var expectedViewportTop = menuRect.top + targetTop;
+    
+    // Padding from the edges of the screen
+    var minTopSpace = 16;
+    var maxBottomSpace = window.innerHeight - 16;
+    
     var naturalHeight = menu.scrollHeight;
     var finalMaxHeight = naturalHeight;
+    var requiredScrollTop = 0;
 
-    if (overflowingTopHeight > 16) {
-      finalMaxHeight = Math.max(1, naturalHeight - overflowingTopHeight);
-      menu.style.top = (-overflowingTopHeight) + "px";
+    // 4. Handle Top Overflow (Push container down, scroll contents down to match)
+    if (expectedViewportTop < minTopSpace) {
+      var overflowTopAmount = minTopSpace - expectedViewportTop;
+      
+      // Push the menu down so it doesn't leave the top of the screen
+      targetTop += overflowTopAmount;
+      expectedViewportTop = minTopSpace;
+      
+      // We must scroll the inner contents to keep the selected item aligned with the trigger
+      requiredScrollTop = overflowTopAmount;
     }
 
-    if (effectiveMenuTop >= 0) {
-      finalMaxHeight = naturalHeight;
+    // 5. Handle Bottom Overflow (Apply max-height)
+    var expectedViewportBottom = expectedViewportTop + naturalHeight;
+    if (expectedViewportBottom > maxBottomSpace) {
+       finalMaxHeight = Math.max(1, maxBottomSpace - expectedViewportTop);
     }
 
-    if (finalMaxHeight > 0) {
+    // 6. Apply positioning and height limits
+    menu.style.top = targetTop + "px";
+    
+    // If there is top overflow OR bottom overflow, we need a scrollbar
+    if (finalMaxHeight < naturalHeight || requiredScrollTop > 0) {
+      // If we only had top overflow, the finalMaxHeight needs to reflect the visible space left
+      if (finalMaxHeight === naturalHeight) {
+          finalMaxHeight = maxBottomSpace - expectedViewportTop;
+      }
       menu.style.maxHeight = Math.floor(finalMaxHeight) + "px";
-      menu.style.overflowY = naturalHeight > finalMaxHeight + 1 ? "auto" : "hidden";
-    } else {
-      menu.style.maxHeight = "1px";
       menu.style.overflowY = "auto";
+    } else {
+      menu.style.maxHeight = "none";
+      menu.style.overflowY = "hidden";
     }
 
-    menu.scrollTop = Math.min(
-      savedScrollTop,
-      Math.max(0, menu.scrollHeight - menu.clientHeight)
-    );
+    // 7. Apply the scroll position AFTER applying max-height so it takes effect
+    menu.scrollTop = requiredScrollTop;
   }
 
   function initializeChildMenus() {
