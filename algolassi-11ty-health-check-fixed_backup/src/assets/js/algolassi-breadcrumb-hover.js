@@ -67,7 +67,6 @@
 
     constrainChildMenuWidth(item);
 
-    /* Preserve the user's current position while recalculating layout. */
     var savedScrollTop = menu.scrollTop;
 
     menu.style.maxHeight = "none";
@@ -80,7 +79,6 @@
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
     var selectedCenter = selectedRect.top + selectedRect.height / 2;
 
-    /* Keep the selected submenu row aligned with the child trigger. */
     var targetTop = triggerCenter - selectedCenter;
     menu.style.top = targetTop + "px";
 
@@ -113,7 +111,6 @@
       menu.style.overflowY = "auto";
     }
 
-    /* Restore the existing scroll position after recalculating the menu. */
     menu.scrollTop = Math.min(
       savedScrollTop,
       Math.max(0, menu.scrollHeight - menu.clientHeight)
@@ -190,6 +187,34 @@
     menu.dataset.scrollInitialized = "true";
   }
 
+  function disarmChildMenuLinks(menu) {
+    if (!menu) return;
+
+    menu.dataset.mobileLinksReady = "false";
+
+    window.setTimeout(function () {
+      if (!menu.isConnected) return;
+      menu.dataset.mobileLinksReady = "true";
+    }, 300);
+  }
+
+  document.addEventListener("click", function (event) {
+    var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    if (!isMobile) return;
+
+    var childLink = event.target && event.target.closest
+      ? event.target.closest(".breadcrumb-child-menu a")
+      : null;
+
+    if (childLink) {
+      var menu = childLink.closest(".breadcrumb-child-menu");
+      if (menu && menu.dataset.mobileLinksReady !== "true") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    }
+  }, true);
+
   document.addEventListener("pointerover", function (event) {
     var link = event.target && event.target.closest ? event.target.closest(selector) : null;
     if (!link) return;
@@ -209,7 +234,6 @@
   document.addEventListener("pointerenter", function (event) {
     var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
     if (!item) return;
-
     if (event.target !== item) return;
 
     var menu = directChild(item, ".breadcrumb-child-menu");
@@ -247,12 +271,11 @@
         event.stopImmediatePropagation();
         resetAllMenuScrollInitialization();
         closeAllMenus(menu);
-        requestAnimationFrame(function () {
-          constrainChildMenuWidth(clickedItem);
-          alignChildMenu(clickedItem);
-          menu.classList.add("open");
-          initializeMenuScroll(clickedItem);
-        });
+        constrainChildMenuWidth(clickedItem);
+        alignChildMenu(clickedItem);
+        menu.classList.add("open");
+        initializeMenuScroll(clickedItem);
+        disarmChildMenuLinks(menu);
         return;
       }
 
@@ -260,12 +283,11 @@
         event.preventDefault();
         event.stopImmediatePropagation();
         closeAllMenus(menu);
-        requestAnimationFrame(function () {
-          constrainChildMenuWidth(clickedItem);
-          alignChildMenu(clickedItem);
-          menu.classList.add("open");
-          initializeMenuScroll(clickedItem);
-        });
+        constrainChildMenuWidth(clickedItem);
+        alignChildMenu(clickedItem);
+        menu.classList.add("open");
+        initializeMenuScroll(clickedItem);
+        disarmChildMenuLinks(menu);
         return;
       }
 
