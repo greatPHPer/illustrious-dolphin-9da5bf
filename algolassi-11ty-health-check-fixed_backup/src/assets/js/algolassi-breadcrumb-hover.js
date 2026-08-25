@@ -67,67 +67,67 @@
 
     constrainChildMenuWidth(item);
 
-    // 1. Reset menu completely to get true natural metrics
-    menu.style.maxHeight = "none";
-    menu.style.overflowY = "visible";
-    menu.style.top = "0px";
+    // 1. Temporarily strip CSS animations to get flawless layout measurements
+    menu.style.setProperty("transform", "none", "important");
+    menu.style.setProperty("transition", "none", "important");
+    menu.style.setProperty("max-height", "none", "important");
+    menu.style.setProperty("overflow-y", "visible", "important");
+    menu.style.setProperty("top", "0px", "important");
+
+    // Force browser reflow to apply the reset before calculating
+    void menu.offsetWidth;
 
     var triggerRect = trigger.getBoundingClientRect();
     var selectedRect = selected.getBoundingClientRect();
     var menuRect = menu.getBoundingClientRect();
 
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
-    var selectedCenter = selectedRect.top + selectedRect.height / 2;
-
-    // 2. Calculate initial upward shift to align highlighted item with trigger
-    var targetTop = triggerCenter - selectedCenter;
-
-    // 3. Find out where this places the menu in the actual viewport
-    var expectedViewportTop = menuRect.top + targetTop;
     
-    // Padding from the edges of the screen
-    var minTopSpace = 16;
+    // Calculate the selected item's true distance from the top of the menu container
+    var selectedCenterRelative = (selectedRect.top - menuRect.top) + (selectedRect.height / 2);
+
+    // 2. Calculate ideal viewport position to perfectly align centers
+    var expectedViewportTop = triggerCenter - selectedCenterRelative;
+    
+    var minTopSpace = 16; 
     var maxBottomSpace = window.innerHeight - 16;
     
     var naturalHeight = menu.scrollHeight;
     var finalMaxHeight = naturalHeight;
     var requiredScrollTop = 0;
 
-    // 4. Handle Top Overflow (Push container down, scroll contents down to match)
+    // 3. Handle Top Overflow (Push container down, save required scroll offset)
     if (expectedViewportTop < minTopSpace) {
       var overflowTopAmount = minTopSpace - expectedViewportTop;
-      
-      // Push the menu down so it doesn't leave the top of the screen
-      targetTop += overflowTopAmount;
-      expectedViewportTop = minTopSpace;
-      
-      // We must scroll the inner contents to keep the selected item aligned with the trigger
-      requiredScrollTop = overflowTopAmount;
+      expectedViewportTop = minTopSpace; 
+      requiredScrollTop = overflowTopAmount; 
     }
 
-    // 5. Handle Bottom Overflow (Apply max-height)
+    // 4. Handle Bottom Overflow (Calculate max-height)
     var expectedViewportBottom = expectedViewportTop + naturalHeight;
     if (expectedViewportBottom > maxBottomSpace) {
        finalMaxHeight = Math.max(1, maxBottomSpace - expectedViewportTop);
     }
 
-    // 6. Apply positioning and height limits
-    menu.style.top = targetTop + "px";
+    // 5. Convert viewport position to relative CSS 'top' shift (-245.8px is calculated here)
+    var targetTop = expectedViewportTop - menuRect.top;
+
+    // 6. Apply calculated styles, forcing them past the CSS file using !important
+    menu.style.setProperty("top", targetTop + "px", "important");
     
-    // If there is top overflow OR bottom overflow, we need a scrollbar
     if (finalMaxHeight < naturalHeight || requiredScrollTop > 0) {
-      // If we only had top overflow, the finalMaxHeight needs to reflect the visible space left
-      if (finalMaxHeight === naturalHeight) {
-          finalMaxHeight = maxBottomSpace - expectedViewportTop;
-      }
-      menu.style.maxHeight = Math.floor(finalMaxHeight) + "px";
-      menu.style.overflowY = "auto";
+      menu.style.setProperty("max-height", Math.floor(finalMaxHeight) + "px", "important");
+      menu.style.setProperty("overflow-y", "auto", "important");
     } else {
-      menu.style.maxHeight = "none";
-      menu.style.overflowY = "hidden";
+      menu.style.setProperty("max-height", "none", "important");
+      menu.style.setProperty("overflow-y", "hidden", "important");
     }
 
-    // 7. Apply the scroll position AFTER applying max-height so it takes effect
+    // Restore the CSS hover animations
+    menu.style.removeProperty("transform");
+    menu.style.removeProperty("transition");
+
+    // 7. Apply scroll position to realign the highlighted item if top was constrained
     menu.scrollTop = requiredScrollTop;
   }
 
