@@ -87,8 +87,11 @@
     var breadcrumbs = item.closest(".breadcrumbs");
     var breadcrumbsRect = breadcrumbs ? breadcrumbs.getBoundingClientRect() : null;
     var breadcrumbsOffsetY = breadcrumbsRect ? breadcrumbsRect.top : 0;
+    var breadcrumbsViewportBottom = breadcrumbsRect ? breadcrumbsRect.bottom : 0;
     var effectiveMenuTop = targetTop + breadcrumbsOffsetY;
-    var overflowingTopHeight = Math.max(0, -effectiveMenuTop);
+    var overflowingTopHeight = breadcrumbsViewportBottom > 0
+      ? Math.max(0, -effectiveMenuTop)
+      : 0;
 
     var naturalHeight = menu.scrollHeight;
     var finalMaxHeight = naturalHeight;
