@@ -171,6 +171,14 @@
         delete link.dataset.desktopHref;
       }
     });
+
+    document.querySelectorAll(".breadcrumb-child-menu a.breadcrumb-dropdown-current").forEach(function (link) {
+      if (isMobile) {
+        link.style.setProperty("pointer-events", "none", "important");
+      } else {
+        link.style.removeProperty("pointer-events");
+      }
+    });
   }
 
   function alignAllChildMenus() {
