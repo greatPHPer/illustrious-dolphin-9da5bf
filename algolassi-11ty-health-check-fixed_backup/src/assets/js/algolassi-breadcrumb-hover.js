@@ -58,7 +58,8 @@
     if (!item || window.innerWidth <= 700) return;
 
     var menu = directChild(item, ".breadcrumb-child-menu");
-    if (!menu) return;
+    // Prevent recalculation and scroll reset if menu is already open
+    if (!menu || menu.classList.contains("open")) return;
 
     var trigger = directChild(item, ".breadcrumb-trigger") ||
                   (item.classList.contains("breadcrumb-current") ? item : null);
@@ -82,27 +83,27 @@
     var menuRect = menu.getBoundingClientRect();
 
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
-
+    
     // Calculate the selected item's true distance from the top of the menu container
     var selectedCenterRelative = (selectedRect.top - menuRect.top) + (selectedRect.height / 2);
 
     // 2. Ideal Viewport Top Position (Unconstrained)
     var idealViewportTop = triggerCenter - selectedCenterRelative;
-
-    var minTopSpace = 16;
+    
+    var minTopSpace = 16; 
     var maxBottomSpace = window.innerHeight - 16;
     var naturalHeight = menuRect.height;
-
+    
     // 3. Constrain to Top Bounds
     var expectedViewportTop = Math.max(idealViewportTop, minTopSpace);
-
+    
     // 4. Calculate Required Scroll to maintain visual alignment
     var requiredScrollTop = expectedViewportTop - idealViewportTop;
 
     // 5. Calculate Max Height limits to permit both viewport fit and scrolling
     var maxHeightToPermitScroll = naturalHeight - requiredScrollTop;
     var maxHeightToFitViewport = maxBottomSpace - expectedViewportTop;
-
+    
     var finalMaxHeight = Math.min(naturalHeight, maxHeightToPermitScroll, maxHeightToFitViewport);
     finalMaxHeight = Math.max(1, finalMaxHeight);
 
@@ -111,7 +112,7 @@
 
     // 7. Apply calculated styles, forcing them past the CSS file using !important
     menu.style.setProperty("top", targetTop + "px", "important");
-
+    
     if (finalMaxHeight < naturalHeight || requiredScrollTop > 0) {
       menu.style.setProperty("max-height", Math.floor(finalMaxHeight) + "px", "important");
       menu.style.setProperty("overflow-y", "auto", "important");
@@ -197,7 +198,6 @@
     });
   }
 
-  // Opens the child menu safely on mobile touch devices without triggering phantom taps
   function openMenuSafely(clickedItem, menu) {
     closeAllMenus(menu);
     constrainChildMenuWidth(clickedItem);
@@ -208,7 +208,6 @@
     menu.classList.add("open");
 
     var unlockPointer = function () {
-      // 150ms delay blocks the trailing synthetic click event fired by Android touch browsers
       setTimeout(function () {
         if (menu) menu.style.removeProperty("pointer-events");
       }, 150);
@@ -241,7 +240,10 @@
     if (!item) return;
     if (event.target !== item) return;
 
-    // Just-In-Time real-time calculation on hover
+    var menu = directChild(item, ".breadcrumb-child-menu");
+    if (menu && menu.classList.contains("open")) return;
+
+    // Just-In-Time real-time calculation on hover (only when menu is closed)
     alignChildMenu(item);
   }, true);
 
