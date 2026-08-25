@@ -187,30 +187,6 @@
     menu.dataset.scrollInitialized = "true";
   }
 
-  function disarmChildMenuLinks(menu) {
-    if (!menu) return;
-
-    menu.dataset.mobileLinksReady = "false";
-    menu.style.setProperty("pointer-events", "none", "important");
-
-    window.setTimeout(function () {
-      if (!menu.isConnected) return;
-      menu.dataset.mobileLinksReady = "true";
-      menu.style.setProperty("pointer-events", "auto", "important");
-    }, 300);
-  }
-
-  document.addEventListener("pointerup", function () {
-    var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-    if (!isMobile) return;
-
-    document.querySelectorAll(".breadcrumb-child-menu[data-mobile-links-ready=\"false\"]").forEach(function (menu) {
-      if (!menu.isConnected) return;
-      menu.dataset.mobileLinksReady = "true";
-      menu.style.setProperty("pointer-events", "auto", "important");
-    });
-  }, true);
-
   document.addEventListener("pointerover", function (event) {
     var link = event.target && event.target.closest ? event.target.closest(selector) : null;
     if (!link) return;
@@ -258,33 +234,31 @@
 
     var openMenu = document.querySelector(".breadcrumb-child-menu.open");
 
+    // A breadcrumb item is a menu trigger only on mobile.
+    // Links inside the child menu remain normal navigation links.
     if (clickedItem && !clickedMenu) {
       var menu = directChild(clickedItem, ".breadcrumb-child-menu");
       if (!menu) return;
 
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
       if (openMenu && openMenu !== menu) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
         resetAllMenuScrollInitialization();
         closeAllMenus(menu);
         constrainChildMenuWidth(clickedItem);
         alignChildMenu(clickedItem);
         menu.classList.add("open");
         initializeMenuScroll(clickedItem);
-        disarmChildMenuLinks(menu);
         return;
       }
 
       if (!menu.classList.contains("open")) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
         closeAllMenus(menu);
         constrainChildMenuWidth(clickedItem);
         alignChildMenu(clickedItem);
         menu.classList.add("open");
         initializeMenuScroll(clickedItem);
-        disarmChildMenuLinks(menu);
-        return;
       }
 
       return;
