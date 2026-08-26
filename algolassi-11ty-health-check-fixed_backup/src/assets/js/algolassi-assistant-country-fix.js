@@ -148,21 +148,11 @@
         var link = item.link ? '<a class="algolassi-assistant-news-link" href="' + escapeHtml(item.link) + '" target="_blank" rel="noopener noreferrer">Read local news →</a>' : "";
         var host = document.getElementById("algolassi-assistant-host");
         if (!host) return;
-
-        var toast = document.createElement("section");
-        toast.className = "algolassi-assistant-toast algolassi-assistant-news";
-        toast.innerHTML = '<div class="algolassi-assistant-head"><span class="algolassi-assistant-avatar">📰</span><strong>📍 ' + escapeHtml(place) + '</strong></div>' +
-          '<div class="algolassi-assistant-body">' + image + '<strong>' + escapeHtml(item.title) + '</strong>' + link + '</div>';
-        host.innerHTML = "";
-        host.appendChild(toast);
-
-        /* Keep the timer tied to this exact live-news element. The floating
-           stack restores a clone when the news card is minimised; the old
-           timer must never hide that restored clone. */
+        host.innerHTML = '<section class="algolassi-assistant-toast algolassi-assistant-news">' +
+          '<div class="algolassi-assistant-head"><span class="algolassi-assistant-avatar">📰</span><strong>📍 ' + escapeHtml(place) + '</strong></div>' +
+          '<div class="algolassi-assistant-body">' + image + '<strong>' + escapeHtml(item.title) + '</strong>' + link + '</div></section>';
         setTimeout(function () {
-          if (!host.contains(toast)) return;
-          if (toast.classList.contains("algolassi-assistant-toast-hide")) return;
-          toast.classList.add("algolassi-assistant-toast-hide");
+          if (host.firstElementChild) host.firstElementChild.classList.add("algolassi-assistant-toast-hide");
         }, 15000);
       })
       .catch(function () {});
