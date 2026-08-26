@@ -54,11 +54,29 @@
 
   function getRoots() {
     var roots = [];
-    document.querySelectorAll(".article-content, .page-content").forEach(function (root) {
-      if (root.closest(".algolassi-search-panel")) return;
-      roots.push(root);
+    document.querySelectorAll("main.site-main").forEach(function (main) {
+      main.querySelectorAll(
+        ".article-content, .page-content, .portfolio, .portfolio-content, [class*='portfolio'], [class*='project-content']"
+      ).forEach(function (root) {
+        if (!root.closest(".breadcrumbs, .algolassi-search-panel, .algolassi-search-cloud, #algolassi-comment-list, #algolassi-comment-form")) {
+          roots.push(root);
+        }
+      });
+
+      if (!roots.length) roots.push(main);
     });
     return roots;
+  }
+
+  function shouldSkipElement(parent) {
+    if (!parent) return true;
+    return !!parent.closest(
+      "script,style,noscript,textarea,input,select,option," +
+      ".algolassi-icon-inline,pre,code," +
+      ".breadcrumbs,.algolassi-search-panel,.algolassi-search-cloud," +
+      "#algolassi-comment-list,#algolassi-comment-form,.comments,.comment-list,.comment-form," +
+      ".site-header,.site-footer,nav"
+    );
   }
 
   function highlightTerms(query) {
@@ -79,10 +97,7 @@
           acceptNode: function (node) {
             if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
             var parent = node.parentElement;
-            if (!parent) return NodeFilter.FILTER_REJECT;
-            if (parent.closest("script,style,noscript,textarea,input,select,option,.algolassi-icon-inline,pre,code," + MARK_CLASS)) {
-              return NodeFilter.FILTER_REJECT;
-            }
+            if (shouldSkipElement(parent)) return NodeFilter.FILTER_REJECT;
             pattern.lastIndex = 0;
             return pattern.test(node.nodeValue)
               ? NodeFilter.FILTER_ACCEPT
