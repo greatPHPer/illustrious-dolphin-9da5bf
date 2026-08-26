@@ -199,3 +199,89 @@ html[data-theme="dark"] .algolassi-theme-button.is-active { background: #4b90ed;
   .algolassi-theme-button { min-height: 30px; padding: 4px 8px; }
   .algolassi-theme-button span:last-child { display: none; }
 }
+
+/* =========================================================
+   ALGOLASSI TOP NAV ACTIVE + FOCUS ZOOM
+   ========================================================= */
+.site-nav {
+  transform-origin: center left;
+}
+.site-nav a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  text-decoration: none !important;
+  transform: scale(.98);
+  transform-origin: center;
+  transition: transform .24s cubic-bezier(.22,1,.36,1),
+              color .18s ease,
+              background-color .18s ease,
+              box-shadow .18s ease;
+  will-change: transform;
+}
+.site-nav a:hover,
+.site-nav a:focus-visible,
+.site-nav a.is-current {
+  color: var(--link) !important;
+}
+.site-nav a.is-current {
+  background: rgba(13,110,253,.10);
+  box-shadow: inset 0 -2px 0 var(--link);
+  transform: scale(1.045);
+  font-weight: 700;
+}
+.site-nav:has(a:hover) a:not(:hover),
+.site-nav:has(a:focus-visible) a:not(:focus-visible) {
+  transform: scale(.92);
+}
+.site-nav:has(a:hover) a:hover,
+.site-nav:has(a:focus-visible) a:focus-visible {
+  transform: scale(1.10);
+  z-index: 2;
+}
+.site-nav:has(a:hover) a.is-current:not(:hover),
+.site-nav:has(a:focus-visible) a.is-current:not(:focus-visible) {
+  transform: scale(.92);
+}
+.site-nav a:hover,
+.site-nav a:focus-visible {
+  background: rgba(13,110,253,.08);
+  box-shadow: 0 3px 10px rgba(13,110,253,.10);
+}
+
+html[data-theme="dark"] .site-nav a.is-current {
+  background: rgba(99,164,255,.14);
+  box-shadow: inset 0 -2px 0 #63a4ff;
+}
+html[data-theme="dark"] .site-nav a:hover,
+html[data-theme="dark"] .site-nav a:focus-visible {
+  background: #202936;
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .site-nav a.is-current {
+    background: rgba(99,164,255,.14);
+    box-shadow: inset 0 -2px 0 #63a4ff;
+  }
+  html:not([data-theme="light"]) .site-nav a:hover,
+  html:not([data-theme="light"]) .site-nav a:focus-visible {
+    background: #202936;
+  }
+}
+
+@media (max-width: 800px) {
+  .site-nav a { min-height: 32px; padding: 4px 7px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-nav a {
+    transition: none !important;
+    transform: none !important;
+  }
+  .site-nav:has(a:hover) a:not(:hover),
+  .site-nav:has(a:focus-visible) a:not(:focus-visible) {
+    transform: none !important;
+  }
+}
