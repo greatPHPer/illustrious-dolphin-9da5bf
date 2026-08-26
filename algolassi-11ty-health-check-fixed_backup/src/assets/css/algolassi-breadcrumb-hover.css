@@ -19,6 +19,10 @@
 .breadcrumb-current.breadcrumb-child-item:hover, .breadcrumb-current.breadcrumb-child-item:focus-within { background: #f5f9ff !important; border-color: #e3ecfb !important; }
 .breadcrumb-menu.breadcrumb-child-menu-source-hidden { display: none !important; }
 
+/* Keep the 3rd breadcrumb level wide enough for longer pillar/category names. */
+.breadcrumbs > .breadcrumb-item:nth-of-type(3) > .breadcrumb-trigger,
+.breadcrumbs > .breadcrumb-item:nth-of-type(3) > .breadcrumb-current { min-width: 250px !important; box-sizing: border-box !important; }
+
 /* Keep any residual Unicode/emoji breadcrumb glyphs in monochrome text mode. */
 .breadcrumb-current,
 .breadcrumb-child-menu > a,
