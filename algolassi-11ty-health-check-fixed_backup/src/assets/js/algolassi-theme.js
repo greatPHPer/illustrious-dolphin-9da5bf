@@ -114,12 +114,93 @@
     updateButton(getSavedTheme());
   }
 
+  function normalizePath(pathname) {
+    return (pathname || "/").replace(/\/+$/, "") || "/";
+  }
+
+  function navSectionForPath(pathname) {
+    var path = normalizePath(pathname);
+
+    if (path === "/tutorials") return "/tutorials/";
+
+    if (
+      path === "/csharp-tutorials" ||
+      [
+        "/async-await-csharp-best-practices",
+        "/central-package-management-dotnet",
+        "/clean-restore-nuget-packages-visual-studio",
+        "/direct-vs-transitive-nuget-dependencies",
+        "/fix-nu1107-version-conflict-nuget-package",
+        "/fix-nu1605-nuget-package-downgrade",
+        "/fix-nuget-package-version-conflicts-visual-studio",
+        "/how-to-find-nuget-package-causing-dependency-conflict",
+        "/package-reference-vs-packages-config",
+        "/update-nuget-packages-safely"
+      ].indexOf(path) >= 0
+    ) return "/csharp-tutorials/";
+
+    if (
+      path === "/net-tutorials" ||
+      path === "/entity-framework-core-vs-adonet"
+    ) return "/net-tutorials/";
+
+    if (
+      path === "/asp-net-core-tutorials" ||
+      [
+        "/aspnet-core-dependency-injection-explained",
+        "/common-rdlc-errors-fixes-asp-net-ssrs",
+        "/fix-iis-http-error-500-19-aspnet-core",
+        "/register-services-asp-net-core-dependency-injection",
+        "/singleton-scoped-transient-asp-net-core",
+        "/what-is-dependency-injection-asp-net-core"
+      ].indexOf(path) >= 0
+    ) return "/asp-net-core-tutorials/";
+
+    if (
+      path === "/blazor-tutorials" ||
+      [
+        "/blazor-javascript-interop-a-practical-guide",
+        "/blazor-server-vs-webassembly",
+        "/signalr-aspnet-core-blazor-guide"
+      ].indexOf(path) >= 0
+    ) return "/blazor-tutorials/";
+
+    if (
+      path === "/sql-server-tutorials" ||
+      [
+        "/sql-server-cte-vs-temporary-tables",
+        "/sql-server-indexing-explained"
+      ].indexOf(path) >= 0
+    ) return "/sql-server-tutorials/";
+
+    return null;
+  }
+
+  function updateTopNavActiveState() {
+    var nav = document.querySelector(".site-nav");
+    if (!nav) return;
+
+    var activeHref = navSectionForPath(window.location.pathname);
+    var links = nav.querySelectorAll("a");
+
+    links.forEach(function (link) {
+      var isCurrent = !!activeHref && link.getAttribute("href") === activeHref;
+      link.classList.toggle("is-current", isCurrent);
+      if (isCurrent) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  }
+
   function initialize() {
     var theme = getSavedTheme();
     ensureAuthThemeStyles();
     applyTheme(theme);
     mountControl();
     updateButton(theme);
+    updateTopNavActiveState();
   }
 
   /* Apply before first paint when possible so the page does not flash bright. */
@@ -132,6 +213,7 @@
       applyTheme(getSavedTheme());
       mountControl();
       updateButton(getSavedTheme());
+      updateTopNavActiveState();
     });
   });
 })();
