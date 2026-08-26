@@ -21,12 +21,6 @@ module.exports = function(eleventyConfig) {
     new Date().getFullYear()
   );
 
-  eleventyConfig.addCollection("posts", function(collectionApi) {
-    return collectionApi
-      .getFilteredByGlob("posts/*.html")
-      .sort((a, b) => new Date(b.date) - new Date(a.date));
-  });
-
   eleventyConfig.addFilter("xmlEscape", function(value) {
     return String(value ?? "")
       .replace(/&/g, "&amp;")
