@@ -7,6 +7,10 @@
   var selector = ".breadcrumb-menu > a, .breadcrumb-child-menu > a";
   var breadcrumbSelector = ".breadcrumbs .breadcrumb-item, .breadcrumbs > .breadcrumb-current";
 
+  var touchStartX = 0;
+  var touchStartY = 0;
+  var isTapGesture = false;
+
   function activate(link) {
     if (!link) return;
     link.classList.remove("menu-item-tilted");
@@ -29,16 +33,6 @@
   function constrainChildMenuWidth(item) {
     var menu = directChild(item, ".breadcrumb-child-menu");
     if (!menu) return;
-
-    var breadcrumbItems = document.querySelectorAll(breadcrumbSelector);
-    var itemIndex = Array.prototype.indexOf.call(breadcrumbItems, item);
-
-    if (itemIndex === 2) {
-      menu.style.width = "250px";
-      menu.style.maxWidth = "250px";
-      menu.style.boxSizing = "border-box";
-      return;
-    }
 
     var parentItem = item.previousElementSibling;
     while (parentItem && !(parentItem.matches && parentItem.matches(".breadcrumb-item"))) {
@@ -64,11 +58,12 @@
     }
   }
 
-  function alignChildMenu(item) {
-    if (!item || window.innerWidth <= 700) return;
+  function alignChildMenu(item, forceAlign) {
+    if (!item) return;
 
     var menu = directChild(item, ".breadcrumb-child-menu");
-    if (!menu || menu.classList.contains("open")) return;
+    if (!menu) return;
+    if (!forceAlign && menu.classList.contains("open")) return;
 
     var trigger = directChild(item, ".breadcrumb-trigger") ||
                   (item.classList.contains("breadcrumb-current") ? item : null);
@@ -76,6 +71,9 @@
     if (!trigger || !selected) return;
 
     constrainChildMenuWidth(item);
+
+    var wasOpen = menu.classList.contains("open");
+    if (!wasOpen) menu.classList.add("open");
 
     menu.style.setProperty("transform", "none", "important");
     menu.style.setProperty("transition", "none", "important");
@@ -92,7 +90,6 @@
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
     var selectedCenterRelative = (selectedRect.top - menuRect.top) + (selectedRect.height / 2);
     var idealViewportTop = triggerCenter - selectedCenterRelative;
-
     var minTopSpace = 16;
     var maxBottomSpace = window.innerHeight - 16;
     var naturalHeight = menuRect.height;
@@ -102,8 +99,8 @@
     var maxHeightToFitViewport = maxBottomSpace - expectedViewportTop;
     var finalMaxHeight = Math.min(naturalHeight, maxHeightToPermitScroll, maxHeightToFitViewport);
     finalMaxHeight = Math.max(1, finalMaxHeight);
-    var targetTop = expectedViewportTop - menuRect.top;
 
+    var targetTop = expectedViewportTop - menuRect.top;
     menu.style.setProperty("top", targetTop + "px", "important");
 
     if (finalMaxHeight < naturalHeight || requiredScrollTop > 0) {
@@ -116,7 +113,10 @@
 
     menu.style.removeProperty("transform");
     menu.style.removeProperty("transition");
+
     menu.scrollTop = requiredScrollTop;
+
+    if (!wasOpen && !forceAlign) menu.classList.remove("open");
   }
 
   function initializeChildMenus() {
@@ -188,26 +188,6 @@
     });
   }
 
-  function openMenuSafely(clickedItem, menu) {
-    closeAllMenus(menu);
-    constrainChildMenuWidth(clickedItem);
-    alignChildMenu(clickedItem);
-
-    menu.style.setProperty("pointer-events", "none", "important");
-    menu.classList.add("open");
-
-    var unlockPointer = function () {
-      setTimeout(function () {
-        if (menu) menu.style.removeProperty("pointer-events");
-      }, 150);
-      window.removeEventListener("pointerup", unlockPointer, true);
-      window.removeEventListener("touchend", unlockPointer, true);
-    };
-
-    window.addEventListener("pointerup", unlockPointer, true);
-    window.addEventListener("touchend", unlockPointer, true);
-  }
-
   document.addEventListener("pointerover", function (event) {
     var link = event.target && event.target.closest ? event.target.closest(selector) : null;
     if (!link) return;
@@ -226,26 +206,33 @@
 
   document.addEventListener("pointerenter", function (event) {
     var item = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
-    if (!item) return;
-    if (event.target !== item) return;
-
-    var menu = directChild(item, ".breadcrumb-child-menu");
-    if (menu && menu.classList.contains("open")) return;
-
-    alignChildMenu(item);
+    if (!item || event.target !== item) return;
+    alignChildMenu(item, false);
   }, true);
 
   document.addEventListener("pointerdown", function (event) {
     var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
     if (!isMobile) return;
 
-    var clickedItem = event.target && event.target.closest
-      ? event.target.closest(".breadcrumb-child-item")
-      : null;
-    var clickedMenu = event.target && event.target.closest
-      ? event.target.closest(".breadcrumb-child-menu")
-      : null;
+    touchStartX = event.clientX;
+    touchStartY = event.clientY;
+    isTapGesture = true;
+  }, true);
 
+  document.addEventListener("pointermove", function (event) {
+    if (!isTapGesture) return;
+    if (Math.abs(event.clientX - touchStartX) > 10 || Math.abs(event.clientY - touchStartY) > 10) {
+      isTapGesture = false;
+    }
+  }, true);
+
+  document.addEventListener("pointerup", function (event) {
+    var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    if (!isMobile || !isTapGesture) return;
+    isTapGesture = false;
+
+    var clickedItem = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-item") : null;
+    var clickedMenu = event.target && event.target.closest ? event.target.closest(".breadcrumb-child-menu") : null;
     var openMenu = document.querySelector(".breadcrumb-child-menu.open");
 
     if (clickedItem && !clickedMenu) {
@@ -256,14 +243,13 @@
       event.stopImmediatePropagation();
 
       if (openMenu && openMenu !== menu) {
-        openMenuSafely(clickedItem, menu);
-        return;
+        closeAllMenus(menu);
       }
 
       if (!menu.classList.contains("open")) {
-        openMenuSafely(clickedItem, menu);
+        menu.classList.add("open");
+        alignChildMenu(clickedItem, true);
       }
-
       return;
     }
 
