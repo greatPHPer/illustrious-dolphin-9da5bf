@@ -81,9 +81,8 @@
   }
 
   function notifyLocationReady() {
-    try {
-      window.dispatchEvent(new CustomEvent("algolassi:location-ready"));
-    } catch (e) {}
+    try { window.dispatchEvent(new CustomEvent("algolassi:location-ready")); }
+    catch (e) {}
   }
 
   function apply(country, source, region, city) {
@@ -92,12 +91,8 @@
     state.detectedCountry = country;
     state.detectedCountrySource = source;
     state.detectedLanguage = preferredLanguage(country);
-
     if (region) state.detectedRegion = String(region);
     if (city) state.detectedCity = String(city);
-
-    /* Country detection must not consume the live-news cooldown. The main
-       assistant owns news fetching and uses newsShownAt to prevent repeats. */
     writeState(state);
 
     window.AlgolassiAssistantCountry = {
@@ -111,6 +106,50 @@
 
     notifyLocationReady();
     return true;
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;");
+  }
+
+  function buildNewsUrl(country, region, city) {
+    var config = COUNTRY[country];
+    if (!config) return "";
+    var query = city || region || "";
+    var base = "https://news.google.com/rss?hl=" + encodeURIComponent(config.hl) +
+      "&gl=" + encodeURIComponent(config.gl) + "&ceid=" + encodeURIComponent(config.ceid);
+    if (query) base += "&q=" + encodeURIComponent(query + " news");
+    return base;
+  }
+
+  function showCorrectNews(country, region, city) {
+    var config = COUNTRY[country];
+    if (!config) return;
+    var rss = buildNewsUrl(country, region, city);
+    var proxy = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rss);
+
+    fetch(proxy, { credentials: "omit" })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (data) {
+        if (!data || !data.items || !data.items.length) return;
+        var item = data.items[0];
+        var place = city || region || config.name;
+        var image = item.thumbnail ? '<img class="algolassi-assistant-news-image" src="' + escapeHtml(item.thumbnail) + '" alt="">' : "";
+        var link = item.link ? '<a class="algolassi-assistant-news-link" href="' + escapeHtml(item.link) + '" target="_blank" rel="noopener noreferrer">Read local news →</a>' : "";
+        var host = document.getElementById("algolassi-assistant-host");
+        if (!host) return;
+        host.innerHTML = '<section class="algolassi-assistant-toast algolassi-assistant-news">' +
+          '<div class="algolassi-assistant-head"><span class="algolassi-assistant-avatar">📰</span><strong>📍 ' + escapeHtml(place) + '</strong></div>' +
+          '<div class="algolassi-assistant-body">' + image + '<strong>' + escapeHtml(item.title) + '</strong>' + link + '</div></section>';
+        setTimeout(function () {
+          if (host.firstElementChild) host.firstElementChild.classList.add("algolassi-assistant-toast-hide");
+        }, 15000);
+      })
+      .catch(function () {});
   }
 
   function requestApproximateLocation() {
@@ -128,24 +167,37 @@
 
   function init() {
     var existing = readState();
-    var tzCountry = timezoneCountry();
 
+    /* Clear one stale pre-migration news cooldown so old browser state cannot
+       suppress the repaired live-news feature. New cooldowns are owned by the
+       main assistant and are left untouched after this one-time migration. */
+    if (existing.newsStateVersion !== 1) {
+      existing.newsStateVersion = 1;
+      existing.newsShownAt = 0;
+      writeState(existing);
+    }
+
+    var tzCountry = timezoneCountry();
     requestApproximateLocation()
       .then(function (location) {
         var country = tzCountry || (location && location.country) || existing.detectedCountry || "";
         if (!country) return;
-
         var source = location && location.country
           ? (tzCountry ? "timezone+ip" : "ip")
           : "timezone";
         var region = location && location.region ? location.region : (existing.detectedRegion || "");
         var city = location && location.city ? location.city : (existing.detectedCity || "");
-
-        apply(country, source, region, city);
+        if (!apply(country, source, region, city)) return;
+        setTimeout(function () {
+          showCorrectNews(country, region, city);
+        }, 10000);
       })
       .catch(function () {
         if (tzCountry) {
           apply(tzCountry, "timezone", existing.detectedRegion || "", existing.detectedCity || "");
+          setTimeout(function () {
+            showCorrectNews(tzCountry, existing.detectedRegion || "", existing.detectedCity || "");
+          }, 10000);
         }
       });
   }
@@ -169,24 +221,18 @@
 
   document.addEventListener("click", function (event) {
     if (!window.matchMedia("(hover: none) and (pointer: coarse)").matches) return;
-
     var trigger = event.target && event.target.closest
-      ? event.target.closest(".breadcrumb-trigger")
-      : null;
+      ? event.target.closest(".breadcrumb-trigger") : null;
     if (!trigger) return;
-
     var item = trigger.closest(".breadcrumb-item");
     var menu = item ? item.querySelector(".breadcrumb-menu") : null;
     if (!menu) return;
-
     if (!menu.classList.contains("open")) {
       event.preventDefault();
       event.stopPropagation();
-
       document.querySelectorAll(".breadcrumb-menu.open").forEach(function (otherMenu) {
         otherMenu.classList.remove("open");
       });
-
       menu.classList.add("open");
     }
   }, true);
