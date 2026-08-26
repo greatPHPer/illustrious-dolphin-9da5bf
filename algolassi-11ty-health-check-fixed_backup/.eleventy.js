@@ -23,7 +23,7 @@ module.exports = function(eleventyConfig) {
 
   eleventyConfig.addCollection("posts", function(collectionApi) {
     return collectionApi
-      .getFilteredByGlob("src/posts/**/*.html")
+      .getFilteredByGlob("posts/*.html")
       .filter(item => item.data && item.data.contentType === "post")
       .sort((a, b) => new Date(b.date) - new Date(a.date));
   });
