@@ -1,0 +1,305 @@
+---
+title: "MAUI Hybrid Blazor Login: JavaScript Interop, Public IP Detection, and Access Control"
+layout: layouts/base.njk
+permalink: "/2026/08/26/maui-hybrid-blazor-login-js-interop-public-ip-access-check/"
+date: "2026-08-26T09:45:00"
+description: "A practical MAUI Hybrid Blazor login example showing how to coordinate OnAfterRenderAsync, JavaScript interop, public IP detection, access checks, sessionStorage, and login redirects without blocking the UI."
+categories:
+  - ".NET MAUI"
+  - "Blazor"
+  - "JavaScript"
+tags:
+  - "MAUI Hybrid"
+  - "Blazor"
+  - "JavaScript Interop"
+  - "IJSRuntime"
+  - "IP Address"
+  - "sessionStorage"
+  - "Authentication"
+  - "Access Control"
+---
+
+<p>In a MAUI Hybrid Blazor application, a login page may need to do more than validate a username and password. In a real application, we may also need to detect the client's public IP address, check whether that IP is allowed to use the application, keep a few login values in <code>sessionStorage</code>, and finally redirect to the correct module.</p>
+
+<p>This article shows a practical pattern for coordinating those operations with <code>IJSRuntime</code>, <code>OnAfterRenderAsync</code>, and a small JavaScript bridge between the page and Blazor.</p>
+
+<h2>🧩 The Problem</h2>
+
+<p>The login page has several jobs:</p>
+
+<ul>
+  <li>Wait for the page and JavaScript environment to be ready.</li>
+  <li>Call JavaScript to obtain the public IP address.</li>
+  <li>Send that IP to an API to determine whether the user has full access.</li>
+  <li>Enable or disable the login controls based on the access result.</li>
+  <li>Store selected plant and login information in browser session storage.</li>
+  <li>Perform the normal authentication request.</li>
+  <li>Redirect the user to the module returned by the authentication API.</li>
+</ul>
+
+<p>The important part is timing. Browser-dependent JavaScript work should not be forced into <code>OnInitialized</code> when the required DOM or JavaScript state is not ready yet.</p>
+
+<h2>⚙️ Step 1: Wait Until the Component Has Rendered</h2>
+
+<p>The login page first registers its JavaScript callback in <code>OnAfterRenderAsync</code>:</p>
+
+<pre><code>protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        await RegisterJs();
+
+        await Task.Delay(1000);
+        isVideoReady = true;
+
+        await InvokeAsync(StateHasChanged);
+    }
+}
+</code></pre>
+
+<p><code>OnAfterRenderAsync</code> is a better place for browser interop that depends on the rendered page. The first-render check also prevents the registration from running repeatedly.</p>
+
+<h2>🔗 Step 2: Create a JavaScript-to-Blazor Bridge</h2>
+
+<p>A <code>DotNetObjectReference</code> lets JavaScript call a method on the Blazor component:</p>
+
+<pre><code>private DotNetObjectReference&lt;Login_DTVS&gt;? objRef;
+
+protected override void OnInitialized()
+{
+    objRef = DotNetObjectReference.Create(this);
+}
+
+private async Task RegisterJs()
+{
+    await JS.InvokeVoidAsync(
+        "myInterop.register",
+        objRef);
+}
+
+public void Dispose()
+{
+    objRef?.Dispose();
+}
+</code></pre>
+
+<p>The JavaScript object keeps the .NET reference:</p>
+
+<pre><code>window.myInterop = {
+    dotNetHelper: null,
+
+    register: function (dotNetHelper) {
+        this.dotNetHelper = dotNetHelper;
+        window.hasregistered = true;
+    },
+
+    callBlazor: function () {
+        this.dotNetHelper.invokeMethodAsync(
+            "UpdateMessage",
+            "Hello from JavaScript!"
+        );
+    }
+};
+</code></pre>
+
+<p>The <code>Dispose</code> method is important because the JavaScript reference points back to the Blazor component. Releasing the <code>DotNetObjectReference</code> helps avoid keeping the component alive longer than necessary.</p>
+
+<h2>🌐 Step 3: Get the Public IP Address</h2>
+
+<p>The browser can call a public IP service directly:</p>
+
+<pre><code>async function getPublicIP() {
+    try {
+        const response = await fetch(
+            'https://api.ipify.org?format=json'
+        );
+
+        const data = await response.json();
+
+        console.log("Your IP Address is:", data.ip);
+        return data.ip;
+    }
+    catch (error) {
+        console.error("Error fetching IP from ipify:", error);
+    }
+}
+</code></pre>
+
+<p>Because the request is asynchronous, the calling C# code must await the JavaScript result:</p>
+
+<pre><code>string res = await JS.InvokeAsync&lt;string&gt;("getPublicIP");
+clientIp = res;
+</code></pre>
+
+<p>This is preferable to guessing the public address from the local device network interface, especially when the MAUI application is behind NAT, Wi-Fi routers, corporate networks, or mobile networks.</p>
+
+<h2>🛡️ Step 4: Check Whether the IP Has Access</h2>
+
+<p>Once the public IP is known, the Blazor page can call the application's API:</p>
+
+<pre><code>var response = await Http.GetFromJsonAsync&lt;AccessResponse&gt;(
+    "http://serverip:serverport/Auth/check-access/" + res);
+
+if (response != null)
+{
+    hasFullAccess = response.HasAccess;
+    clientIp = response.IpAddress;
+}
+</code></pre>
+
+<p>A simple response model can represent the result:</p>
+
+<pre><code>public class AccessResponse
+{
+    public bool HasAccess { get; set; }
+    public string IpAddress { get; set; }
+}
+</code></pre>
+
+<p>The result can then control the login UI:</p>
+
+<pre><code>&lt;button class="login-btn"
+        @onclick="HandleLogin"
+        disabled="@isLoading || !@hasFullAccess"&gt;
+    Sign in
+&lt;/button&gt;
+</code></pre>
+
+<p>This creates a simple gate: the user can see the login screen, but authentication controls remain unavailable until the access check completes successfully.</p>
+
+<h2>💾 Step 5: Store Login Context in sessionStorage</h2>
+
+<p>After validation, the selected plant and login ID can be saved in browser session storage:</p>
+
+<pre><code>await JS.InvokeVoidAsync(
+    "sessionStorage.setItem",
+    "PlantCode",
+    selectedPlant);
+
+await JS.InvokeVoidAsync(
+    "sessionStorage.setItem",
+    "LoginId",
+    username);
+
+await JS.InvokeVoidAsync(
+    "sessionStorage.setItem",
+    "CompCode",
+    selectedPlant);
+</code></pre>
+
+<p>Only non-sensitive state should be persisted this way. In particular, the example deliberately does not store the password in <code>sessionStorage</code>.</p>
+
+<h2>🔐 Step 6: Perform the Login API Request</h2>
+
+<p>The request can contain the selected plant, credentials, and public IP:</p>
+
+<pre><code>var reqq = new AuthApiService.LoginRequest
+{
+    category = selectedPlant == "1108" ? "E" : "S",
+    UserID = username,
+    LoginPwd = password,
+    IpAddress = clientIp
+};
+
+var lr = await AuthService.LoginAsync(reqq);
+</code></pre>
+
+<p>The response can carry additional session information such as employee number, supplier code, photo path, focus target, or the destination module.</p>
+
+<h2>🚦 Step 7: Handle Errors Before Redirecting</h2>
+
+<p>A login API can return an error message instead of a redirect target:</p>
+
+<pre><code>if (!string.IsNullOrWhiteSpace(lr.Error))
+{
+    ToastMessage = lr.Error;
+    ShowToast = true;
+
+    StateHasChanged();
+    await Task.Delay(3000);
+
+    ShowToast = false;
+    return;
+}
+</code></pre>
+
+<p>Keeping this branch before the final navigation makes the login experience much easier to understand for the user.</p>
+
+<h2>➡️ Step 8: Redirect to the Target Module</h2>
+
+<p>When the API provides a valid destination, Blazor navigation can take over:</p>
+
+<pre><code>if (!string.IsNullOrWhiteSpace(lr.RedirectTo))
+{
+    await AuthService.AutoRejectPendingApprovalsAsync(selectedPlant);
+    Nav.NavigateTo("/" + lr.RedirectTo);
+}
+</code></pre>
+
+<p>This keeps the login page responsible for authentication while allowing the server to decide which module should open next.</p>
+
+<h2>🧠 Why the JavaScript Timing Matters</h2>
+
+<p>One of the easiest mistakes in a MAUI Hybrid Blazor application is to assume that every JavaScript call can be executed from <code>OnInitialized</code>. Browser APIs and DOM elements may not be available at that point.</p>
+
+<p>The practical sequence is:</p>
+
+<ol>
+  <li>Blazor constructs the component.</li>
+  <li>The component renders.</li>
+  <li><code>OnAfterRenderAsync(firstRender: true)</code> runs.</li>
+  <li>JavaScript interop is registered.</li>
+  <li>JavaScript waits until the bridge exists.</li>
+  <li>JavaScript calls the Blazor method.</li>
+  <li>Blazor gets the public IP and performs the access check.</li>
+  <li>The login controls become available when access is granted.</li>
+</ol>
+
+<p>This approach avoids trying to call browser-only functionality before the page is ready.</p>
+
+<h2>🧹 Cleanup Matters</h2>
+
+<p>Because a <code>DotNetObjectReference</code> is created, the component should release it:</p>
+
+<pre><code>public void Dispose()
+{
+    objRef?.Dispose();
+}
+</code></pre>
+
+<p>This is especially useful for pages that can be entered and left multiple times during the lifetime of the application.</p>
+
+<h2>✅ Final Pattern</h2>
+
+<p>The complete flow can be summarized as:</p>
+
+<pre><code>Page renders
+    ↓
+OnAfterRenderAsync(firstRender)
+    ↓
+Register JavaScript interop
+    ↓
+JavaScript calls Blazor
+    ↓
+Fetch public IP
+    ↓
+API checks IP access
+    ↓
+Enable login controls
+    ↓
+Authenticate user
+    ↓
+sessionStorage stores non-sensitive context
+    ↓
+Navigate to the target module
+</code></pre>
+
+<p>This pattern works well for MAUI Hybrid applications where Blazor provides the UI, JavaScript supplies browser APIs, and an ASP.NET Core API remains responsible for authentication and server-side authorization decisions.</p>
+
+<h2>🚀 Conclusion</h2>
+
+<p>MAUI Hybrid Blazor gives you a useful middle ground: you can build the entire login UI with Razor components while still using JavaScript interop for browser features such as public IP detection and session storage.</p>
+
+<p>The key is to respect the component lifecycle. Register browser-dependent JavaScript after the first render, use a controlled callback between JavaScript and .NET, await asynchronous calls, avoid storing passwords in browser storage, and dispose of the .NET object reference when the component is finished.</p>
+
+<p><em>Written for AlgoLassi — practical .NET, Blazor, MAUI, SQL Server, and developer tutorials.</em></p>
