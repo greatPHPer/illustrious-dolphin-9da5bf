@@ -54,7 +54,7 @@
     settle();
   }
   function showNewsLauncher(){if(document.getElementById(NEWS_BUTTON_ID))return;var b=document.createElement("button");b.id=NEWS_BUTTON_ID;b.type="button";b.textContent="📰";b.setAttribute("aria-label","Show news");b.title="Show news";b.style.cssText="position:fixed;right:14px;bottom:14px;z-index:2147483646;width:46px;height:46px;border:0;border-radius:50%;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);background:#fff;";b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();reopenNews();try{window.dispatchEvent(new Event("algolassi:news-reopen"));}catch(err){}},false);document.body.appendChild(b);updateAll();}
-  function syncNewsLauncher(){var t=newsToastElement(),r=visibleRect(t),b=document.getElementById(NEWS_BUTTON_ID);if(r){hiddenNewsToast=null;ensureNewsButton(t);if(b)b.remove();}}
+  function syncNewsLauncher(){var t=newsToastElement(),r=visibleRect(t),b=document.getElementById(NEWS_BUTTON_ID);var isHiding=t&&t.classList.contains("algolassi-assistant-toast-hide");if(r&&!isHiding){hiddenNewsToast=null;ensureNewsButton(t);if(b)b.remove();}}
   function setBottom(el,b){if(el)el.style.bottom=Math.max(baseBottom(),b)+"px";}
   function setStackBottom(el,b){if(el)el.style.setProperty("bottom",Math.max(baseBottom(),b)+"px","important");}
   function h(rect,fallback){return rect?rect.height:fallback;}
