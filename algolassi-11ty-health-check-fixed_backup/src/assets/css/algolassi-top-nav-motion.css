@@ -20,6 +20,7 @@
     font-weight .18s ease;
   will-change: transform, margin-inline;
   text-decoration: none !important;
+  white-space: nowrap;
   z-index: 0;
 }
 
@@ -49,6 +50,30 @@
 /* The focused item is allowed to grow without being clipped by the nav. */
 .site-nav > a.is-algolassi-nav-focused {
   overflow: visible;
+}
+
+/* Desktop: keep the full top navigation on one row, including while an item zooms. */
+@media (min-width: 801px) {
+  .site-header-inner {
+    gap: 12px;
+  }
+
+  .site-nav {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap !important;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .site-nav > a {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .site-nav.has-algolassi-nav-focus > a.is-algolassi-nav-focused {
+    margin-inline: 6px;
+  }
 }
 
 /* Keep the effect space-aware on narrow screens without causing horizontal overflow. */
