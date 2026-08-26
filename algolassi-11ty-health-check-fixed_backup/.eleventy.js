@@ -23,7 +23,7 @@ module.exports = function(eleventyConfig) {
 
   eleventyConfig.addCollection("posts", function(collectionApi) {
     return collectionApi
-      .getAll()
+      .getFilteredByGlob("src/posts/**/*.html")
       .filter(item => item.data && item.data.contentType === "post")
       .sort((a, b) => new Date(b.date) - new Date(a.date));
   });
@@ -33,7 +33,7 @@ module.exports = function(eleventyConfig) {
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
+      .replace(/\"/g, "&quot;")
       .replace(/'/g, "&apos;");
   });
 
@@ -52,6 +52,10 @@ module.exports = function(eleventyConfig) {
         month: "long",
         year: "numeric"
       });
+    }
+
+    if (format === "r") {
+      return d.toUTCString();
     }
 
     return d.toLocaleDateString("en-US");
