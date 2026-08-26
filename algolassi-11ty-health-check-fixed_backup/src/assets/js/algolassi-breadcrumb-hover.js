@@ -33,7 +33,6 @@
     var breadcrumbItems = document.querySelectorAll(breadcrumbSelector);
     var itemIndex = Array.prototype.indexOf.call(breadcrumbItems, item);
 
-    // The 3rd breadcrumb level (C#, .NET, ASP.NET Core, etc.) gets a fixed 250px menu width.
     if (itemIndex === 2) {
       menu.style.width = "250px";
       menu.style.maxWidth = "250px";
@@ -69,7 +68,6 @@
     if (!item || window.innerWidth <= 700) return;
 
     var menu = directChild(item, ".breadcrumb-child-menu");
-    // Prevent recalculation and scroll reset if menu is already open
     if (!menu || menu.classList.contains("open")) return;
 
     var trigger = directChild(item, ".breadcrumb-trigger") ||
@@ -79,14 +77,12 @@
 
     constrainChildMenuWidth(item);
 
-    // 1. Temporarily strip CSS animations to get flawless layout measurements
     menu.style.setProperty("transform", "none", "important");
     menu.style.setProperty("transition", "none", "important");
     menu.style.setProperty("max-height", "none", "important");
     menu.style.setProperty("overflow-y", "visible", "important");
     menu.style.setProperty("top", "0px", "important");
 
-    // Force browser reflow to apply the reset before calculating
     void menu.offsetWidth;
 
     var triggerRect = trigger.getBoundingClientRect();
@@ -94,34 +90,20 @@
     var menuRect = menu.getBoundingClientRect();
 
     var triggerCenter = triggerRect.top + triggerRect.height / 2;
-
-    // Calculate the selected item's true distance from the top of the menu container
     var selectedCenterRelative = (selectedRect.top - menuRect.top) + (selectedRect.height / 2);
-
-    // 2. Ideal Viewport Top Position (Unconstrained)
     var idealViewportTop = triggerCenter - selectedCenterRelative;
 
     var minTopSpace = 16;
     var maxBottomSpace = window.innerHeight - 16;
     var naturalHeight = menuRect.height;
-
-    // 3. Constrain to Top Bounds
     var expectedViewportTop = Math.max(idealViewportTop, minTopSpace);
-
-    // 4. Calculate Required Scroll to maintain visual alignment
     var requiredScrollTop = expectedViewportTop - idealViewportTop;
-
-    // 5. Calculate Max Height limits to permit both viewport fit and scrolling
     var maxHeightToPermitScroll = naturalHeight - requiredScrollTop;
     var maxHeightToFitViewport = maxBottomSpace - expectedViewportTop;
-
     var finalMaxHeight = Math.min(naturalHeight, maxHeightToPermitScroll, maxHeightToFitViewport);
     finalMaxHeight = Math.max(1, finalMaxHeight);
-
-    // 6. Convert absolute viewport position to relative CSS 'top' shift
     var targetTop = expectedViewportTop - menuRect.top;
 
-    // 7. Apply calculated styles, forcing them past the CSS file using !important
     menu.style.setProperty("top", targetTop + "px", "important");
 
     if (finalMaxHeight < naturalHeight || requiredScrollTop > 0) {
@@ -132,11 +114,8 @@
       menu.style.setProperty("overflow-y", "hidden", "important");
     }
 
-    // Restore the CSS hover animations
     menu.style.removeProperty("transform");
     menu.style.removeProperty("transition");
-
-    // 8. Apply scroll position to automatically align the highlighted item
     menu.scrollTop = requiredScrollTop;
   }
 
@@ -214,7 +193,6 @@
     constrainChildMenuWidth(clickedItem);
     alignChildMenu(clickedItem);
 
-    // Disable clicks on newly opened dropdown temporarily during initial tap gesture
     menu.style.setProperty("pointer-events", "none", "important");
     menu.classList.add("open");
 
@@ -254,7 +232,6 @@
     var menu = directChild(item, ".breadcrumb-child-menu");
     if (menu && menu.classList.contains("open")) return;
 
-    // Just-In-Time real-time calculation on hover (only when menu is closed)
     alignChildMenu(item);
   }, true);
 
