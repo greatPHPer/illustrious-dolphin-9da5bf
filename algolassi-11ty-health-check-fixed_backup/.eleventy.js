@@ -21,6 +21,22 @@ module.exports = function(eleventyConfig) {
     new Date().getFullYear()
   );
 
+  eleventyConfig.addCollection("posts", function(collectionApi) {
+    return collectionApi
+      .getAll()
+      .filter(item => item.data && item.data.contentType === "post")
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+  });
+
+  eleventyConfig.addFilter("xmlEscape", function(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
+  });
+
   eleventyConfig.addFilter("date", function(value, format) {
     if (!value) return "";
 
