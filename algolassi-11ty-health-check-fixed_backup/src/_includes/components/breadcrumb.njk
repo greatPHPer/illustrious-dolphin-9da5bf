@@ -609,32 +609,39 @@
 
 </div>
 
-
 <script>
 (function () {
-  document.querySelectorAll('.breadcrumb-trigger').forEach(function (trigger) {
-    trigger.addEventListener('click', function (event) {
-      if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
-        var item = trigger.closest('.breadcrumb-item');
-        var menu = item ? item.querySelector('.breadcrumb-menu') : null;
+  "use strict";
 
-        if (!menu) {
-          return;
-        }
+  /* The level-specific icon mapper owns breadcrumb trigger icons.
+     Remove the original emoji glyph from those triggers before the
+     generic icon normalizer sees them, otherwise one level gets two icons. */
+  var glyphs = /^(\s*)(?:🏠|📚|💻|🌐|⚡|🔥|🛢️|📱)\s*/;
 
-        var isOpen = menu.classList.contains('open');
-
-        if (!isOpen) {
-          event.preventDefault();
-
-          document.querySelectorAll('.breadcrumb-menu.open').forEach(function (otherMenu) {
-            otherMenu.classList.remove('open');
-          });
-
-          menu.classList.add('open');
-        }
+  function stripTriggerGlyphs() {
+    document.querySelectorAll(".breadcrumbs .breadcrumb-item > .breadcrumb-trigger").forEach(function (link) {
+      for (var i = 0; i < link.childNodes.length; i++) {
+        var node = link.childNodes[i];
+        if (node.nodeType !== 3) continue;
+        var updated = node.nodeValue.replace(glyphs, "$1");
+        if (updated !== node.nodeValue) node.nodeValue = updated;
+        break;
       }
     });
+  }
+
+  function init() {
+    stripTriggerGlyphs();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+
+  window.addEventListener("algolassi:spa-navigation", function () {
+    requestAnimationFrame(stripTriggerGlyphs);
   });
 })();
 </script>

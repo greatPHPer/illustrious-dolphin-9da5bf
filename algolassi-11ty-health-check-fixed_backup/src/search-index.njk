@@ -6,6 +6,7 @@ eleventyExcludeFromCollections: true
 {% for item in collections.all %}{
   "title": {{ (item.data.title or item.url or "") | dump | safe }},
   "url": {{ (item.url or "") | dump | safe }},
-  "description": {{ (item.data.description or "") | dump | safe }}
+  "description": {{ (item.data.description or "") | dump | safe }},
+  "content": {{ ((item.templateContent or "") | striptags) | dump | safe }}
 }{% if not loop.last %},{% endif %}{% endfor %}
 ]

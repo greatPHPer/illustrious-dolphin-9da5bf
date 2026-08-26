@@ -21,6 +21,15 @@ module.exports = function(eleventyConfig) {
     new Date().getFullYear()
   );
 
+  eleventyConfig.addFilter("xmlEscape", function(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&apos;");
+  });
+
   eleventyConfig.addFilter("date", function(value, format) {
     if (!value) return "";
 
@@ -36,6 +45,10 @@ module.exports = function(eleventyConfig) {
         month: "long",
         year: "numeric"
       });
+    }
+
+    if (format === "r") {
+      return d.toUTCString();
     }
 
     return d.toLocaleDateString("en-US");

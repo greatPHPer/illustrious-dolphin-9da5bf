@@ -1,0 +1,24 @@
+---
+permalink: "/feed.xml"
+eleventyExcludeFromCollections: true
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Algolassi</title>
+    <link>https://algolassi.online/</link>
+    <description>Algolassi - .NET, C#, Blazor, MAUI, SQL Server and developer tutorials.</description>
+    <language>en-us</language>
+    {% for post in collections.all | reverse %}
+      {% if post.inputPath and '/src/posts/' in post.inputPath and post.data.title and post.data.date %}
+    <item>
+      <title>{{ post.data.title | xmlEscape }}</title>
+      <link>https://algolassi.online{{ post.url }}</link>
+      <guid isPermaLink="true">https://algolassi.online{{ post.url }}</guid>
+      <pubDate>{{ post.data.date | date("r") }}</pubDate>
+      {% if post.data.description %}<description>{{ post.data.description | xmlEscape }}</description>{% endif %}
+    </item>
+      {% endif %}
+    {% endfor %}
+  </channel>
+</rss>

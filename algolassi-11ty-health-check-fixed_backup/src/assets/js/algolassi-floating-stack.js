@@ -1,98 +1,115 @@
-/* Algolassi 4.0 - keep assistant/news, radio and chat in a stable vertical stack. */
+/* Algolassi floating stack - news, radio and chat share one dynamic stack. */
 (function () {
   "use strict";
-  var GAP = 14;
-  var timer = null;
-
-  function visibleRect(el) {
-    if (!el) return null;
-    var cs = window.getComputedStyle(el);
-    if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0" || el.getAttribute("aria-hidden") === "true") return null;
-    var r = el.getBoundingClientRect();
-    if (r.width <= 0 || r.height <= 0) return null;
-    return r;
+  var GAP=14, BASE_DESKTOP=18, BASE_MOBILE=10, NEWS_BUTTON_ID="algolassi-news-reopen";
+  var timer=null, newsObserver=null, applyingNews=false, hiddenNewsToast=null, scrollFrame=null;
+  function baseBottom(){return window.innerWidth<=600?BASE_MOBILE:BASE_DESKTOP;}
+  function visibleRect(el){if(!el)return null;var cs=getComputedStyle(el);if(cs.display==="none"||cs.visibility==="hidden"||cs.opacity==="0"||el.getAttribute("aria-hidden")==="true")return null;var r=el.getBoundingClientRect();return r.width>0&&r.height>0?r:null;}
+  function assistantHost(){return document.getElementById("algolassi-assistant-host");}
+  function newsToastElement(){var h=assistantHost();if(!h)return null;return h.querySelector(".algolassi-assistant-news")||h.querySelector(".algolassi-assistant-toast")||null;}
+  function newsToast(){return visibleRect(newsToastElement());}
+  function newsLauncher(){return visibleRect(document.getElementById(NEWS_BUTTON_ID));}
+  function radioLauncher(){return visibleRect(document.getElementById("algolassi-radio-reopen"));}
+  function radioCard(){return visibleRect(document.getElementById("algolassi-radio-host"));}
+  function chatLauncher(){var b=document.getElementById("algolassi-chat-reopen-button");return visibleRect(b&&b.classList.contains("is-visible")?b:null);}
+  function chatCard(){var h=document.getElementById("algolassi-chat-presence-host");if(!h||h.classList.contains("algolassi-chat-toggle-hidden")||h.classList.contains("algolassi-chat-is-hidden"))return null;return visibleRect(h.querySelector(".algolassi-chat-presence-card"));}
+  function ensureNewsButton(toast){
+    if(!toast||applyingNews)return;
+    var head=toast.querySelector(".algolassi-assistant-head");
+    if(!head)return;
+    var existing=head.querySelector(".algolassi-news-hide");
+    if(existing){existing.style.setProperty("display","inline-flex","important");existing.style.flexShrink="0";existing.style.visibility="visible";existing.style.opacity="1";existing.style.pointerEvents="auto";return;}
+    applyingNews=true;
+    try{
+      var b=document.createElement("button");
+      b.type="button";b.className="algolassi-assistant-action algolassi-news-hide";b.setAttribute("aria-label","Hide news");b.title="Hide news";b.textContent="✕ Hide";
+      b.style.cssText="margin-left:auto!important;flex-shrink:0;display:inline-flex!important;align-items:center;justify-content:center;border:0;border-radius:7px;background:#111827;color:#fff;font-size:12px;line-height:1;cursor:pointer;padding:6px 9px;white-space:nowrap;visibility:visible!important;opacity:1!important;pointer-events:auto!important;position:relative;z-index:2147483647;";
+      b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();hideNewsToast(toast);},false);head.appendChild(b);
+    }finally{applyingNews=false;}
   }
-
-  function assistantRect() {
-    var host = document.getElementById("algolassi-assistant-host");
-    if (!host) return null;
-    var toast = host.querySelector(".algolassi-assistant-toast");
-    return visibleRect(toast || host);
+  function hideNewsToast(toast){
+    var h=assistantHost();
+    if(!toast||!h||!h.contains(toast))return;
+    try{
+      hiddenNewsToast=toast.cloneNode(true);
+      var clonedHide=hiddenNewsToast.querySelector(".algolassi-news-hide");
+      if(clonedHide)clonedHide.remove();
+      hiddenNewsToast.classList.remove("algolassi-assistant-toast-hide");
+    }catch(e){hiddenNewsToast=toast;}
+    toast.classList.add("algolassi-assistant-toast-hide");
+    setTimeout(function(){if(h.contains(toast))h.removeChild(toast);showNewsLauncher();updateAll();},200);
+    try{window.dispatchEvent(new Event("algolassi:news-layout-change"));}catch(e){}
   }
-
-  function chatVisible() {
-    var host = document.getElementById("algolassi-chat-presence-host");
-    if (!host) return null;
-    var card = host.querySelector(".algolassi-chat-presence-card");
-    if (!card || !visibleRect(card)) return null;
-    if (host.classList.contains("algolassi-chat-is-hidden")) return null;
-    return host;
-  }
-
-  function update() {
-    var chat = chatVisible();
-    if (!chat) return;
-
-    var radio = visibleRect(document.getElementById("algolassi-radio-host"));
-    var news = assistantRect();
-    var lower = radio || news || null;
-    var base = window.innerWidth <= 600 ? 10 : 18;
-
-    if (lower) {
-      var targetBottom = window.innerHeight - lower.top + GAP;
-      chat.style.bottom = Math.max(base, targetBottom) + "px";
-    } else {
-      chat.style.bottom = base + "px";
-    }
-  }
-
-  function settle() {
-    update();
-    [40, 100, 180, 300, 500].forEach(function (delay) {
-      setTimeout(update, delay);
-    });
-  }
-
-  function start() {
+  function removeNewsLauncher(){var b=document.getElementById(NEWS_BUTTON_ID);if(b)b.remove();}
+  function reopenNews(){
+    var h=assistantHost();
+    if(!h||!hiddenNewsToast)return;
+    var restored=hiddenNewsToast;
+    restored.classList.remove("algolassi-assistant-toast-hide");
+    h.innerHTML="";
+    h.appendChild(restored);
+    ensureNewsButton(restored);
+    removeNewsLauncher();
+    hiddenNewsToast=null;
     settle();
-    window.addEventListener("resize", settle, { passive: true });
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("algolassi:radio-layout-change", settle);
-    window.addEventListener("algolassi:spa-navigation", settle);
-
-    /* Observe only the three floating hosts, not the entire document. */
-    if (window.MutationObserver) {
-      var observer = new MutationObserver(function () { settle(); });
-      [
-        document.getElementById("algolassi-chat-presence-host"),
-        document.getElementById("algolassi-radio-host"),
-        document.getElementById("algolassi-assistant-host")
-      ].forEach(function (host) {
-        if (host) observer.observe(host, {
-          childList: true,
-          subtree: true,
-          attributes: true,
-          attributeFilter: ["style", "class", "aria-hidden"]
-        });
-      });
-    }
-
-    if (window.ResizeObserver) {
-      var resizeObserver = new ResizeObserver(function () { settle(); });
-      var chat = document.getElementById("algolassi-chat-presence-host");
-      var radio = document.getElementById("algolassi-radio-host");
-      var assistant = document.getElementById("algolassi-assistant-host");
-      if (chat) resizeObserver.observe(chat);
-      if (radio) resizeObserver.observe(radio);
-      if (assistant) resizeObserver.observe(assistant);
-    }
-
-    timer = setInterval(update, 250);
   }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start, { once: true });
-  } else {
-    start();
+  function showNewsLauncher(){if(document.getElementById(NEWS_BUTTON_ID))return;var b=document.createElement("button");b.id=NEWS_BUTTON_ID;b.type="button";b.textContent="📰";b.setAttribute("aria-label","Show news");b.title="Show news";b.style.cssText="position:fixed;right:14px;bottom:14px;z-index:2147483646;width:46px;height:46px;border:0;border-radius:50%;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);background:#fff;";b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();reopenNews();try{window.dispatchEvent(new Event("algolassi:news-reopen"));}catch(err){}},false);document.body.appendChild(b);updateAll();}
+  function syncNewsLauncher(){var t=newsToastElement(),r=visibleRect(t),b=document.getElementById(NEWS_BUTTON_ID);var isHiding=t&&t.classList.contains("algolassi-assistant-toast-hide");if(r&&!isHiding){hiddenNewsToast=null;ensureNewsButton(t);if(b)b.remove();}}
+  function setBottom(el,b){if(el)el.style.bottom=Math.max(baseBottom(),b)+"px";}
+  function setStackBottom(el,b){if(el)el.style.setProperty("bottom",Math.max(baseBottom(),b)+"px","important");}
+  function h(rect,fallback){return rect?rect.height:fallback;}
+  function bottomAbove(rect){return rect?window.innerHeight-rect.top+GAP:baseBottom();}
+  function updateAll(){
+    syncNewsLauncher();
+    var news=newsToast(),nmini=newsLauncher(),rbEl=document.getElementById("algolassi-radio-reopen"),rb=radioLauncher(),rc=radioCard(),cbEl=document.getElementById("algolassi-chat-reopen-button"),cb=chatLauncher(),ch=document.getElementById("algolassi-chat-presence-host"),radioEl=document.getElementById("algolassi-radio-host");
+    var cursor=baseBottom();
+    if(nmini){
+      setStackBottom(document.getElementById(NEWS_BUTTON_ID),cursor);
+      cursor+=h(nmini,46)+GAP;
+    } else if(news){
+      cursor=bottomAbove(news);
+    }
+    if(rb){
+      var radioBottom=cursor;
+      setStackBottom(rbEl,radioBottom);
+      rbEl.setAttribute("data-floating-stack-managed","true");
+      cursor=radioBottom+h(rb,46)+GAP;
+    } else if(rc&&radioEl){
+      radioEl.removeAttribute("data-floating-stack-managed");
+      setBottom(radioEl,news?bottomAbove(news):baseBottom());
+      cursor=bottomAbove(radioCard());
+    }
+    if(!rbEl){}
+    if(ccSafe()){
+      var cc=chatCard();
+      if(cc&&ch){setBottom(ch,cursor);ch.style.zIndex="2147483004";}
+    }
+    if(cb){setStackBottom(cbEl,cursor);cbEl.style.zIndex="2147483005";}
+    if(assistantHost())assistantHost().style.zIndex="2147483000";
+    if(radioEl)radioEl.style.zIndex="2147483001";
+    if(rbEl&&rb)rbEl.style.zIndex="2147483002";
   }
+  function ccSafe(){var h=document.getElementById("algolassi-chat-presence-host");return !!h&&!h.classList.contains("algolassi-chat-toggle-hidden")&&!h.classList.contains("algolassi-chat-is-hidden");}
+  function scheduleScrollUpdate(){
+    if(scrollFrame!==null)return;
+    var raf=window.requestAnimationFrame||function(fn){return window.setTimeout(fn,16);};
+    scrollFrame=raf(function(){scrollFrame=null;updateAll();});
+  }
+  function settle(){updateAll();[0,20,40,80,120,200,300,500,800].forEach(function(d){setTimeout(updateAll,d);});}
+  function start(){
+    settle();
+    window.addEventListener("resize",settle,{passive:true});
+    window.addEventListener("scroll",scheduleScrollUpdate,{passive:true});
+    if(window.visualViewport){window.visualViewport.addEventListener("scroll",scheduleScrollUpdate,{passive:true});window.visualViewport.addEventListener("resize",scheduleScrollUpdate,{passive:true});}
+    window.addEventListener("algolassi:radio-layout-change",settle);
+    window.addEventListener("algolassi:spa-navigation",settle);
+    window.addEventListener("algolassi:news-layout-change",settle);
+    window.addEventListener("algolassi:news-reopen",settle);
+    window.addEventListener("algolassi:chat-layout-change",settle);
+    window.addEventListener("algolassi:chat-restored",settle);
+    if(window.MutationObserver){newsObserver=new MutationObserver(function(){settle();});[document.getElementById("algolassi-chat-presence-host"),document.getElementById("algolassi-radio-host"),document.getElementById("algolassi-radio-reopen"),document.getElementById("algolassi-assistant-host")].forEach(function(x){if(x)newsObserver.observe(x,{childList:true,subtree:true,attributes:true,attributeFilter:["style","class","aria-hidden"]});});}
+    if(window.ResizeObserver){var ro=new ResizeObserver(function(){settle();});[document.getElementById("algolassi-chat-presence-host"),document.getElementById("algolassi-radio-host"),document.getElementById("algolassi-radio-reopen"),document.getElementById("algolassi-assistant-host")].forEach(function(x){if(x)ro.observe(x);});}
+    timer=setInterval(updateAll,250);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});else start();
 })();

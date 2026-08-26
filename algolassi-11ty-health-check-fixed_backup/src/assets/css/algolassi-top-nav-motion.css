@@ -1,0 +1,95 @@
+/* =========================================================
+   ALGOLASSI TOP NAV — ACTIVE + SPACE-AWARE ZOOM
+   ========================================================= */
+.site-nav {
+  align-items: center;
+  isolation: isolate;
+}
+
+.site-nav > a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  transition:
+    transform .24s cubic-bezier(.22, 1, .36, 1),
+    margin-inline .24s cubic-bezier(.22, 1, .36, 1),
+    color .18s ease,
+    background-color .18s ease,
+    font-weight .18s ease;
+  will-change: transform, margin-inline;
+  text-decoration: none !important;
+  white-space: nowrap;
+  z-index: 0;
+}
+
+/* Current tutorial is visibly active even when nothing is focused. */
+.site-nav > a.is-algolassi-nav-active {
+  color: var(--link) !important;
+  font-weight: 800;
+  transform: scale(1.05);
+  z-index: 2;
+}
+
+/* A focused/hovered item gets the strongest zoom and physically reserves space. */
+.site-nav.has-algolassi-nav-focus > a {
+  transform: scale(.93);
+  opacity: .86;
+}
+
+.site-nav.has-algolassi-nav-focus > a.is-algolassi-nav-focused {
+  transform: scale(1.12);
+  margin-inline: 8px;
+  opacity: 1;
+  color: var(--link) !important;
+  font-weight: 800;
+  z-index: 5;
+}
+
+/* The focused item is allowed to grow without being clipped by the nav. */
+.site-nav > a.is-algolassi-nav-focused {
+  overflow: visible;
+}
+
+/* Desktop: keep the full top navigation on one row, including while an item zooms. */
+@media (min-width: 801px) {
+  .site-header-inner {
+    gap: 12px;
+  }
+
+  .site-nav {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap !important;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .site-nav > a {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .site-nav.has-algolassi-nav-focus > a.is-algolassi-nav-focused {
+    margin-inline: 6px;
+  }
+}
+
+/* Keep the effect space-aware on narrow screens without causing horizontal overflow. */
+@media (max-width: 800px) {
+  .site-nav.has-algolassi-nav-focus > a {
+    transform: scale(.95);
+  }
+
+  .site-nav.has-algolassi-nav-focus > a.is-algolassi-nav-focused {
+    transform: scale(1.06);
+    margin-inline: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-nav > a {
+    transition: color .18s ease, background-color .18s ease, font-weight .18s ease;
+  }
+}
