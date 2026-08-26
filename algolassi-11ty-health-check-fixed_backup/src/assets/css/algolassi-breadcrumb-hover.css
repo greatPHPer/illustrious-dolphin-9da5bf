@@ -20,7 +20,8 @@
 .breadcrumb-menu.breadcrumb-child-menu-source-hidden { display: none !important; }
 
 /* Keep the 3rd breadcrumb level's child menu wide enough for longer items. */
-.breadcrumbs > .breadcrumb-item:nth-of-type(3) > .breadcrumb-child-menu { min-width: 250px !important; }
+.breadcrumbs > .breadcrumb-item:nth-of-type(3) > .breadcrumb-child-menu,
+.breadcrumbs > .breadcrumb-current.breadcrumb-child-item > .breadcrumb-child-menu { min-width: 250px !important; }
 
 /* Keep any residual Unicode/emoji breadcrumb glyphs in monochrome text mode. */
 .breadcrumb-current,
