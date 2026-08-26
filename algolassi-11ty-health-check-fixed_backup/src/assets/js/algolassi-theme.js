@@ -45,6 +45,43 @@
     root.style.colorScheme = theme === "auto" ? "light dark" : theme;
   }
 
+  function ensureAuthThemeStyles() {
+    if (document.getElementById("algolassi-auth-theme-style")) return;
+
+    var style = document.createElement("style");
+    style.id = "algolassi-auth-theme-style";
+    style.textContent =
+      "#algolassi-google-auth{color:inherit}" +
+      "html[data-theme=\"dark\"] #algolassi-google-auth > span{color:#e7edf5 !important}" +
+      "html[data-theme=\"dark\"] #algolassi-google-login," +
+      "html[data-theme=\"dark\"] #algolassi-google-signout{" +
+        "background:#171d26 !important;" +
+        "color:#e7edf5 !important;" +
+        "border-color:#465365 !important;" +
+      "}" +
+      "html[data-theme=\"dark\"] #algolassi-google-login:hover," +
+      "html[data-theme=\"dark\"] #algolassi-google-signout:hover{" +
+        "background:#202936 !important;" +
+        "border-color:#5d6a7b !important;" +
+      "}" +
+      "@media (prefers-color-scheme: dark) {" +
+        "html:not([data-theme=\"light\"]) #algolassi-google-auth > span{color:#e7edf5 !important}" +
+        "html:not([data-theme=\"light\"]) #algolassi-google-login," +
+        "html:not([data-theme=\"light\"]) #algolassi-google-signout{" +
+          "background:#171d26 !important;" +
+          "color:#e7edf5 !important;" +
+          "border-color:#465365 !important;" +
+        "}" +
+        "html:not([data-theme=\"light\"]) #algolassi-google-login:hover," +
+        "html:not([data-theme=\"light\"]) #algolassi-google-signout:hover{" +
+          "background:#202936 !important;" +
+          "border-color:#5d6a7b !important;" +
+        "}" +
+      "}";
+
+    document.head.appendChild(style);
+  }
+
   function updateButton(theme) {
     var button = document.getElementById("algolassi-theme-button");
     if (!button) return;
@@ -79,6 +116,7 @@
 
   function initialize() {
     var theme = getSavedTheme();
+    ensureAuthThemeStyles();
     applyTheme(theme);
     mountControl();
     updateButton(theme);
@@ -90,6 +128,7 @@
   document.addEventListener("DOMContentLoaded", initialize, { once: true });
   window.addEventListener("algolassi:spa-navigation", function () {
     requestAnimationFrame(function () {
+      ensureAuthThemeStyles();
       applyTheme(getSavedTheme());
       mountControl();
       updateButton(getSavedTheme());
