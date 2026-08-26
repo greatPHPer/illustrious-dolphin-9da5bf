@@ -96,7 +96,8 @@
     if (region) state.detectedRegion = String(region);
     if (city) state.detectedCity = String(city);
 
-    state.newsShownAt = Date.now();
+    /* Country detection must not consume the live-news cooldown. The main
+       assistant owns news fetching and uses newsShownAt to prevent repeats. */
     writeState(state);
 
     window.AlgolassiAssistantCountry = {
@@ -110,52 +111,6 @@
 
     notifyLocationReady();
     return true;
-  }
-
-  function escapeHtml(value) {
-    return String(value || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/\"/g, "&quot;");
-  }
-
-  function buildNewsUrl(country, region, city) {
-    var config = COUNTRY[country];
-    if (!config) return "";
-
-    var query = city || region || "";
-    var base = "https://news.google.com/rss?hl=" + encodeURIComponent(config.hl) +
-      "&gl=" + encodeURIComponent(config.gl) + "&ceid=" + encodeURIComponent(config.ceid);
-    if (query) base += "&q=" + encodeURIComponent(query + " news");
-    return base;
-  }
-
-  function showCorrectNews(country, region, city) {
-    var config = COUNTRY[country];
-    if (!config) return;
-
-    var rss = buildNewsUrl(country, region, city);
-    var proxy = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rss);
-
-    fetch(proxy, { credentials: "omit" })
-      .then(function (response) { return response.ok ? response.json() : null; })
-      .then(function (data) {
-        if (!data || !data.items || !data.items.length) return;
-        var item = data.items[0];
-        var place = city || region || config.name;
-        var image = item.thumbnail ? '<img class="algolassi-assistant-news-image" src="' + escapeHtml(item.thumbnail) + '" alt="">' : "";
-        var link = item.link ? '<a class="algolassi-assistant-news-link" href="' + escapeHtml(item.link) + '" target="_blank" rel="noopener noreferrer">Read local news →</a>' : "";
-        var host = document.getElementById("algolassi-assistant-host");
-        if (!host) return;
-        host.innerHTML = '<section class="algolassi-assistant-toast algolassi-assistant-news">' +
-          '<div class="algolassi-assistant-head"><span class="algolassi-assistant-avatar">📰</span><strong>📍 ' + escapeHtml(place) + '</strong></div>' +
-          '<div class="algolassi-assistant-body">' + image + '<strong>' + escapeHtml(item.title) + '</strong>' + link + '</div></section>';
-        setTimeout(function () {
-          if (host.firstElementChild) host.firstElementChild.classList.add("algolassi-assistant-toast-hide");
-        }, 15000);
-      })
-      .catch(function () {});
   }
 
   function requestApproximateLocation() {
@@ -186,18 +141,11 @@
         var region = location && location.region ? location.region : (existing.detectedRegion || "");
         var city = location && location.city ? location.city : (existing.detectedCity || "");
 
-        if (!apply(country, source, region, city)) return;
-
-        setTimeout(function () {
-          showCorrectNews(country, region, city);
-        }, 10000);
+        apply(country, source, region, city);
       })
       .catch(function () {
         if (tzCountry) {
           apply(tzCountry, "timezone", existing.detectedRegion || "", existing.detectedCity || "");
-          setTimeout(function () {
-            showCorrectNews(tzCountry, existing.detectedRegion || "", existing.detectedCity || "");
-          }, 10000);
         }
       });
   }
