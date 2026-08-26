@@ -48,7 +48,7 @@
       "padding:0 .08em;" +
       "box-shadow:0 0 0 2px rgba(245,158,11,.14);" +
       "scroll-margin-top:110px;" +
-      "} ";
+      "}";
     document.head.appendChild(style);
   }
 
@@ -83,6 +83,7 @@
             if (parent.closest("script,style,noscript,textarea,input,select,option,.algolassi-icon-inline,pre,code," + MARK_CLASS)) {
               return NodeFilter.FILTER_REJECT;
             }
+            pattern.lastIndex = 0;
             return pattern.test(node.nodeValue)
               ? NodeFilter.FILTER_ACCEPT
               : NodeFilter.FILTER_REJECT;
