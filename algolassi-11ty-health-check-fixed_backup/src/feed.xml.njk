@@ -17,6 +17,7 @@ eleventyExcludeFromCollections: true
       <guid isPermaLink="true">https://algolassi.online{{ post.url }}</guid>
       <pubDate>{{ post.data.date | date("r") }}</pubDate>
       {% if post.data.description %}<description>{{ post.data.description | xmlEscape }}</description>{% endif %}
+      <enclosure url="{{ ('https://algolassi.online' ~ (post.data.image or '/wp-content/uploads/2025/09/cropped-algolassi_logo_icon-32x32.png')) | xmlEscape }}" length="0" type="image/png" />
     </item>
       {% endif %}
     {% endfor %}

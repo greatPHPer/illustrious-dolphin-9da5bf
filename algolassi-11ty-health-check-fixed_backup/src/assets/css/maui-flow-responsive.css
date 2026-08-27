@@ -1,0 +1,71 @@
+/* Responsive MAUI implementation flow
+   Keeps the mobile stepper wrapped instead of forcing horizontal scrolling. */
+
+@media (max-width: 1250px) {
+  .maui-flow {
+    position: fixed;
+    top: var(--maui-flow-mobile-top, 110px);
+    right: 6px;
+    left: 6px;
+    width: auto;
+    max-width: none;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0;
+    padding: 6px 7px;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    white-space: normal !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    align-content: flex-start !important;
+    gap: 4px 6px !important;
+    box-sizing: border-box;
+    z-index: 2147483000;
+  }
+
+  .maui-flow > * {
+    min-width: 0;
+  }
+
+  .maui-flow button {
+    flex: 0 1 auto !important;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .maui-flow .label {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .maui-flow {
+    padding: 6px !important;
+    gap: 3px 4px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .maui-flow {
+    padding: 5px !important;
+    gap: 2px 3px !important;
+  }
+}
+
+/* Mobile header: keep the signed-in greeting close to the navigation. */
+@media (max-width: 800px) {
+  .site-header-inner {
+    gap: 3px !important;
+  }
+
+  #algolassi-google-auth {
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+    gap: 6px !important;
+  }
+}

@@ -3,6 +3,7 @@
   "use strict";
   var SUPABASE_URL = "https://ashezapnoqslggtxcncj.supabase.co";
   var SUPABASE_KEY = "sb_publishable_ki4D3v_JZk4elETfkYtmGA_xWDtbpBg";
+  var SUPABASE_JS = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
   var client = null, user = null, profile = null, initialized = false;
 
   function esc(v) { return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;"); }
@@ -66,15 +67,24 @@
       window.dispatchEvent(new CustomEvent("algolassi:username-loaded", { detail: { profile: profile, user: user } }));
     }).catch(function (error) { console.error("Algolassi profile load:", error); });
   }
+
+  function getSharedSupabaseClient() {
+    if (window.AlgolassiSupabase) return Promise.resolve(window.AlgolassiSupabase);
+    if (window.AlgolassiSupabasePromise) return window.AlgolassiSupabasePromise;
+    window.AlgolassiSupabasePromise = import(SUPABASE_JS).then(function (module) {
+      if (window.AlgolassiSupabase) return window.AlgolassiSupabase;
+      window.AlgolassiSupabase = module.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+      return window.AlgolassiSupabase;
+    });
+    return window.AlgolassiSupabasePromise;
+  }
+
   function start() {
     if (initialized) return; initialized = true; ensureUi(); loadReputationScript();
-    var useExisting = window.AlgolassiChatSupabase;
-    if (useExisting) { client = useExisting; loadCurrent(); }
-    else import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm").then(function (module) { client = module.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }); loadCurrent(); }).catch(function (e) { console.error("Algolassi username initialization:", e); });
+    getSharedSupabaseClient().then(function (sharedClient) { client = sharedClient; return client.auth.getUser(); }).then(function (result) { loadForUser(result.data && result.data.user ? result.data.user : null); });
     window.addEventListener("algolassi:auth-changed", function (event) { loadForUser(event && event.detail ? event.detail.user : null); });
     window.addEventListener("algolassi:spa-navigation", function () { if (user && (!profile || !profile.username)) setTimeout(show, 200); });
   }
-  function loadCurrent() { client.auth.getUser().then(function (result) { loadForUser(result.data && result.data.user ? result.data.user : null); }).catch(function () {}); }
   window.AlgolassiUsernameInit = start;
   window.AlgolassiUsernameGet = function () { return profile; };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true }); else start();
