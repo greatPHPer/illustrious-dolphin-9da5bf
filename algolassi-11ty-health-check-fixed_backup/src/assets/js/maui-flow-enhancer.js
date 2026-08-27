@@ -1,7 +1,8 @@
-/* Algolassi MAUI article flow enhancer
-   - Keeps the active mobile step centered in the horizontal rail.
-   - Overrides the article's original click handler so the target lands below the fixed rail.
-   - Activates only on pages containing .maui-flow.
+/* Algolassi implementation flow enhancer
+   - Preserves the custom MAUI .maui-flow behavior.
+   - Automatically creates an interactive stepper on pages with 3+ numbered Step headings.
+   - Keeps active mobile steps horizontally centered.
+   - Scrolls targets below fixed navigation and highlights them briefly.
 */
 (function () {
   "use strict";
@@ -15,25 +16,21 @@
     return id ? document.getElementById(id) : null;
   }
 
-  function getMobileOffset() {
-    var flow = getFlow();
+  function getMobileOffset(flow) {
     if (!flow || window.innerWidth > 1250) return 110;
     var bottom = flow.getBoundingClientRect().bottom;
     return Math.max(110, Math.round(bottom + 18));
   }
 
-  function centerStep(step, smooth) {
-    var flow = getFlow();
+  function centerStep(flow, step, smooth) {
     if (!flow || !step || window.innerWidth > 1250) return;
-
     var left = step.offsetLeft - (flow.clientWidth / 2) + (step.offsetWidth / 2);
     var maxLeft = Math.max(0, flow.scrollWidth - flow.clientWidth);
     left = Math.max(0, Math.min(left, maxLeft));
     flow.scrollTo({ left: left, behavior: smooth ? "smooth" : "auto" });
   }
 
-  function setActive(id, center) {
-    var flow = getFlow();
+  function setActive(flow, id, center) {
     if (!flow) return;
     var steps = flow.querySelectorAll("button[data-target]");
     var active = null;
@@ -42,54 +39,137 @@
       step.classList.toggle("active", on);
       if (on) active = step;
     });
-    if (center && active) centerStep(active, true);
+    if (center && active) centerStep(flow, active, true);
   }
 
-  function jumpToTarget(step) {
+  function jumpToTarget(flow, step) {
     var target = getStepTarget(step);
     if (!target) return;
+    var id = step.getAttribute("data-target");
+    setActive(flow, id, true);
 
-    setActive(step.getAttribute("data-target"), true);
-
-    var offset = getMobileOffset();
+    var offset = getMobileOffset(flow);
     var rect = target.getBoundingClientRect();
-    var destination = window.scrollY + rect.top - offset;
-    destination = Math.max(0, destination);
-
+    var destination = Math.max(0, window.scrollY + rect.top - offset);
     window.scrollTo({ top: destination, behavior: "smooth" });
 
     window.setTimeout(function () {
       var current = target.getBoundingClientRect();
-      var desired = getMobileOffset();
+      var desired = getMobileOffset(flow);
       if (Math.abs(current.top - desired) > 8) {
-        window.scrollTo({
-          top: Math.max(0, window.scrollY + current.top - desired),
-          behavior: "smooth"
-        });
+        window.scrollTo({ top: Math.max(0, window.scrollY + current.top - desired), behavior: "smooth" });
       }
     }, 450);
 
-    target.classList.remove("flash");
+    target.classList.remove("algolassi-flow-focus");
     void target.offsetWidth;
-    target.classList.add("flash");
-    window.setTimeout(function () {
-      target.classList.remove("flash");
-    }, 1400);
+    target.classList.add("algolassi-flow-focus");
+    window.setTimeout(function () { target.classList.remove("algolassi-flow-focus"); }, 1400);
+  }
+
+  function injectAutoStyles() {
+    if (document.getElementById("algolassi-auto-stepper-styles")) return;
+    var style = document.createElement("style");
+    style.id = "algolassi-auto-stepper-styles";
+    style.textContent = [
+      ".algolassi-auto-stepper{position:fixed;right:18px;top:132px;width:250px;max-height:calc(100vh - 155px);overflow:auto;padding:12px;border:1px solid rgba(100,116,139,.24);border-radius:16px;background:rgba(255,255,255,.97);box-shadow:0 14px 40px rgba(15,23,42,.14);backdrop-filter:blur(8px);z-index:100}",
+      ".algolassi-auto-stepper strong{display:block;margin-bottom:8px}",
+      ".algolassi-auto-stepper button{width:100%;display:flex;gap:8px;align-items:center;border:0;border-radius:9px;background:transparent;text-align:left;padding:7px;color:inherit;cursor:pointer}",
+      ".algolassi-auto-stepper button:hover,.algolassi-auto-stepper button.active{background:rgba(13,110,253,.12)}",
+      ".algolassi-auto-stepper button.active{box-shadow:inset 3px 0 #0d6efd}",
+      ".algolassi-auto-stepper .node{width:25px;height:25px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:0 0 25px;font-size:.72rem;font-weight:800;background:rgba(13,110,253,.1)}",
+      ".algolassi-auto-stepper .label{font-size:.78rem;line-height:1.2}",
+      ".algolassi-auto-step-target{scroll-margin-top:110px}",
+      ".algolassi-flow-focus{box-shadow:0 0 0 3px rgba(13,110,253,.28),0 10px 24px rgba(13,110,253,.1);border-radius:10px}",
+      "@media(max-width:1250px){.algolassi-auto-stepper{position:fixed;top:var(--algolassi-auto-stepper-top,110px);right:6px;left:6px;width:auto;max-width:none;height:50px;max-height:none;margin:0;padding:6px 7px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;display:flex;align-items:center;gap:2px;z-index:2147483000}.algolassi-auto-stepper strong{flex:0 0 auto;font-size:.72rem;margin:0 4px 0 0}.algolassi-auto-stepper button{flex:0 0 auto;width:auto;min-width:0;padding:4px 5px;gap:4px;border-radius:8px}.algolassi-auto-stepper .node{width:20px;height:20px;flex-basis:20px;font-size:.68rem}.algolassi-auto-stepper .label{font-size:.64rem;line-height:1;white-space:nowrap}.algolassi-auto-stepper button:not(:last-child)::after{content:\"→\";margin-left:5px;opacity:.45}.algolassi-auto-stepper button.active{box-shadow:inset 0 -2px #0d6efd}.algolassi-auto-step-target{scroll-margin-top:165px}}",
+      "@media(max-width:600px){.algolassi-auto-stepper{top:var(--algolassi-auto-stepper-top,104px);height:48px}.algolassi-auto-stepper .label{font-size:.62rem}.algolassi-auto-step-target{scroll-margin-top:160px}}",
+      "@media(max-width:390px){.algolassi-auto-stepper{top:var(--algolassi-auto-stepper-top,98px);height:44px;right:4px;left:4px}.algolassi-auto-stepper strong{display:none}.algolassi-auto-stepper button{padding:3px 4px}.algolassi-auto-stepper .node{width:19px;height:19px;flex-basis:19px}.algolassi-auto-stepper .label{font-size:.59rem}.algolassi-auto-step-target{scroll-margin-top:150px}}"
+    ].join("");
+    document.head.appendChild(style);
+  }
+
+  function slug(text) {
+    return String(text || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 90) || "step";
+  }
+
+  function getHeaderBreadcrumbTop(flow) {
+    if (window.innerWidth > 1250) return;
+    var header = document.querySelector(".site-header");
+    var breadcrumb = document.querySelector(".breadcrumb,.breadcrumbs");
+    var top = header ? header.getBoundingClientRect().bottom : 64;
+    if (breadcrumb) top = Math.max(top, breadcrumb.getBoundingClientRect().bottom + 8);
+    flow.style.setProperty("--algolassi-auto-stepper-top", Math.round(top) + "px");
+  }
+
+  function buildAutoStepper() {
+    if (getFlow() || document.querySelector(".algolassi-auto-stepper")) return null;
+    var scope = document.querySelector(".article-content,.page-content");
+    if (!scope) return null;
+    var headings = Array.prototype.slice.call(scope.querySelectorAll("h2,h3,h4")).filter(function (heading) {
+      return /^Step\s+\d+\b/i.test((heading.textContent || "").trim());
+    });
+    if (headings.length < 3) return null;
+
+    injectAutoStyles();
+    var flow = document.createElement("nav");
+    flow.className = "algolassi-auto-stepper";
+    flow.setAttribute("aria-label", "Article implementation steps");
+    var title = document.createElement("strong");
+    title.textContent = "Steps";
+    flow.appendChild(title);
+
+    headings.forEach(function (heading, index) {
+      if (!heading.id) heading.id = "algolassi-step-" + (index + 1) + "-" + slug(heading.textContent);
+      heading.classList.add("algolassi-auto-step-target");
+      var button = document.createElement("button");
+      button.type = "button";
+      button.setAttribute("data-target", heading.id);
+      var node = document.createElement("span");
+      node.className = "node";
+      node.textContent = String(index + 1);
+      var label = document.createElement("span");
+      label.className = "label";
+      label.textContent = (heading.textContent || "").replace(/^Step\s+\d+\s*[:—-]?\s*/i, "").trim() || heading.textContent;
+      button.appendChild(node);
+      button.appendChild(label);
+      flow.appendChild(button);
+    });
+
+    document.body.appendChild(flow);
+
+    flow.addEventListener("click", function (event) {
+      var step = event.target && event.target.closest ? event.target.closest("button[data-target]") : null;
+      if (!step || !flow.contains(step)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      jumpToTarget(flow, step);
+    }, true);
+
+    if ("IntersectionObserver" in window) {
+      var observer = new IntersectionObserver(function (entries) {
+        var visible = entries.filter(function (entry) { return entry.isIntersecting; }).sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; })[0];
+        if (!visible) return;
+        setActive(flow, visible.target.id, true);
+      }, { rootMargin: "-20% 0px -55% 0px", threshold: [0.08,0.2,0.4,0.7] });
+      headings.forEach(function (heading) { observer.observe(heading); });
+      flow._algolassiAutoObserver = observer;
+    }
+
+    var first = flow.querySelector("button[data-target]");
+    if (first) setActive(flow, first.getAttribute("data-target"), true);
+    getHeaderBreadcrumbTop(flow);
+    return flow;
   }
 
   function install(flow) {
     if (!flow || flow.dataset.enhanced === "1") return;
     flow.dataset.enhanced = "1";
-
-    // Capture phase intentionally runs before the article's original bubble-phase click handler.
     flow.addEventListener("click", function (event) {
-      var step = event.target && event.target.closest
-        ? event.target.closest("button[data-target]")
-        : null;
+      var step = event.target && event.target.closest ? event.target.closest("button[data-target]") : null;
       if (!step || !flow.contains(step)) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      jumpToTarget(step);
+      jumpToTarget(flow, step);
     }, true);
 
     var targets = [];
@@ -100,18 +180,10 @@
 
     if ("IntersectionObserver" in window) {
       var observer = new IntersectionObserver(function (entries) {
-        var visible = entries
-          .filter(function (entry) { return entry.isIntersecting; })
-          .sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; })[0];
+        var visible = entries.filter(function (entry) { return entry.isIntersecting; }).sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; })[0];
         if (!visible) return;
-
-        var id = visible.target.id;
-        setActive(id, true);
-      }, {
-        rootMargin: "-20% 0px -55% 0px",
-        threshold: [0.08, 0.2, 0.4, 0.7]
-      });
-
+        setActive(flow, visible.target.id, true);
+      }, { rootMargin: "-20% 0px -55% 0px", threshold: [0.08,0.2,0.4,0.7] });
       targets.forEach(function (item) { observer.observe(item.target); });
       flow._mauiFlowObserver = observer;
     }
@@ -121,25 +193,37 @@
       window.clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(function () {
         var active = flow.querySelector("button[data-target].active");
-        if (active) centerStep(active, false);
+        if (active) centerStep(flow, active, false);
+        getHeaderBreadcrumbTop(flow);
       }, 60);
     }
     window.addEventListener("resize", reposition, { passive: true });
 
     var first = flow.querySelector("button[data-target]");
-    if (first) setActive(first.getAttribute("data-target"), true);
+    if (first) setActive(flow, first.getAttribute("data-target"), true);
+    getHeaderBreadcrumbTop(flow);
   }
 
   function init() {
-    var flow = getFlow();
-    if (!flow) return;
-    install(flow);
+    var custom = getFlow();
+    if (custom) {
+      install(custom);
+      return;
+    }
+    buildAutoStepper();
   }
 
   document.addEventListener("DOMContentLoaded", init);
   if (document.readyState !== "loading") init();
-
   window.addEventListener("algolassi:spa-navigation", function () {
-    window.setTimeout(init, 50);
+    window.setTimeout(function () {
+      var old = document.querySelector(".algolassi-auto-stepper");
+      if (old) old.remove();
+      init();
+    }, 50);
   });
+  window.addEventListener("resize", function () {
+    var flow = document.querySelector(".algolassi-auto-stepper");
+    if (flow) getHeaderBreadcrumbTop(flow);
+  }, { passive: true });
 })();
