@@ -79,6 +79,18 @@ html[data-theme="dark"] .breadcrumb-menu > a { color: var(--text) !important; }
   html:not([data-theme="light"]) .breadcrumb-menu > a { color: var(--text) !important; }
 }
 
+/* Keep the highlighted breadcrumb child readable in dark mode. */
+html[data-theme="dark"] .breadcrumb-child-menu > a.breadcrumb-dropdown-current,
+html[data-theme="dark"] .breadcrumb-menu > a.breadcrumb-dropdown-current {
+  color: #182230 !important;
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .breadcrumb-child-menu > a.breadcrumb-dropdown-current,
+  html:not([data-theme="light"]) .breadcrumb-menu > a.breadcrumb-dropdown-current {
+    color: #182230 !important;
+  }
+}
+
 html[data-theme="dark"] .breadcrumb-trigger,
 html[data-theme="dark"] .breadcrumb-current {
   color: #7eb4ff !important;
