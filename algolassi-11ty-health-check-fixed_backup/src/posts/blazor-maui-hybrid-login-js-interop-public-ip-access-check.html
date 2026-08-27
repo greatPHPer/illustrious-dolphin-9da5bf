@@ -149,37 +149,37 @@ await JS.InvokeVoidAsync("sessionStorage.setItem", "CompCode", selectedPlant);</
     var breadcrumb=document.querySelector('.breadcrumbs');
     var header=document.querySelector('.site-header');
     var top=header ? header.getBoundingClientRect().bottom : 64;
-    if(breadcrumb){
-      var rect=breadcrumb.getBoundingClientRect();
-      top=Math.max(top, rect.bottom + 8);
-    }
-    flow.style.setProperty('--maui-flow-mobile-top', Math.round(top) + 'px');
+    if(breadcrumb){var r=breadcrumb.getBoundingClientRect();top=Math.max(top,r.bottom+8);}
+    flow.style.setProperty('--maui-flow-mobile-top',Math.round(top)+'px');
+  }
+  function centerActive(btn){
+    if(!btn || window.innerWidth>1250) return;
+    var flow=document.querySelector('.maui-flow'); if(!flow) return;
+    var left=btn.offsetLeft-(flow.clientWidth-btn.offsetWidth)/2;
+    flow.scrollTo({left:Math.max(0,left),behavior:'smooth'});
   }
   function init(){
     var p=document.querySelector('.maui-flow');
     if(!p)return;
-    if(p.dataset.ready==='1'){
-      updateMobileTop();
-      return;
-    }
+    if(p.dataset.ready==='1'){updateMobileTop();return;}
     p.dataset.ready='1';
     var s=[].slice.call(p.querySelectorAll('button[data-target]'));
-    function a(id){s.forEach(function(x){x.classList.toggle('active',x.dataset.target===id);});}
+    function a(id,center){s.forEach(function(x){x.classList.toggle('active',x.dataset.target===id);});var active=s.find(function(x){return x.dataset.target===id;});if(center)centerActive(active);}
     s.forEach(function(x){x.addEventListener('click',function(e){
       e.preventDefault();e.stopPropagation();
       var t=document.getElementById(x.dataset.target);if(!t)return;
-      a(x.dataset.target);
-      var topOffset=170;
-      if(window.innerWidth <= 600) topOffset=165;
-      if(window.innerWidth <= 390) topOffset=155;
-      var rect=t.getBoundingClientRect(), targetY=window.scrollY+rect.top-topOffset;
+      a(x.dataset.target,true);
+      var flow=document.querySelector('.maui-flow');
+      var extra=20;
+      var top=flow ? flow.getBoundingClientRect().bottom+extra : 150;
+      var rect=t.getBoundingClientRect();
+      var targetY=window.scrollY+rect.top-top;
       window.scrollTo({top:Math.max(0,targetY),behavior:'smooth'});
-      t.classList.remove('flash');void t.offsetWidth;t.classList.add('flash');
-      setTimeout(function(){t.classList.remove('flash');},1200);
+      setTimeout(function(){var rr=t.getBoundingClientRect();var corrected=window.scrollY+rr.top-top;window.scrollTo({top:Math.max(0,corrected),behavior:'smooth'});},350);
+      t.classList.remove('flash');void t.offsetWidth;t.classList.add('flash');setTimeout(function(){t.classList.remove('flash');},1200);
     });});
-    if('IntersectionObserver'in window){var o=new IntersectionObserver(function(es){var v=es.filter(function(e){return e.isIntersecting;}).sort(function(a,b){return b.intersectionRatio-a.intersectionRatio;})[0];if(v)a(v.target.id);},{rootMargin:'-18% 0px -60% 0px',threshold:[.15,.35,.6]});s.forEach(function(x){var t=document.getElementById(x.dataset.target);if(t)o.observe(t);});}
-    a('flow-render');
-    updateMobileTop();
+    if('IntersectionObserver'in window){var o=new IntersectionObserver(function(es){var v=es.filter(function(e){return e.isIntersecting;}).sort(function(a,b){return b.intersectionRatio-a.intersectionRatio;})[0];if(v)a(v.target.id,true);},{rootMargin:'-18% 0px -60% 0px',threshold:[.15,.35,.6]});s.forEach(function(x){var t=document.getElementById(x.dataset.target);if(t)o.observe(t);});}
+    a('flow-render',false);updateMobileTop();
   }
   init();
   window.addEventListener('resize',updateMobileTop,{passive:true});
