@@ -2,7 +2,7 @@
 (function () {
   "use strict";
   var SUPABASE_URL = "https://ashezapnoqslggtxcncj.supabase.co";
-  var SUPABASE_KEY = "sb_publishable_ki4D3v_JZK4elETfkYtmGA_xWDtbpBg";
+  var SUPABASE_KEY = "sb_publishable_ki4D3v_JZk4elETfkYtmGA_xWDtbpBg";
   var SUPABASE_JS = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
   var client = null, user = null, profile = null, initialized = false;
 
