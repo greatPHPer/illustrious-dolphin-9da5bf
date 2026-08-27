@@ -10,9 +10,9 @@ tags: ["MAUI Hybrid", "Blazor", "JavaScript Interop", "IJSRuntime", "IP Address"
 ---
 <style>
 .maui-flow{position:fixed;right:18px;top:132px;width:250px;max-height:calc(100vh - 155px);overflow:auto;padding:12px;border:1px solid rgba(100,116,139,.24);border-radius:16px;background:rgba(255,255,255,.97);box-shadow:0 14px 40px rgba(15,23,42,.14);backdrop-filter:blur(8px);z-index:100}.maui-flow strong{display:block;margin-bottom:8px}.maui-flow button{width:100%;display:flex;gap:8px;align-items:center;border:0;border-radius:9px;background:transparent;text-align:left;padding:7px;color:inherit;cursor:pointer}.maui-flow button:hover,.maui-flow button.active{background:rgba(13,110,253,.12)}.maui-flow button.active{box-shadow:inset 3px 0 #0d6efd}.maui-flow .node{width:25px;height:25px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:0 0 25px;font-size:.72rem;font-weight:800;background:rgba(13,110,253,.1)}.maui-flow .label{font-size:.78rem;line-height:1.2}.maui-target{scroll-margin-top:110px;transition:box-shadow .2s ease}.maui-target.flash{box-shadow:0 0 0 3px rgba(13,110,253,.28),0 10px 24px rgba(13,110,253,.1);border-radius:10px}
-@media(max-width:1250px){.maui-flow{position:fixed;top:76px;right:10px;left:10px;width:auto;max-width:none;height:56px;max-height:none;margin:0;padding:8px 10px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;display:flex;align-items:center;gap:4px;z-index:2147483000}.maui-flow strong{flex:0 0 auto;font-size:.8rem;margin:0 6px 0 0}.maui-flow button{flex:0 0 auto;width:auto;min-width:0;padding:5px 7px;gap:5px;border-radius:8px}.maui-flow .node{width:22px;height:22px;flex-basis:22px;font-size:.68rem}.maui-flow .label{font-size:.7rem;line-height:1;white-space:nowrap}.maui-flow button:not(:last-child)::after{content:"→";margin-left:7px;opacity:.45}.maui-flow button.active{box-shadow:inset 0 -2px #0d6efd}.maui-target{scroll-margin-top:150px}}
-@media(max-width:600px){.maui-flow{top:70px;right:6px;left:6px;height:50px;padding:6px 7px;gap:2px}.maui-flow strong{font-size:.72rem;margin-right:4px}.maui-flow button{padding:4px 5px;gap:4px}.maui-flow .node{width:20px;height:20px;flex-basis:20px}.maui-flow .label{font-size:.64rem}.maui-flow button:not(:last-child)::after{margin-left:5px}.maui-target{scroll-margin-top:135px}}
-@media(max-width:390px){.maui-flow{top:66px;height:46px;right:4px;left:4px}.maui-flow strong{display:none}.maui-flow button{padding:3px 4px}.maui-flow .node{width:19px;height:19px;flex-basis:19px}.maui-flow .label{font-size:.6rem}.maui-target{scroll-margin-top:125px}}
+@media(max-width:1250px){.maui-flow{position:fixed;top:var(--maui-flow-mobile-top,110px);right:6px;left:6px;width:auto;max-width:none;height:50px;max-height:none;margin:0;padding:6px 7px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;display:flex;align-items:center;gap:2px;z-index:2147483000}.maui-flow strong{flex:0 0 auto;font-size:.72rem;margin:0 4px 0 0}.maui-flow button{flex:0 0 auto;width:auto;min-width:0;padding:4px 5px;gap:4px;border-radius:8px}.maui-flow .node{width:20px;height:20px;flex-basis:20px;font-size:.68rem}.maui-flow .label{font-size:.64rem;line-height:1;white-space:nowrap}.maui-flow button:not(:last-child)::after{content:"→";margin-left:5px;opacity:.45}.maui-flow button.active{box-shadow:inset 0 -2px #0d6efd}.maui-target{scroll-margin-top:170px}}
+@media(max-width:600px){.maui-flow{top:var(--maui-flow-mobile-top,104px);height:48px}.maui-flow .label{font-size:.62rem}.maui-target{scroll-margin-top:165px}}
+@media(max-width:390px){.maui-flow{top:var(--maui-flow-mobile-top,98px);height:44px}.maui-flow strong{display:none}.maui-flow button{padding:3px 4px}.maui-flow .node{width:19px;height:19px;flex-basis:19px}.maui-flow .label{font-size:.59rem}.maui-target{scroll-margin-top:155px}}
 </style>
 <div class="maui-flow" aria-label="MAUI Hybrid Blazor implementation flow"><strong>Flow</strong>
 <button data-target="flow-render"><span class="node">1</span><span class="label">Page renders</span></button><button data-target="flow-after"><span class="node">2</span><span class="label">OnAfterRenderAsync(firstRender)</span></button><button data-target="flow-register"><span class="node">3</span><span class="label">Register JavaScript interop</span></button><button data-target="flow-callback"><span class="node">4</span><span class="label">JavaScript calls Blazor</span></button><button data-target="flow-ip"><span class="node">5</span><span class="label">Fetch public IP</span></button><button data-target="flow-access"><span class="node">6</span><span class="label">API checks IP access</span></button><button data-target="flow-enable"><span class="node">7</span><span class="label">Enable login controls</span></button><button data-target="flow-auth"><span class="node">8</span><span class="label">Authenticate user</span></button><button data-target="flow-session"><span class="node">9</span><span class="label">Store non-sensitive context</span></button><button data-target="flow-navigate"><span class="node">10</span><span class="label">Navigate to target module</span></button></div>
@@ -142,5 +142,48 @@ await JS.InvokeVoidAsync("sessionStorage.setItem", "CompCode", selectedPlant);</
 <h2>🚀 Final Pattern</h2><p>Blazor owns the UI and orchestration, JavaScript supplies browser capabilities such as public-IP lookup and session storage, and the API handles authentication/access decisions. The interactive flow connects the explanation directly to the relevant code.</p>
 
 <script>
-(function(){function init(){var p=document.querySelector('.maui-flow');if(!p||p.dataset.ready==='1')return;p.dataset.ready='1';var s=[].slice.call(p.querySelectorAll('button[data-target]'));function a(id){s.forEach(function(x){x.classList.toggle('active',x.dataset.target===id);});}s.forEach(function(x){x.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var t=document.getElementById(x.dataset.target);if(!t)return;a(x.dataset.target);t.scrollIntoView({behavior:'smooth',block:'start'});t.classList.remove('flash');void t.offsetWidth;t.classList.add('flash');setTimeout(function(){t.classList.remove('flash');},1200);});});if('IntersectionObserver'in window){var o=new IntersectionObserver(function(es){var v=es.filter(function(e){return e.isIntersecting;}).sort(function(a,b){return b.intersectionRatio-a.intersectionRatio;})[0];if(v)a(v.target.id);},{rootMargin:'-18% 0px -60% 0px',threshold:[.15,.35,.6]});s.forEach(function(x){var t=document.getElementById(x.dataset.target);if(t)o.observe(t);});}a('flow-render');}init();window.addEventListener('algolassi:spa-navigation',function(){setTimeout(function(){var old=document.querySelector('.maui-flow');if(old)old.remove();init();},50);});})();
+(function(){
+  function updateMobileTop(){
+    var flow=document.querySelector('.maui-flow');
+    if(!flow || window.innerWidth > 1250) return;
+    var breadcrumb=document.querySelector('.breadcrumbs');
+    var header=document.querySelector('.site-header');
+    var top=header ? header.getBoundingClientRect().bottom : 64;
+    if(breadcrumb){
+      var rect=breadcrumb.getBoundingClientRect();
+      top=Math.max(top, rect.bottom + 8);
+    }
+    flow.style.setProperty('--maui-flow-mobile-top', Math.round(top) + 'px');
+  }
+  function init(){
+    var p=document.querySelector('.maui-flow');
+    if(!p)return;
+    if(p.dataset.ready==='1'){
+      updateMobileTop();
+      return;
+    }
+    p.dataset.ready='1';
+    var s=[].slice.call(p.querySelectorAll('button[data-target]'));
+    function a(id){s.forEach(function(x){x.classList.toggle('active',x.dataset.target===id);});}
+    s.forEach(function(x){x.addEventListener('click',function(e){
+      e.preventDefault();e.stopPropagation();
+      var t=document.getElementById(x.dataset.target);if(!t)return;
+      a(x.dataset.target);
+      var topOffset=170;
+      if(window.innerWidth <= 600) topOffset=165;
+      if(window.innerWidth <= 390) topOffset=155;
+      var rect=t.getBoundingClientRect(), targetY=window.scrollY+rect.top-topOffset;
+      window.scrollTo({top:Math.max(0,targetY),behavior:'smooth'});
+      t.classList.remove('flash');void t.offsetWidth;t.classList.add('flash');
+      setTimeout(function(){t.classList.remove('flash');},1200);
+    });});
+    if('IntersectionObserver'in window){var o=new IntersectionObserver(function(es){var v=es.filter(function(e){return e.isIntersecting;}).sort(function(a,b){return b.intersectionRatio-a.intersectionRatio;})[0];if(v)a(v.target.id);},{rootMargin:'-18% 0px -60% 0px',threshold:[.15,.35,.6]});s.forEach(function(x){var t=document.getElementById(x.dataset.target);if(t)o.observe(t);});}
+    a('flow-render');
+    updateMobileTop();
+  }
+  init();
+  window.addEventListener('resize',updateMobileTop,{passive:true});
+  window.addEventListener('scroll',updateMobileTop,{passive:true});
+  window.addEventListener('algolassi:spa-navigation',function(){setTimeout(function(){var old=document.querySelector('.maui-flow');if(old)old.remove();init();updateMobileTop();},50);});
+})();
 </script>
