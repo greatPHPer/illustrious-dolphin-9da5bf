@@ -95,6 +95,16 @@
     margin-top: 0 !important;
     z-index: 10;
   }
+
+  /* Keep the theme selector on the same top header row on mobile. */
+  #algolassi-theme-control-host {
+    position: absolute !important;
+    top: 6px !important;
+    right: 6px !important;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    z-index: 11;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
