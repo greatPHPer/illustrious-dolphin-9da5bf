@@ -56,3 +56,16 @@
     gap: 2px 3px !important;
   }
 }
+
+/* Mobile header: keep the signed-in greeting close to the navigation. */
+@media (max-width: 800px) {
+  .site-header-inner {
+    gap: 3px !important;
+  }
+
+  #algolassi-google-auth {
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+    gap: 6px !important;
+  }
+}
