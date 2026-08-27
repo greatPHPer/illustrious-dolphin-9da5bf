@@ -24,7 +24,6 @@
   z-index: 0;
 }
 
-/* Current tutorial is visibly active even when nothing is focused. */
 .site-nav > a.is-algolassi-nav-active {
   color: var(--link) !important;
   font-weight: 800;
@@ -32,7 +31,6 @@
   z-index: 2;
 }
 
-/* A focused/hovered item gets the strongest zoom and physically reserves space. */
 .site-nav.has-algolassi-nav-focus > a {
   transform: scale(.93);
   opacity: .86;
@@ -47,12 +45,10 @@
   z-index: 5;
 }
 
-/* The focused item is allowed to grow without being clipped by the nav. */
 .site-nav > a.is-algolassi-nav-focused {
   overflow: visible;
 }
 
-/* Desktop: keep the full top navigation on one row, including while an item zooms. */
 @media (min-width: 801px) {
   .site-header-inner {
     gap: 12px;
@@ -76,7 +72,6 @@
   }
 }
 
-/* Keep the effect space-aware on narrow screens without causing horizontal overflow. */
 @media (max-width: 800px) {
   .site-nav.has-algolassi-nav-focus > a {
     transform: scale(.95);
@@ -85,6 +80,20 @@
   .site-nav.has-algolassi-nav-focus > a.is-algolassi-nav-focused {
     transform: scale(1.06);
     margin-inline: 3px;
+  }
+
+  .site-header-inner {
+    position: relative;
+  }
+
+  /* Keep signed-in greeting/actions on the top header row on mobile. */
+  #algolassi-google-auth {
+    position: absolute !important;
+    top: 10px !important;
+    right: 55px !important;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    z-index: 10;
   }
 }
 
