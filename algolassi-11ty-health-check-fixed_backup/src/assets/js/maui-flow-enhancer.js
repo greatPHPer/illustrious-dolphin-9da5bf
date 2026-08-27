@@ -1,14 +1,14 @@
 /* Algolassi implementation flow enhancer
    - Preserves the custom MAUI .maui-flow behavior.
    - Automatically creates an interactive stepper on pages with 3+ numbered Step headings.
-   - Keeps active mobile steps horizontally centered.
+   - On mobile, shows every step by wrapping rather than requiring horizontal scrolling.
    - Scrolls targets below fixed navigation and highlights them briefly.
 */
 (function () {
   "use strict";
 
   function getFlow() {
-    return document.querySelector(".maui-flow");
+    return document.querySelector(".maui-flow") || document.querySelector(".algolassi-auto-stepper");
   }
 
   function getStepTarget(step) {
@@ -18,12 +18,14 @@
 
   function getMobileOffset(flow) {
     if (!flow || window.innerWidth > 1250) return 110;
-    var bottom = flow.getBoundingClientRect().bottom;
-    return Math.max(110, Math.round(bottom + 18));
+    var rect = flow.getBoundingClientRect();
+    return Math.max(100, Math.round(rect.bottom + 18));
   }
 
   function centerStep(flow, step, smooth) {
     if (!flow || !step || window.innerWidth > 1250) return;
+    /* Auto steppers wrap on mobile; there is no horizontal rail to center. */
+    if (flow.classList.contains("algolassi-auto-stepper")) return;
     var left = step.offsetLeft - (flow.clientWidth / 2) + (step.offsetWidth / 2);
     var maxLeft = Math.max(0, flow.scrollWidth - flow.clientWidth);
     left = Math.max(0, Math.min(left, maxLeft));
@@ -81,9 +83,9 @@
       ".algolassi-auto-stepper .label{font-size:.78rem;line-height:1.2}",
       ".algolassi-auto-step-target{scroll-margin-top:110px}",
       ".algolassi-flow-focus{box-shadow:0 0 0 3px rgba(13,110,253,.28),0 10px 24px rgba(13,110,253,.1);border-radius:10px}",
-      "@media(max-width:1250px){.algolassi-auto-stepper{position:fixed;top:var(--algolassi-auto-stepper-top,110px);right:6px;left:6px;width:auto;max-width:none;height:50px;max-height:none;margin:0;padding:6px 7px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;display:flex;align-items:center;gap:2px;z-index:2147483000}.algolassi-auto-stepper strong{flex:0 0 auto;font-size:.72rem;margin:0 4px 0 0}.algolassi-auto-stepper button{flex:0 0 auto;width:auto;min-width:0;padding:4px 5px;gap:4px;border-radius:8px}.algolassi-auto-stepper .node{width:20px;height:20px;flex-basis:20px;font-size:.68rem}.algolassi-auto-stepper .label{font-size:.64rem;line-height:1;white-space:nowrap}.algolassi-auto-stepper button:not(:last-child)::after{content:\"→\";margin-left:5px;opacity:.45}.algolassi-auto-stepper button.active{box-shadow:inset 0 -2px #0d6efd}.algolassi-auto-step-target{scroll-margin-top:165px}}",
-      "@media(max-width:600px){.algolassi-auto-stepper{top:var(--algolassi-auto-stepper-top,104px);height:48px}.algolassi-auto-stepper .label{font-size:.62rem}.algolassi-auto-step-target{scroll-margin-top:160px}}",
-      "@media(max-width:390px){.algolassi-auto-stepper{top:var(--algolassi-auto-stepper-top,98px);height:44px;right:4px;left:4px}.algolassi-auto-stepper strong{display:none}.algolassi-auto-stepper button{padding:3px 4px}.algolassi-auto-stepper .node{width:19px;height:19px;flex-basis:19px}.algolassi-auto-stepper .label{font-size:.59rem}.algolassi-auto-step-target{scroll-margin-top:150px}}"
+      "@media(max-width:1250px){.algolassi-auto-stepper{position:fixed;top:var(--algolassi-auto-stepper-top,110px);right:6px;left:6px;width:auto;max-width:none;height:auto;max-height:none;margin:0;padding:7px 8px;overflow:visible;display:flex;flex-wrap:wrap;align-content:flex-start;align-items:center;gap:4px 6px;z-index:2147483000}.algolassi-auto-stepper strong{flex:0 0 100%;font-size:.72rem;margin:0 0 2px 0}.algolassi-auto-stepper button{flex:0 1 auto;width:auto;min-width:0;max-width:100%;padding:4px 6px;gap:4px;border-radius:8px}.algolassi-auto-stepper .node{width:20px;height:20px;flex-basis:20px;font-size:.68rem}.algolassi-auto-stepper .label{font-size:.64rem;line-height:1.1;white-space:normal;text-align:left}.algolassi-auto-stepper button:not(:last-child)::after{content:\"→\";margin-left:3px;opacity:.45}.algolassi-auto-stepper button.active{box-shadow:inset 0 -2px #0d6efd}.algolassi-auto-step-target{scroll-margin-top:190px}}",
+      "@media(max-width:600px){.algolassi-auto-stepper{top:var(--algolassi-auto-stepper-top,104px);padding:6px 6px;gap:3px 4px}.algolassi-auto-stepper strong{font-size:.68rem}.algolassi-auto-stepper button{padding:3px 5px}.algolassi-auto-stepper .label{font-size:.61rem}.algolassi-auto-stepper .node{width:19px;height:19px;flex-basis:19px}.algolassi-auto-step-target{scroll-margin-top:185px}}",
+      "@media(max-width:390px){.algolassi-auto-stepper{top:var(--algolassi-auto-stepper-top,98px);padding:5px 5px;gap:2px 3px}.algolassi-auto-stepper strong{display:none}.algolassi-auto-stepper button{padding:3px 4px}.algolassi-auto-stepper .node{width:18px;height:18px;flex-basis:18px}.algolassi-auto-stepper .label{font-size:.58rem}.algolassi-auto-step-target{scroll-margin-top:175px}}"
     ].join("");
     document.head.appendChild(style);
   }
@@ -93,7 +95,7 @@
   }
 
   function getHeaderBreadcrumbTop(flow) {
-    if (window.innerWidth > 1250) return;
+    if (window.innerWidth > 1250 || !flow) return;
     var header = document.querySelector(".site-header");
     var breadcrumb = document.querySelector(".breadcrumb,.breadcrumbs");
     var top = header ? header.getBoundingClientRect().bottom : 64;
@@ -102,7 +104,7 @@
   }
 
   function buildAutoStepper() {
-    if (getFlow() || document.querySelector(".algolassi-auto-stepper")) return null;
+    if (document.querySelector(".maui-flow") || document.querySelector(".algolassi-auto-stepper")) return null;
     var scope = document.querySelector(".article-content,.page-content");
     if (!scope) return null;
     var headings = Array.prototype.slice.call(scope.querySelectorAll("h2,h3,h4")).filter(function (heading) {
@@ -149,14 +151,14 @@
       var observer = new IntersectionObserver(function (entries) {
         var visible = entries.filter(function (entry) { return entry.isIntersecting; }).sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; })[0];
         if (!visible) return;
-        setActive(flow, visible.target.id, true);
+        setActive(flow, visible.target.id, false);
       }, { rootMargin: "-20% 0px -55% 0px", threshold: [0.08,0.2,0.4,0.7] });
       headings.forEach(function (heading) { observer.observe(heading); });
       flow._algolassiAutoObserver = observer;
     }
 
     var first = flow.querySelector("button[data-target]");
-    if (first) setActive(flow, first.getAttribute("data-target"), true);
+    if (first) setActive(flow, first.getAttribute("data-target"), false);
     getHeaderBreadcrumbTop(flow);
     return flow;
   }
@@ -205,7 +207,7 @@
   }
 
   function init() {
-    var custom = getFlow();
+    var custom = document.querySelector(".maui-flow");
     if (custom) {
       install(custom);
       return;
