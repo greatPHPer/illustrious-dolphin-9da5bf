@@ -1,0 +1,35 @@
+---
+title: "Create a SQL Server Database for Beginners"
+layout: layouts/base.njk
+permalink: "/sql-server-create-database-beginners/"
+contentType: "page"
+description: "Learn how to create a SQL Server database in T-SQL and understand the basic database structure used by applications."
+---
+<h1>Create a SQL Server Database for Beginners</h1>
+<p>A database is a container for related data and database objects. In SQL Server, you will commonly work with databases that contain tables, views, stored procedures, functions, and other objects.</p>
+<h2>Create a Database</h2>
+<pre><code>CREATE DATABASE SchoolDB;
+</code></pre>
+<p>The statement creates a database named <code>SchoolDB</code>.</p>
+<h2>Switch to the Database</h2>
+<pre><code>USE SchoolDB;
+</code></pre>
+<p><code>USE</code> changes the database context for the current query window.</p>
+<h2>Check the Current Database</h2>
+<pre><code>SELECT DB_NAME() AS CurrentDatabase;
+</code></pre>
+<h2>List Databases</h2>
+<pre><code>SELECT name
+FROM sys.databases
+ORDER BY name;
+</code></pre>
+<p>System catalog views such as <code>sys.databases</code> expose metadata about databases on the SQL Server instance.</p>
+<h2>Delete a Test Database</h2>
+<p>Only run this against a database you are certain you no longer need:</p>
+<pre><code>DROP DATABASE SchoolDB;
+</code></pre>
+<h2>Important Safety Tip</h2>
+<p>Use a dedicated practice database while learning. Avoid running <code>DROP DATABASE</code> or other destructive statements against production databases.</p>
+<h2>What to Learn Next</h2>
+<p>After creating a database, learn how to create tables, define columns, choose data types, and add constraints.</p>
+<p>Continue with <a href="/sql-server-create-table-data-types-beginners/">SQL Server Tables and Data Types for Beginners</a> or return to the <a href="/sql-server-tutorials/">SQL Server Tutorials</a> hub.</p>
