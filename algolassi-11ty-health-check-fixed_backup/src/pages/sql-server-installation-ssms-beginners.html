@@ -1,0 +1,39 @@
+---
+title: "SQL Server Installation and SSMS for Beginners"
+layout: layouts/base.njk
+permalink: "/sql-server-installation-ssms-beginners/"
+contentType: "page"
+description: "A beginner-friendly introduction to installing Microsoft SQL Server and using SQL Server Management Studio (SSMS)."
+---
+<h1>SQL Server Installation and SSMS for Beginners</h1>
+<p>If you are new to Microsoft SQL Server, the first step is understanding where the database engine runs and how you connect to it. This guide introduces SQL Server and SQL Server Management Studio (SSMS) and shows a simple path from installation to your first query.</p>
+<h2>What Is SQL Server?</h2>
+<p>SQL Server is a relational database management system. Applications use it to store structured data in databases, tables, views, and other database objects.</p>
+<h2>What Is SSMS?</h2>
+<p>SQL Server Management Studio (SSMS) is a graphical tool for connecting to SQL Server, writing T-SQL queries, managing databases, and inspecting database objects.</p>
+<h2>SQL Server and SSMS Are Different</h2>
+<ul>
+<li><strong>SQL Server</strong> is the database engine that stores and processes data.</li>
+<li><strong>SSMS</strong> is a client tool used to connect to and manage SQL Server.</li>
+</ul>
+<h2>Basic Setup</h2>
+<ol>
+<li>Install a SQL Server edition appropriate for learning or your application.</li>
+<li>Install SSMS on the computer you will use to manage the server.</li>
+<li>Start the SQL Server service if required by your installation.</li>
+<li>Open SSMS and connect to the SQL Server instance.</li>
+</ol>
+<h2>Connecting in SSMS</h2>
+<p>On the connection screen, choose the appropriate server type, enter the server or instance name, and select the authentication method configured for your SQL Server installation.</p>
+<h2>Your First Query</h2>
+<p>After connecting, open a new query window and run:</p>
+<pre><code>SELECT @@VERSION;
+</code></pre>
+<p>This asks SQL Server to return information about the connected database engine.</p>
+<h2>Checking the Connection</h2>
+<pre><code>SELECT DB_NAME() AS CurrentDatabase;
+</code></pre>
+<p>This shows the database context used by the current query window.</p>
+<h2>What to Learn Next</h2>
+<p>Once SSMS is working, the most useful next step is creating a database and learning how tables store rows and columns.</p>
+<p>Continue with <a href="/sql-server-create-database-beginners/">Create a SQL Server Database for Beginners</a> or return to the <a href="/sql-server-tutorials/">SQL Server Tutorials</a> hub.</p>
