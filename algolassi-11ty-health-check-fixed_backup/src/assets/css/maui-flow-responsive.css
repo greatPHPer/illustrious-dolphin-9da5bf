@@ -1,9 +1,83 @@
-/* Responsive MAUI implementation flow
-   Keeps the mobile stepper wrapped instead of forcing horizontal scrolling. */
+/* Shared responsive stepper styling.
+   Desktop/web: fixed vertical stepper.
+   Mobile/Android: fixed wrapped horizontal stepper. */
 
+.maui-flow {
+  position: fixed;
+  top: 132px;
+  right: 18px;
+  width: 250px;
+  max-height: calc(100vh - 155px);
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid rgba(100, 116, 139, .24);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .97);
+  color: inherit;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, .14);
+  backdrop-filter: blur(8px);
+  z-index: 2147483000;
+  box-sizing: border-box;
+}
+
+.maui-flow strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: .85rem;
+}
+
+.maui-flow button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 7px;
+  font: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.maui-flow button:hover,
+.maui-flow button.active {
+  background: rgba(13, 110, 253, .12);
+}
+
+.maui-flow button.active {
+  box-shadow: inset 3px 0 #0d6efd;
+}
+
+.maui-flow .node {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 25px;
+  font-size: .72rem;
+  font-weight: 800;
+  background: rgba(13, 110, 253, .10);
+}
+
+.maui-flow .label {
+  font-size: .78rem;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.maui-target {
+  scroll-margin-top: 110px;
+  transition: box-shadow .2s ease;
+}
+
+/* Web/tablet breakpoint: change the desktop sidebar into a fixed wrapped stepper. */
 @media (max-width: 1250px) {
   .maui-flow {
-    position: fixed;
     top: var(--maui-flow-mobile-top, 110px);
     right: 6px;
     left: 6px;
@@ -12,7 +86,7 @@
     height: auto !important;
     max-height: none !important;
     margin: 0;
-    padding: 6px 7px;
+    padding: 7px 8px;
     overflow-x: hidden !important;
     overflow-y: visible !important;
     white-space: normal !important;
@@ -21,39 +95,103 @@
     align-items: center !important;
     align-content: flex-start !important;
     gap: 4px 6px !important;
-    box-sizing: border-box;
-    z-index: 2147483000;
   }
 
-  .maui-flow > * {
-    min-width: 0;
+  .maui-flow strong {
+    flex: 0 0 100%;
+    margin: 0 0 2px 0;
+    font-size: .72rem;
   }
 
   .maui-flow button {
     flex: 0 1 auto !important;
+    width: auto !important;
     min-width: 0;
     max-width: 100%;
-    box-sizing: border-box;
+    padding: 4px 6px;
+    gap: 4px;
+  }
+
+  .maui-flow button.active {
+    box-shadow: inset 0 -2px #0d6efd;
+  }
+
+  .maui-flow .node {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+    font-size: .68rem;
   }
 
   .maui-flow .label {
+    font-size: .64rem;
+    line-height: 1.1;
     white-space: normal !important;
     overflow-wrap: anywhere;
-    min-width: 0;
+  }
+
+  .maui-flow button:not(:last-child)::after {
+    content: none;
+  }
+
+  .maui-target {
+    scroll-margin-top: 190px;
   }
 }
 
 @media (max-width: 600px) {
   .maui-flow {
-    padding: 6px !important;
-    gap: 3px 4px !important;
+    top: var(--maui-flow-mobile-top, 104px);
+    padding: 6px;
+    gap: 3px 4px;
+  }
+
+  .maui-flow button {
+    padding: 3px 5px;
+  }
+
+  .maui-flow .node {
+    width: 19px;
+    height: 19px;
+    flex-basis: 19px;
+  }
+
+  .maui-flow .label {
+    font-size: .61rem;
+  }
+
+  .maui-target {
+    scroll-margin-top: 185px;
   }
 }
 
 @media (max-width: 390px) {
   .maui-flow {
-    padding: 5px !important;
-    gap: 2px 3px !important;
+    top: var(--maui-flow-mobile-top, 98px);
+    padding: 5px;
+    gap: 2px 3px;
+  }
+
+  .maui-flow strong {
+    display: none;
+  }
+
+  .maui-flow button {
+    padding: 3px 4px;
+  }
+
+  .maui-flow .node {
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+  }
+
+  .maui-flow .label {
+    font-size: .58rem;
+  }
+
+  .maui-target {
+    scroll-margin-top: 175px;
   }
 }
 
