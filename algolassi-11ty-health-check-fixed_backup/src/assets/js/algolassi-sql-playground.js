@@ -1,8 +1,4 @@
-/* Algolassi T-SQL playground
-   Turns code blocks inside .algolassi-sql-playground-page into editable
-   editors with Reset, Copy, and a lightweight browser-side T-SQL check.
-   It intentionally does not execute SQL Server in the browser.
-*/
+/* Algolassi T-SQL playground */
 (function () {
   "use strict";
 
@@ -18,7 +14,7 @@
       ".algolassi-sql-editor-actions{display:flex;gap:.4rem;flex-wrap:wrap}",
       ".algolassi-sql-editor-actions button{border:1px solid rgba(100,116,139,.35);background:var(--background,#fff);color:inherit;border-radius:8px;padding:.36rem .62rem;font:inherit;font-size:.78rem;cursor:pointer}",
       ".algolassi-sql-editor-actions button:hover{transform:translateY(-1px)}",
-      ".algolassi-sql-editor textarea{display:block;width:100%;min-height:120px;box-sizing:border-box;border:0;resize:vertical;padding:1rem;font:500 .86rem/1.55 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;color:inherit;background:transparent;outline:none;tab-size:4}",
+      ".algolassi-sql-editor textarea{display:block;width:100%;min-height:120px;box-sizing:border-box;border:0;resize:vertical;padding:1rem;font:500 .86rem/1.55 ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace;color:inherit;background:transparent;outline:none;tab-size:4}",
       ".algolassi-sql-editor-status{padding:.65rem .8rem;border-top:1px solid rgba(100,116,139,.2);font-size:.8rem;line-height:1.45;white-space:pre-wrap}",
       ".algolassi-sql-editor-status.ok{border-left:4px solid #16a34a}",
       ".algolassi-sql-editor-status.warn{border-left:4px solid #d97706}",
@@ -30,17 +26,12 @@
   }
 
   function stripForCheck(sql) {
-    return sql
-      .replace(/--[^\n]*/g, " ")
-      .replace(/\/\*[\s\S]*?\*\//g, " ")
-      .replace(/'(?:''|[^'])*'/g, "'value'")
-      .trim();
+    return sql.replace(/--[^\n]*/g, " ").replace(/\/\*[\s\S]*?\*\//g, " ").replace(/'(?:''|[^'])*'/g, "'value'").trim();
   }
 
   function basicCheck(sql) {
     var source = String(sql || "");
     if (!source.trim()) return { type: "error", message: "The editor is empty." };
-
     var stack = [];
     var inString = false;
     for (var i = 0; i < source.length; i++) {
@@ -52,7 +43,7 @@
       }
       if (inString) continue;
       if (ch === "(") stack.push(i);
-      else if (ch === ")") {
+      if (ch === ")") {
         if (!stack.length) return { type: "error", message: "Unmatched closing parenthesis near character " + (i + 1) + "." };
         stack.pop();
       }
@@ -60,37 +51,26 @@
     if (inString) return { type: "error", message: "An SQL string appears to be missing its closing single quote." };
     if (stack.length) return { type: "error", message: "One or more opening parentheses are not closed." };
 
-    var sql = stripForCheck(source).replace(/\s+/g, " ");
-    var statements = sql.split(";").map(function (x) { return x.trim(); }).filter(Boolean);
+    var normalized = stripForCheck(source).replace(/\s+/g, " ");
+    var statements = normalized.split(";").map(function (x) { return x.trim(); }).filter(Boolean);
     if (!statements.length) return { type: "error", message: "No SQL statement was found." };
 
     var warnings = [];
-    statements.forEach(function (statement) {
+    for (var s = 0; s < statements.length; s++) {
+      var statement = statements[s];
       var upper = statement.toUpperCase();
-      if (/^SELECT\b/.test(upper)) {
-        if (!/\bFROM\b/.test(upper) && !/^SELECT\s+(?:@@VERSION|DB_NAME\s*\(\s*\)|GETDATE\s*\(\s*\)|SYSDATETIME\s*\(\s*\))/i.test(statement)) {
-          warnings.push("SELECT usually needs a FROM clause unless it selects a built-in expression or variable.");
-        }
-      } else if (/^INSERT\b/.test(upper) && !/^INSERT\s+INTO\b/i.test(statement)) {
-        warnings.push("INSERT should normally use the form: INSERT INTO table (...)");
-      } else if (/^UPDATE\b/.test(upper) && !/\bSET\b/.test(upper)) {
-        return { type: "error", message: "UPDATE is missing a SET clause." };
-      } else if (/^DELETE\b/.test(upper) && !/^DELETE\s+FROM\b/i.test(statement)) {
-        warnings.push("DELETE should normally use the form: DELETE FROM table WHERE ...");
-      } else if (/\bJOIN\b/.test(upper) && !/\bON\b/.test(upper)) {
-        return { type: "error", message: "A JOIN statement appears to be missing an ON condition." };
-      } else if (/^CREATE\s+TABLE\b/i.test(statement) && !/\([^)]*\)/.test(statement)) {
-        return { type: "error", message: "CREATE TABLE appears to be missing its column definition parentheses." };
-      } else if (/^CREATE\s+DATABASE\b/i.test(statement) && !/^CREATE\s+DATABASE\s+[A-Z0-9_\[\]]+/i.test(statement)) {
-        return { type: "error", message: "CREATE DATABASE should include a database name." };
-      } else if (/^USE\b/i.test(statement) && !/^USE\s+[^\s;]+/i.test(statement)) {
-        return { type: "error", message: "USE should be followed by a database name." };
-      }
-    });
-
-    if (/\bUPDATE\b/i.test(sql) && !/\bWHERE\b/i.test(sql)) warnings.push("UPDATE has no WHERE clause, so it may affect every matching row. Review it carefully.");
-    if (/\bDELETE\s+FROM\b/i.test(sql) && !/\bWHERE\b/i.test(sql)) warnings.push("DELETE has no WHERE clause, so it may remove every row from the target table.");
-    if (warnings.length) return { type: "warn", message: "Basic T-SQL checks passed, with these warnings:\n• " + warnings.join("\n• ") };
+      if (/^SELECT\b/.test(upper) && !/\bFROM\b/.test(upper) && !/^SELECT\s+(?:@@VERSION|DB_NAME\s*\(\s*\)|GETDATE\s*\(\s*\)|SYSDATETIME\s*\(\s*\))/i.test(statement)) warnings.push("SELECT usually needs a FROM clause unless it selects a built-in expression or variable.");
+      if (/^INSERT\b/.test(upper) && !/^INSERT\s+INTO\b/i.test(statement)) warnings.push("INSERT should normally use the form: INSERT INTO table (...)");
+      if (/^UPDATE\b/.test(upper) && !/\bSET\b/.test(upper)) return { type: "error", message: "UPDATE is missing a SET clause." };
+      if (/^DELETE\b/.test(upper) && !/^DELETE\s+FROM\b/i.test(statement)) warnings.push("DELETE should normally use the form: DELETE FROM table WHERE ...");
+      if (/\bJOIN\b/.test(upper) && !/\bON\b/.test(upper)) return { type: "error", message: "A JOIN statement appears to be missing an ON condition." };
+      if (/^CREATE\s+TABLE\b/i.test(statement) && !/\([^)]*\)/.test(statement)) return { type: "error", message: "CREATE TABLE appears to be missing its column definition parentheses." };
+      if (/^CREATE\s+DATABASE\b/i.test(statement) && !/^CREATE\s+DATABASE\s+[A-Z0-9_\[\]]+/i.test(statement)) return { type: "error", message: "CREATE DATABASE should include a database name." };
+      if (/^USE\b/i.test(statement) && !/^USE\s+[^\s;]+/i.test(statement)) return { type: "error", message: "USE should be followed by a database name." };
+    }
+    if (/\bUPDATE\b/i.test(normalized) && !/\bWHERE\b/i.test(normalized)) warnings.push("UPDATE has no WHERE clause, so it may affect every matching row. Review it carefully.");
+    if (/\bDELETE\s+FROM\b/i.test(normalized) && !/\bWHERE\b/i.test(normalized)) warnings.push("DELETE has no WHERE clause, so it may remove every row from the target table.");
+    if (warnings.length) return { type: "warn", message: "Basic T-SQL checks passed, with these warnings:\n- " + warnings.join("\n- ") };
     return { type: "ok", message: "Basic T-SQL checks passed. This is a client-side structural check, not a full SQL Server parser." };
   }
 
@@ -100,11 +80,6 @@
       button.textContent = "Copied";
       setTimeout(function () { button.textContent = old; }, 1100);
     }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(done).catch(function () { fallback(); });
-      return;
-    }
-    fallback();
     function fallback() {
       var area = document.createElement("textarea");
       area.value = text;
@@ -112,32 +87,28 @@
       area.style.left = "-9999px";
       document.body.appendChild(area);
       area.select();
-      try { document.execCommand("copy"); done(); }
-      catch (e) { status.textContent = "Copy failed. Select the SQL manually."; }
+      try { document.execCommand("copy"); done(); } catch (e) { status.textContent = "Copy failed. Select the SQL manually."; }
       area.remove();
     }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback); else fallback();
   }
 
   function makeEditor(pre, index) {
     var code = pre.querySelector("code");
     if (!code || pre.closest(".algolassi-sql-editor")) return;
-
     var original = code.textContent.replace(/\n+$/, "");
     var editor = document.createElement("section");
     editor.className = "algolassi-sql-editor";
-    editor.setAttribute("data-sql-editor", "1");
 
     var bar = document.createElement("div");
     bar.className = "algolassi-sql-editor-bar";
     var title = document.createElement("div");
     title.className = "algolassi-sql-editor-title";
     title.textContent = "T-SQL playground " + (index + 1);
-
     var actions = document.createElement("div");
     actions.className = "algolassi-sql-editor-actions";
-    var check = document.createElement("button"); check.type = "button"; check.textContent = "Check syntax";
-    var copy = document.createElement("button"); copy.type = "button"; copy.textContent = "Copy";
-    var reset = document.createElement("button"); reset.type = "button"; reset.textContent = "Reset";
+    function makeButton(label) { var b = document.createElement("button"); b.type = "button"; b.textContent = label; return b; }
+    var check = makeButton("Check syntax"), copy = makeButton("Copy"), reset = makeButton("Reset");
     actions.appendChild(check); actions.appendChild(copy); actions.appendChild(reset);
     bar.appendChild(title); bar.appendChild(actions);
 
@@ -145,70 +116,44 @@
     textarea.spellcheck = false;
     textarea.value = original;
     textarea.setAttribute("aria-label", "Editable T-SQL example " + (index + 1));
-
     var status = document.createElement("div");
     status.className = "algolassi-sql-editor-status";
     status.textContent = "Edit the query, then choose Check syntax. SQL is not sent to a server.";
-
     var note = document.createElement("div");
     note.className = "algolassi-sql-editor-note";
     note.textContent = "Browser-side check • Use SSMS or SQL Server to actually execute the query.";
 
-    editor.appendChild(bar);
-    editor.appendChild(textarea);
-    editor.appendChild(status);
-    editor.appendChild(note);
-    pre.replaceWith(editor);
-
-    function runCheck() {
-      var result = basicCheck(textarea.value);
-      status.className = "algolassi-sql-editor-status " + result.type;
-      status.textContent = result.message;
-    }
-
-    check.addEventListener("click", runCheck);
+    editor.appendChild(bar); editor.appendChild(textarea); editor.appendChild(status); editor.appendChild(note); pre.replaceWith(editor);
+    check.addEventListener("click", function () { var result = basicCheck(textarea.value); status.className = "algolassi-sql-editor-status " + result.type; status.textContent = result.message; });
     copy.addEventListener("click", function () { copyText(textarea.value, copy, status); });
-    reset.addEventListener("click", function () {
-      textarea.value = original;
-      status.className = "algolassi-sql-editor-status";
-      status.textContent = "Reset to the original example.";
-    });
+    reset.addEventListener("click", function () { textarea.value = original; status.className = "algolassi-sql-editor-status"; status.textContent = "Reset to the original example."; });
     textarea.addEventListener("keydown", function (event) {
-      if (event.key === "Tab") {
-        event.preventDefault();
-        var start = textarea.selectionStart;
-        var end = textarea.selectionEnd;
-        textarea.value = textarea.value.substring(0, start) + "    " + textarea.value.substring(end);
-        textarea.selectionStart = textarea.selectionEnd = start + 4;
-      }
+      if (event.key !== "Tab") return;
+      event.preventDefault();
+      var start = textarea.selectionStart, end = textarea.selectionEnd;
+      textarea.value = textarea.value.substring(0, start) + "    " + textarea.value.substring(end);
+      textarea.selectionStart = textarea.selectionEnd = start + 4;
     });
   }
 
   function init(root) {
     root = root || document;
     var page = root.querySelector(".algolassi-sql-playground-page");
-    if (!page) return;
-    if (page.dataset.sqlPlaygroundReady === "1") return;
+    if (!page || page.dataset.sqlPlaygroundReady === "1") return;
     page.dataset.sqlPlaygroundReady = "1";
     injectStyles();
-
     var intro = document.createElement("div");
     intro.className = "algolassi-sql-playground-intro";
     intro.innerHTML = "<strong>Try the SQL yourself.</strong> Edit any example below and use <em>Check syntax</em> for a lightweight T-SQL structure check. Nothing is sent to a server; use SSMS or SQL Server to execute your final query.";
     page.insertBefore(intro, page.firstElementChild);
-
-    var blocks = Array.prototype.slice.call(page.querySelectorAll("pre > code"));
-    blocks.forEach(function (code, index) {
-      var text = code.textContent;
-      if (/^\s*(?:SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|USE|BEGIN|EXEC|WITH|DECLARE|MERGE|TRUNCATE)\b/i.test(text)) {
-        makeEditor(code.parentElement, index);
-      }
+    Array.prototype.slice.call(page.querySelectorAll("pre > code")).forEach(function (code, index) {
+      var text = code.textContent || "";
+      if (/^\s*(?:SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|USE|BEGIN|EXEC|WITH|DECLARE|MERGE|TRUNCATE)\b/i.test(text)) makeEditor(code.parentElement, index);
     });
   }
 
   document.addEventListener("DOMContentLoaded", function () { init(document); });
   if (document.readyState !== "loading") init(document);
-  window.addEventListener("algolassi:spa-navigation", function () {
-    setTimeout(function () { init(document); }, 50);
-  });
+  window.addEventListener("algolassi:spa-navigation", function () { setTimeout(function () { init(document); }, 50); });
+  window.AlgolassiSqlPlaygroundInit = function () { init(document); };
 })();
