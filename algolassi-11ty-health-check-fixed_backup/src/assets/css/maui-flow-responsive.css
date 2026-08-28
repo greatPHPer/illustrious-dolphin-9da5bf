@@ -207,3 +207,8 @@
     gap: 6px !important;
   }
 }
+
+/* Developer Tools: remove breadcrumb bottom spacing only on actual tool pages. */
+.site-main:has(.devtools-tool-slider) > .breadcrumbs {
+  margin-bottom: 0 !important;
+}
