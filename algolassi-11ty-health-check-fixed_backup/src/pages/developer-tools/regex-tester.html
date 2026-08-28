@@ -1,0 +1,10 @@
+---
+title: "Regex Tester"
+layout: layouts/base.njk
+permalink: "/developer-tools/regex-tester/"
+contentType: "page"
+description: "Test JavaScript regular expressions and inspect matches."
+---
+<style>.dt{max-width:900px;margin:auto}.box{border:1px solid var(--border-color,#d8dee4);border-radius:12px;padding:1.2rem;background:var(--card-bg,#fff)}input,textarea{width:100%;box-sizing:border-box;padding:.65rem;border:1px solid var(--border-color,#cbd5e1);border-radius:7px;background:var(--background,#fff);color:inherit;font:inherit}textarea{min-height:180px;margin-top:.8rem}button{margin:.7rem .5rem .7rem 0;padding:.6rem .9rem;border:0;border-radius:7px;background:var(--accent-color,#2563eb);color:#fff;font-weight:600;cursor:pointer}.out{white-space:pre-wrap;word-break:break-word;background:var(--code-bg,#f6f8fa);padding:1rem;border-radius:8px}.err{color:#b91c1c}html[data-theme="dark"] .box{background:var(--card-bg,#111827)}</style>
+<div class="dt"><h1>Regular Expression Tester</h1><p>Test JavaScript regex patterns against text and inspect the matches and positions.</p><div class="box"><label for="pattern">Pattern</label><input id="pattern" placeholder="\\b[A-Z][a-z]+\\b"><label for="flags">Flags</label><input id="flags" value="gi" placeholder="gim"><textarea id="text" placeholder="Enter text to test"></textarea><button onclick="testRegex()">Test expression</button><button onclick="text.value='';output.textContent=''">Clear</button><pre id="output" class="out"></pre></div><p><a href="/developer-tools/">← Back to Developer Tools</a></p></div>
+<script>function testRegex(){try{const r=new RegExp(pattern.value,flags.value),a=flags.value.includes('g')?[...text.value.matchAll(r)].map(m=>({match:m[0],index:m.index})):((m=text.value.match(r))?[{match:m[0],index:m.index}]:[]);output.className='out';output.textContent=a.length?JSON.stringify(a,null,2):'No matches.'}catch(e){output.className='out err';output.textContent='Invalid regular expression: '+e.message}}</script>
