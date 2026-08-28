@@ -1,0 +1,58 @@
+---
+title: "SQL Server JOINs for Beginners"
+layout: layouts/base.njk
+permalink: "/sql-server-joins-beginners/"
+contentType: "page"
+description: "Learn INNER JOIN, LEFT JOIN, and the basic idea of combining related SQL Server tables with simple examples."
+---
+<h1>SQL Server JOINs for Beginners</h1>
+<p>Real applications usually store related information in separate tables. A <code>JOIN</code> lets you combine rows from those tables using a related column.</p>
+<h2>Example Tables</h2>
+<pre><code>Employees
+---------
+EmployeeID | EmployeeName | DepartmentID
+1          | Anita        | 10
+2          | Rahul        | 20
+
+Departments
+-----------
+DepartmentID | DepartmentName
+10           | IT
+20           | Finance
+</code></pre>
+<h2>INNER JOIN</h2>
+<pre><code>SELECT e.EmployeeName,
+       d.DepartmentName
+FROM Employees AS e
+INNER JOIN Departments AS d
+    ON e.DepartmentID = d.DepartmentID;
+</code></pre>
+<p><code>INNER JOIN</code> returns rows where the join condition matches in both tables.</p>
+<h2>LEFT JOIN</h2>
+<pre><code>SELECT e.EmployeeName,
+       d.DepartmentName
+FROM Employees AS e
+LEFT JOIN Departments AS d
+    ON e.DepartmentID = d.DepartmentID;
+</code></pre>
+<p><code>LEFT JOIN</code> keeps every row from the left table. If there is no matching department, the department columns are returned as <code>NULL</code>.</p>
+<h2>JOIN with a Filter</h2>
+<pre><code>SELECT e.EmployeeName,
+       d.DepartmentName
+FROM Employees AS e
+INNER JOIN Departments AS d
+    ON e.DepartmentID = d.DepartmentID
+WHERE d.DepartmentName = 'IT';
+</code></pre>
+<h2>Why Aliases Help</h2>
+<p>Aliases such as <code>e</code> and <code>d</code> make queries shorter and clearer, especially when several tables are involved.</p>
+<h2>Common Beginner Mistakes</h2>
+<ul>
+<li>Joining on unrelated columns.</li>
+<li>Forgetting the <code>ON</code> condition.</li>
+<li>Using <code>INNER JOIN</code> when unmatched left-side rows must be retained.</li>
+<li>Getting duplicate rows because the join relationship is one-to-many.</li>
+</ul>
+<h2>What to Learn Next</h2>
+<p>After JOINs, learn aggregate functions, <code>GROUP BY</code>, and <code>HAVING</code> to build summaries and reports.</p>
+<p>Continue with the <a href="/sql-server-tutorials/">SQL Server Tutorials</a> hub.</p>
