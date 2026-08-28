@@ -1,0 +1,54 @@
+---
+title: "SQL Server Tables and Data Types for Beginners"
+layout: layouts/base.njk
+permalink: "/sql-server-create-table-data-types-beginners/"
+contentType: "page"
+description: "Learn how to create SQL Server tables, choose common data types, and define simple primary key constraints."
+---
+<h1>SQL Server Tables and Data Types for Beginners</h1>
+<p>Tables are where relational data is stored. A table is made of columns that describe the data and rows that contain individual records.</p>
+<h2>Create a Simple Table</h2>
+<pre><code>CREATE TABLE Students
+(
+    StudentID INT NOT NULL,
+    StudentName NVARCHAR(100) NOT NULL,
+    Age INT,
+    EnrollmentDate DATE
+);
+</code></pre>
+<h2>Common SQL Server Data Types</h2>
+<ul>
+<li><code>INT</code> for whole numbers.</li>
+<li><code>DECIMAL(p,s)</code> for exact decimal values such as prices.</li>
+<li><code>NVARCHAR(n)</code> for variable-length Unicode text.</li>
+<li><code>DATE</code> for calendar dates.</li>
+<li><code>DATETIME2</code> for date and time values with higher precision.</li>
+<li><code>BIT</code> for Boolean-style values such as 0 and 1.</li>
+</ul>
+<h2>Primary Key</h2>
+<p>A primary key identifies each row uniquely.</p>
+<pre><code>CREATE TABLE Students
+(
+    StudentID INT PRIMARY KEY,
+    StudentName NVARCHAR(100) NOT NULL,
+    Age INT,
+    EnrollmentDate DATE
+);
+</code></pre>
+<h2>Identity Columns</h2>
+<p>SQL Server can generate sequential numeric values automatically with <code>IDENTITY</code>:</p>
+<pre><code>StudentID INT IDENTITY(1,1) PRIMARY KEY
+</code></pre>
+<p>The first value is 1 and the increment is 1 in this example.</p>
+<h2>NULL and NOT NULL</h2>
+<p><code>NOT NULL</code> means a value is required for the column. A nullable column can contain <code>NULL</code>, which represents an unknown or missing value.</p>
+<h2>Inspect the Table</h2>
+<pre><code>SELECT TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE = 'BASE TABLE';
+</code></pre>
+<h2>Learning Tip</h2>
+<p>Choose data types based on the meaning and expected range of the data. Avoid storing numbers, dates, or Boolean values as text when a suitable native type exists.</p>
+<h2>What to Learn Next</h2>
+<p>Once the table exists, the next step is adding rows and learning <code>INSERT</code>, <code>UPDATE</code>, and <code>DELETE</code>.</p>
+<p>Continue with <a href="/sql-server-insert-update-delete-beginners/">INSERT, UPDATE, and DELETE in SQL Server</a> or return to the <a href="/sql-server-tutorials/">SQL Server Tutorials</a> hub.</p>
