@@ -2,131 +2,19 @@
 (function () {
   "use strict";
   var TOOL_RE=/^\/developer-tools\/(json-formatter|base64-encoder-decoder|guid-generator|jwt-decoder|regex-tester|unix-timestamp-converter|url-encoder-decoder|html-encoder-decoder)\/$/;
-  var TOOLS=[
-    ["json-formatter","JSON"],["base64-encoder-decoder","Base64"],["guid-generator","GUID"],["jwt-decoder","JWT"],
-    ["regex-tester","Regex"],["unix-timestamp-converter","Timestamp"],["url-encoder-decoder","URL"],["html-encoder-decoder","HTML"]
-  ];
+  var TOOLS=[["json-formatter","JSON"],["base64-encoder-decoder","Base64"],["guid-generator","GUID"],["jwt-decoder","JWT"],["regex-tester","Regex"],["unix-timestamp-converter","Timestamp"],["url-encoder-decoder","URL"],["html-encoder-decoder","HTML"]];
   var navigating=false;
-
-  function css(){
-    if(document.getElementById("algolassi-flow-enhancer-styles"))return;
-    var s=document.createElement("style");s.id="algolassi-flow-enhancer-styles";
-    s.textContent=".devtools-stepper{position:sticky;top:0;z-index:20;overflow-x:auto;overflow-y:hidden;white-space:nowrap;margin:0 0 1.25rem;padding:.65rem .5rem;border:1px solid rgba(100,116,139,.24);border-radius:14px;background:rgba(255,255,255,.96);box-shadow:0 8px 24px rgba(15,23,42,.08);backdrop-filter:blur(8px)}.devtools-stepper-inner{display:flex;align-items:center;justify-content:center;min-width:max-content;gap:0}.devtools-stepper a{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .65rem;border-radius:9px;color:inherit;text-decoration:none;font-weight:600;font-size:.84rem}.devtools-stepper a:hover,.devtools-stepper a.active{background:rgba(13,110,253,.12)}.devtools-stepper a.active{box-shadow:inset 0 -3px #0d6efd}.devtools-stepper .step-node{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:.7rem;background:rgba(13,110,253,.1)}.devtools-stepper .step-arrow{opacity:.45;padding:0 .1rem}.devtools-tool-slider{position:relative;overflow:hidden;width:100%}.devtools-tool-slider>.page-content{will-change:transform;min-width:100%}.devtools-tool-slider.dt-next>.page-content{animation:algolassiToolNext .48s ease both}.devtools-tool-slider.dt-prev>.page-content{animation:algolassiToolPrev .48s ease both}@keyframes algolassiToolNext{from{opacity:0;transform:translateX(52px)}to{opacity:1;transform:translateX(0)}}@keyframes algolassiToolPrev{from{opacity:0;transform:translateX(-52px)}to{opacity:1;transform:translateX(0)}}@media(prefers-reduced-motion:reduce){.devtools-tool-slider>.page-content{animation:none!important}}@media(max-width:700px){.devtools-stepper{justify-content:flex-start}.devtools-stepper-inner{justify-content:flex-start}.devtools-stepper a{font-size:.74rem;padding:.38rem .48rem}.devtools-stepper .step-node{width:21px;height:21px}}html[data-theme=\"dark\"] .devtools-stepper{background:rgba(17,24,39,.96)}";
-    document.head.appendChild(s);
-  }
-
+  function css(){if(document.getElementById("algolassi-flow-enhancer-styles"))return;var s=document.createElement("style");s.id="algolassi-flow-enhancer-styles";s.textContent=".devtools-stepper{position:sticky;top:0;z-index:20;overflow:hidden;margin:0 0 1.25rem;padding:.65rem .5rem;border:1px solid rgba(100,116,139,.24);border-radius:14px;background:rgba(255,255,255,.96);box-shadow:0 8px 24px rgba(15,23,42,.08);backdrop-filter:blur(8px)}.devtools-stepper-inner{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0;min-width:0}.devtools-stepper a{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .65rem;border-radius:9px;color:inherit;text-decoration:none;font-weight:600;font-size:.84rem;white-space:nowrap}.devtools-stepper a:hover,.devtools-stepper a.active{background:rgba(13,110,253,.12)}.devtools-stepper a.active{box-shadow:inset 0 -3px #0d6efd}.devtools-stepper .step-node{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:.7rem;background:rgba(13,110,253,.1)}.devtools-stepper .step-arrow{opacity:.45;padding:0 .1rem}.devtools-tool-slider{position:relative;overflow:hidden;width:100%}.devtools-tool-slider>.page-content{will-change:transform;min-width:100%}.devtools-tool-slider.dt-next>.page-content{animation:algolassiToolNext .48s ease both}.devtools-tool-slider.dt-prev>.page-content{animation:algolassiToolPrev .48s ease both}@keyframes algolassiToolNext{from{opacity:0;transform:translateX(52px)}to{opacity:1;transform:translateX(0)}}@keyframes algolassiToolPrev{from{opacity:0;transform:translateX(-52px)}to{opacity:1;transform:translateX(0)}}@media(prefers-reduced-motion:reduce){.devtools-tool-slider>.page-content{animation:none!important}}@media(max-width:700px){.devtools-stepper{overflow-x:auto;overflow-y:hidden;white-space:nowrap;justify-content:flex-start}.devtools-stepper-inner{justify-content:flex-start;flex-wrap:nowrap;min-width:max-content}.devtools-stepper a{font-size:.74rem;padding:.38rem .48rem}.devtools-stepper .step-node{width:21px;height:21px}}html[data-theme=\"dark\"] .devtools-stepper{background:rgba(17,24,39,.96)}";document.head.appendChild(s);}
   function toolPath(){var p=location.pathname.replace(/\/+$/,"/");return TOOL_RE.test(p)?p:null;}
   function indexOfPath(path){for(var i=0;i<TOOLS.length;i++)if(path.indexOf("/developer-tools/"+TOOLS[i][0]+"/")===0)return i;return -1;}
-
-  function buildShell(){
-    css();
-    var shell=document.getElementById("algolassi-devtools-common-shell");
-    if(shell)return shell;
-    shell=document.createElement("nav");shell.id="algolassi-devtools-common-shell";shell.className="devtools-stepper";shell.setAttribute("aria-label","Developer Tools");
-    var inner=document.createElement("div");inner.className="devtools-stepper-inner";
-    TOOLS.forEach(function(t,i){
-      if(i){var arrow=document.createElement("span");arrow.className="step-arrow";arrow.textContent="→";inner.appendChild(arrow);}
-      var a=document.createElement("a");a.href="/developer-tools/"+t[0]+"/";a.dataset.tool=t[0];
-      var n=document.createElement("span");n.className="step-node";n.textContent=String(i+1);a.appendChild(n);a.appendChild(document.createTextNode(t[1]));inner.appendChild(a);
-    });
-    shell.appendChild(inner);
-    var main=document.querySelector(".site-main");if(main)main.parentNode.insertBefore(shell,main);
-    return shell;
-  }
-
-  function setActive(){
-    var shell=document.getElementById("algolassi-devtools-common-shell");if(!shell)return;
-    var path=toolPath();
-    shell.querySelectorAll("a[data-tool]").forEach(function(a){a.classList.toggle("active",!!path&&a.getAttribute("href")===path);});
-  }
-
-  function showShell(){
-    var path=location.pathname.replace(/\/+$/,"/");
-    var isTool=TOOL_RE.test(path);
-    var isRoot=path==="/developer-tools/";
-    var shell=buildShell();
-    shell.style.display=(isTool||isRoot)?"block":"none";
-    setActive();
-  }
-
-  function executeScripts(container){
-    Array.prototype.slice.call(container.querySelectorAll("script")).forEach(function(old){
-      var script=document.createElement("script");
-      Array.prototype.slice.call(old.attributes).forEach(function(a){script.setAttribute(a.name,a.value);});
-      script.text=old.text||old.textContent||"";
-      old.parentNode.replaceChild(script,old);
-    });
-  }
-
-  function updateMeta(doc){
-    if(doc.title)document.title=doc.title;
-    var a=document.querySelector('meta[name="description"]'),b=doc.querySelector('meta[name="description"]');
-    if(a&&b)a.setAttribute("content",b.getAttribute("content")||"");
-    var c=document.querySelector('link[rel="canonical"]'),d=doc.querySelector('link[rel="canonical"]');
-    if(c&&d)c.setAttribute("href",d.getAttribute("href")||"");
-  }
-
-  function wrapToolContent(){
-    if(!TOOL_RE.test(location.pathname))return;
-    var main=document.querySelector(".site-main");if(!main)return;
-    var content=main.querySelector(":scope > .page-content");
-    if(!content)return;
-    if(content.parentElement.classList.contains("devtools-tool-slider"))return;
-    var slider=document.createElement("div");slider.className="devtools-tool-slider";
-    content.parentNode.insertBefore(slider,content);slider.appendChild(content);
-  }
-
-  function loadTool(url,push){
-    if(navigating)return;
-    navigating=true;
-    var current=document.querySelector(".site-main");
-    var slider=current&&current.querySelector(".devtools-tool-slider");
-    var from=location.pathname,to=url.pathname;
-    var fromIndex=indexOfPath(from),toIndex=indexOfPath(to);
-    var direction=toIndex>=fromIndex?"dt-next":"dt-prev";
-    fetch(url.href,{credentials:"same-origin"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.text();})
-      .then(function(html){
-        var doc=new DOMParser().parseFromString(html,"text/html"),next=doc.querySelector(".site-main > .page-content");
-        if(!next)throw new Error("Developer tool content not found");
-        var targetSlider=slider;
-        if(!targetSlider){wrapToolContent();targetSlider=current&&current.querySelector(".devtools-tool-slider");}
-        if(!targetSlider)throw new Error("Developer tool slider not found");
-        var newContent=document.importNode(next,true);
-        targetSlider.innerHTML="";targetSlider.appendChild(newContent);
-        targetSlider.classList.remove("dt-next","dt-prev");void targetSlider.offsetWidth;targetSlider.classList.add(direction);
-        updateMeta(doc);if(push)history.pushState({algolassiDeveloperTool:true},"",url.href);
-        setActive();window.scrollTo(0,0);executeScripts(targetSlider);
-        window.dispatchEvent(new Event("algolassi:spa-navigation"));
-        setTimeout(function(){targetSlider.classList.remove("dt-next","dt-prev");},550);
-      })
-      .catch(function(){location.href=url.href;})
-      .finally(function(){navigating=false;});
-  }
-
-  function init(){
-    css();showShell();wrapToolContent();
-    var old=document.querySelector(".algolassi-auto-stepper");if(old)old.remove();
-    var scope=document.querySelector(".article-content,.page-content");if(!scope)return;
-    var hs=Array.prototype.slice.call(scope.querySelectorAll("h2,h3,h4")).filter(function(h){return /^Step\s+\d+\b/i.test((h.textContent||"").trim());});
-    if(hs.length<3)return;
-    var flow=document.createElement("nav");flow.className="algolassi-auto-stepper";flow.setAttribute("aria-label","Article implementation steps");
-    var strong=document.createElement("strong");strong.textContent="Steps";flow.appendChild(strong);
-    hs.forEach(function(h,i){if(!h.id)h.id="algolassi-step-"+(i+1);var b=document.createElement("button");b.type="button";b.setAttribute("data-target",h.id);var n=document.createElement("span");n.className="node";n.textContent=String(i+1);var l=document.createElement("span");l.className="label";l.textContent=(h.textContent||"").replace(/^Step\s+\d+\s*[:—-]?\s*/i,"").trim()||h.textContent;b.appendChild(n);b.appendChild(l);flow.appendChild(b);});
-    flow.addEventListener("click",function(e){var b=e.target&&e.target.closest?e.target.closest("button[data-target]"):null;if(!b)return;e.preventDefault();var t=document.getElementById(b.getAttribute("data-target"));if(t)window.scrollTo({top:Math.max(0,window.scrollY+t.getBoundingClientRect().top-110),behavior:"smooth"});});
-    document.body.appendChild(flow);
-  }
-
-  document.addEventListener("click",function(event){
-    var target=event.target,link=target&&target.closest?target.closest("a"):null;
-    if(!link||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
-    if(link.closest&&link.closest("#algolassi-devtools-common-shell")){
-      var url=new URL(link.href,location.href);
-      if(TOOL_RE.test(url.pathname)&&url.pathname!==location.pathname){event.preventDefault();event.stopImmediatePropagation();loadTool(url,true);return;}
-    }
-  },true);
-
-  document.addEventListener("DOMContentLoaded",init);
-  if(document.readyState!=="loading")init();
-  window.addEventListener("algolassi:spa-navigation",function(){setTimeout(function(){showShell();wrapToolContent();},0);});
-  window.addEventListener("popstate",function(){setTimeout(function(){showShell();wrapToolContent();},0);});
+  function buildShell(){css();var shell=document.getElementById("algolassi-devtools-common-shell");if(shell)return shell;shell=document.createElement("nav");shell.id="algolassi-devtools-common-shell";shell.className="devtools-stepper";shell.setAttribute("aria-label","Developer Tools");var inner=document.createElement("div");inner.className="devtools-stepper-inner";TOOLS.forEach(function(t,i){if(i){var arrow=document.createElement("span");arrow.className="step-arrow";arrow.textContent="→";inner.appendChild(arrow);}var a=document.createElement("a");a.href="/developer-tools/"+t[0]+"/";a.dataset.tool=t[0];var n=document.createElement("span");n.className="step-node";n.textContent=String(i+1);a.appendChild(n);a.appendChild(document.createTextNode(t[1]));inner.appendChild(a);});shell.appendChild(inner);var main=document.querySelector(".site-main");if(main)main.parentNode.insertBefore(shell,main);return shell;}
+  function setActive(){var shell=document.getElementById("algolassi-devtools-common-shell");if(!shell)return;var path=toolPath();shell.querySelectorAll("a[data-tool]").forEach(function(a){a.classList.toggle("active",!!path&&a.getAttribute("href")===path);});}
+  function showShell(){var path=location.pathname.replace(/\/+$/,"/"),shell=buildShell();shell.style.display=(TOOL_RE.test(path)||path==="/developer-tools/")?"block":"none";setActive();}
+  function executeScripts(container){Array.prototype.slice.call(container.querySelectorAll("script")).forEach(function(old){var script=document.createElement("script");Array.prototype.slice.call(old.attributes).forEach(function(a){script.setAttribute(a.name,a.value);});script.text=old.text||old.textContent||"";old.parentNode.replaceChild(script,old);});}
+  function updateMeta(doc){if(doc.title)document.title=doc.title;var a=document.querySelector('meta[name="description"]'),b=doc.querySelector('meta[name="description"]');if(a&&b)a.setAttribute("content",b.getAttribute("content")||"");var c=document.querySelector('link[rel="canonical"]'),d=doc.querySelector('link[rel="canonical"]');if(c&&d)c.setAttribute("href",d.getAttribute("href")||"");}
+  function wrapToolContent(){if(!TOOL_RE.test(location.pathname))return;var main=document.querySelector(".site-main");if(!main)return;var content=main.querySelector(":scope > .page-content");if(!content)return;if(content.parentElement.classList.contains("devtools-tool-slider"))return;var slider=document.createElement("div");slider.className="devtools-tool-slider";content.parentNode.insertBefore(slider,content);slider.appendChild(content);}
+  function loadTool(url,push){if(navigating)return;navigating=true;var current=document.querySelector(".site-main"),slider=current&&current.querySelector(".devtools-tool-slider"),from=location.pathname,to=url.pathname,fromIndex=indexOfPath(from),toIndex=indexOfPath(to),direction=toIndex>=fromIndex?"dt-next":"dt-prev";fetch(url.href,{credentials:"same-origin"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.text();}).then(function(html){var doc=new DOMParser().parseFromString(html,"text/html"),next=doc.querySelector(".site-main > .page-content");if(!next)throw new Error("Developer tool content not found");var targetSlider=slider;if(!targetSlider){wrapToolContent();targetSlider=current&&current.querySelector(".devtools-tool-slider");}if(!targetSlider)throw new Error("Developer tool slider not found");targetSlider.innerHTML="";targetSlider.appendChild(document.importNode(next,true));targetSlider.classList.remove("dt-next","dt-prev");void targetSlider.offsetWidth;targetSlider.classList.add(direction);updateMeta(doc);if(push)history.pushState({algolassiDeveloperTool:true},"",url.href);setActive();window.scrollTo(0,0);executeScripts(targetSlider);window.dispatchEvent(new Event("algolassi:spa-navigation"));setTimeout(function(){targetSlider.classList.remove("dt-next","dt-prev");},550);}).catch(function(){location.href=url.href;}).finally(function(){navigating=false;});}
+  function init(){css();showShell();wrapToolContent();var old=document.querySelector(".algolassi-auto-stepper");if(old)old.remove();var scope=document.querySelector(".article-content,.page-content");if(!scope)return;var hs=Array.prototype.slice.call(scope.querySelectorAll("h2,h3,h4")).filter(function(h){return /^Step\s+\d+\b/i.test((h.textContent||"").trim());});if(hs.length<3)return;var flow=document.createElement("nav");flow.className="algolassi-auto-stepper";flow.setAttribute("aria-label","Article implementation steps");var strong=document.createElement("strong");strong.textContent="Steps";flow.appendChild(strong);hs.forEach(function(h,i){if(!h.id)h.id="algolassi-step-"+(i+1);var b=document.createElement("button");b.type="button";b.setAttribute("data-target",h.id);var n=document.createElement("span");n.className="node";n.textContent=String(i+1);var l=document.createElement("span");l.className="label";l.textContent=(h.textContent||"").replace(/^Step\s+\d+\s*[:—-]?\s*/i,"").trim()||h.textContent;b.appendChild(n);b.appendChild(l);flow.appendChild(b);});flow.addEventListener("click",function(e){var b=e.target&&e.target.closest?e.target.closest("button[data-target]"):null;if(!b)return;e.preventDefault();var t=document.getElementById(b.getAttribute("data-target"));if(t)window.scrollTo({top:Math.max(0,window.scrollY+t.getBoundingClientRect().top-110),behavior:"smooth"});});document.body.appendChild(flow);}
+  document.addEventListener("click",function(event){var target=event.target,link=target&&target.closest?target.closest("a"):null;if(!link||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;if(link.closest&&link.closest("#algolassi-devtools-common-shell")){var url=new URL(link.href,location.href);if(TOOL_RE.test(url.pathname)&&url.pathname!==location.pathname){event.preventDefault();event.stopImmediatePropagation();loadTool(url,true);return;}}},true);
+  document.addEventListener("DOMContentLoaded",init);if(document.readyState!=="loading")init();window.addEventListener("algolassi:spa-navigation",function(){setTimeout(function(){showShell();wrapToolContent();},0);});window.addEventListener("popstate",function(){setTimeout(function(){showShell();wrapToolContent();},0);});
 })();
