@@ -3,16 +3,147 @@ title: "Developer Tools"
 layout: layouts/base.njk
 permalink: "/developer-tools/"
 contentType: "page"
-date: "2026-08-09T10:35:00"
-description: "Practical developer utilities and guides for JSON, Base64, GUIDs, JWTs, regular expressions, timestamps, and everyday debugging tasks."
+date: "2026-08-28T14:55:00"
+description: "Free browser-based developer tools for JSON, Base64, GUIDs, JWTs, regular expressions, Unix timestamps, URLs, and HTML encoding."
 ---
-<p>Welcome to the <strong>Developer Tools</strong> pillar at Algolassi.</p>
-<p>This section is designed around small, useful utilities that solve repetitive development tasks quickly and safely.</p>
-<h2>Tool Roadmap</h2>
-<ul><li>JSON formatting and validation</li><li>GUID generation</li><li>Base64 encoding and decoding</li><li>JWT inspection</li><li>Regular expression testing</li><li>Unix timestamp conversion</li><li>URL and query-string helpers</li><li>Developer-focused troubleshooting guides</li></ul>
-<h2>Featured Guides</h2>
-<ul><li><a href="/developer-json-formatting-guide/">JSON Formatting and Validation: A Developer Guide</a></li><li><a href="/base64-encoding-decoding-developers/">Base64 Encoding and Decoding for Developers</a></li><li><a href="/visual-studio-tutorials/">Visual Studio Tutorials</a></li></ul>
-<h2>Safety</h2>
-<p>Do not paste production secrets, passwords, private keys, access tokens, or confidential customer data into online tools.</p>
-<h2>Continue Learning</h2>
-<ul><li><a href="/tutorials/">All Tutorials</a></li><li><a href="/net-tutorials/">.NET Tutorials</a></li><li><a href="/javascript-tutorials/">JavaScript Tutorials</a></li></ul>
+<style>
+.devtools-page{max-width:1100px;margin:0 auto}
+.devtools-intro{margin-bottom:1.5rem}
+.devtools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin:1.5rem 0 2rem}
+.devtool-card{border:1px solid var(--border-color,#d8dee4);border-radius:12px;padding:1rem;background:var(--card-bg,#fff);box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.devtool-card h3{margin:.1rem 0 .45rem;font-size:1.05rem}
+.devtool-card p{margin:.35rem 0 0;font-size:.92rem;opacity:.86}
+.devtool-icon{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border-radius:8px;margin-bottom:.65rem;background:var(--accent-color,#2563eb);color:#fff;font-weight:700}
+.devtool-section{border:1px solid var(--border-color,#d8dee4);border-radius:12px;padding:1.25rem;margin:1.25rem 0;background:var(--card-bg,#fff)}
+.devtool-section h2{margin-top:0}
+.devtool-row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin:.7rem 0}
+.devtool-row input,.devtool-row select,.devtool-section textarea,.devtool-section input{box-sizing:border-box;width:100%;max-width:100%;padding:.65rem .7rem;border:1px solid var(--border-color,#cbd5e1);border-radius:7px;background:var(--background,#fff);color:inherit;font:inherit}
+.devtool-row .grow{flex:1 1 280px}
+.devtool-section textarea{min-height:150px;resize:vertical}
+.devtool-actions{display:flex;gap:.55rem;flex-wrap:wrap;margin:.7rem 0}
+.devtool-btn{border:0;border-radius:7px;padding:.6rem .85rem;cursor:pointer;background:var(--accent-color,#2563eb);color:#fff;font:inherit;font-weight:600}
+.devtool-btn.secondary{background:transparent;color:inherit;border:1px solid var(--border-color,#cbd5e1)}
+.devtool-status{min-height:1.4em;margin:.45rem 0;font-size:.9rem}
+.devtool-status.ok{color:#15803d}.devtool-status.error{color:#b91c1c}
+.devtool-output{white-space:pre-wrap;word-break:break-word;background:var(--code-bg,#f6f8fa);border:1px solid var(--border-color,#d8dee4);border-radius:7px;padding:.8rem;min-height:2.5rem}
+.devtool-small{font-size:.85rem;opacity:.78}
+.devtool-two{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:700px){.devtool-two{grid-template-columns:1fr}}
+html[data-theme="dark"] .devtool-card,html[data-theme="dark"] .devtool-section{background:var(--card-bg,#111827)}
+html[data-theme="dark"] .devtool-output{background:var(--code-bg,#0b1220)}
+</style>
+
+<div class="devtools-page">
+  <h1>Developer Tools</h1>
+  <div class="devtools-intro">
+    <p>Small, practical utilities for everyday development work. These tools run in your browser, so normal input is processed locally and is not uploaded by Algolassi.</p>
+    <p class="devtool-small"><strong>Security:</strong> never paste production passwords, private keys, access tokens, API secrets, or confidential customer data into online tools.</p>
+  </div>
+
+  <div class="devtools-grid" aria-label="Developer tool list">
+    <article class="devtool-card"><span class="devtool-icon">{ }</span><h3>JSON Formatter & Validator</h3><p>Pretty-print JSON and get a useful syntax error when the input is invalid.</p></article>
+    <article class="devtool-card"><span class="devtool-icon">64</span><h3>Base64 Encoder / Decoder</h3><p>Encode or decode UTF-8 text without sending it to a server.</p></article>
+    <article class="devtool-card"><span class="devtool-icon">ID</span><h3>GUID Generator</h3><p>Generate one or several RFC 4122-style UUIDs using the browser crypto API.</p></article>
+    <article class="devtool-card"><span class="devtool-icon">JWT</span><h3>JWT Inspector</h3><p>Decode a JWT header and payload for debugging. Signature verification is not performed.</p></article>
+    <article class="devtool-card"><span class="devtool-icon">.*</span><h3>Regex Tester</h3><p>Test JavaScript regular expressions and inspect the matches.</p></article>
+    <article class="devtool-card"><span class="devtool-icon">TS</span><h3>Unix Timestamp</h3><p>Convert Unix seconds or milliseconds to a readable date and back.</p></article>
+    <article class="devtool-card"><span class="devtool-icon">URL</span><h3>URL Encoder / Decoder</h3><p>Safely encode or decode complete URLs, query values, or text.</p></article>
+    <article class="devtool-card"><span class="devtool-icon">&lt;&gt;</span><h3>HTML Encoder / Decoder</h3><p>Escape HTML-sensitive characters or decode HTML entities.</p></article>
+  </div>
+
+  <section class="devtool-section" id="json-tool">
+    <h2>JSON Formatter & Validator</h2>
+    <textarea id="jsonInput" spellcheck="false" placeholder='Paste JSON here, for example: {"name":"Algolassi","active":true}'></textarea>
+    <div class="devtool-actions"><button class="devtool-btn" type="button" onclick="devTools.formatJson()">Format & Validate</button><button class="devtool-btn secondary" type="button" onclick="devTools.clear('jsonInput','jsonOutput','jsonStatus')">Clear</button><button class="devtool-btn secondary" type="button" onclick="devTools.copy('jsonOutput')">Copy result</button></div>
+    <div id="jsonStatus" class="devtool-status" role="status"></div><div id="jsonOutput" class="devtool-output"></div>
+  </section>
+
+  <section class="devtool-section" id="base64-tool">
+    <h2>Base64 Encoder / Decoder</h2>
+    <textarea id="base64Input" spellcheck="false" placeholder="Enter text or Base64 data"></textarea>
+    <div class="devtool-actions"><button class="devtool-btn" type="button" onclick="devTools.base64(true)">Encode</button><button class="devtool-btn" type="button" onclick="devTools.base64(false)">Decode</button><button class="devtool-btn secondary" type="button" onclick="devTools.clear('base64Input','base64Output','base64Status')">Clear</button><button class="devtool-btn secondary" type="button" onclick="devTools.copy('base64Output')">Copy result</button></div>
+    <div id="base64Status" class="devtool-status" role="status"></div><div id="base64Output" class="devtool-output"></div>
+  </section>
+
+  <section class="devtool-section" id="guid-tool">
+    <h2>GUID / UUID Generator</h2>
+    <div class="devtool-row"><label for="guidCount">Count</label><input id="guidCount" type="number" min="1" max="50" value="5" style="max-width:100px"></div>
+    <div class="devtool-actions"><button class="devtool-btn" type="button" onclick="devTools.guids()">Generate</button><button class="devtool-btn secondary" type="button" onclick="devTools.copy('guidOutput')">Copy</button></div>
+    <div id="guidOutput" class="devtool-output"></div>
+  </section>
+
+  <section class="devtool-section" id="jwt-tool">
+    <h2>JWT Inspector</h2>
+    <textarea id="jwtInput" spellcheck="false" placeholder="Paste a JWT (header.payload.signature)"></textarea>
+    <div class="devtool-actions"><button class="devtool-btn" type="button" onclick="devTools.jwt()">Decode JWT</button><button class="devtool-btn secondary" type="button" onclick="devTools.clear('jwtInput','jwtOutput','jwtStatus')">Clear</button></div>
+    <div id="jwtStatus" class="devtool-status" role="status"></div><div id="jwtOutput" class="devtool-output"></div>
+    <p class="devtool-small">This is a decoder for inspection only. It does not validate the token signature, issuer, expiry, or trustworthiness.</p>
+  </section>
+
+  <section class="devtool-section" id="regex-tool">
+    <h2>Regular Expression Tester</h2>
+    <div class="devtool-two">
+      <div><label for="regexPattern">Pattern</label><input id="regexPattern" placeholder="\\b[A-Z][a-z]+\\b"></div>
+      <div><label for="regexFlags">Flags</label><input id="regexFlags" value="gi" placeholder="gim"></div>
+    </div>
+    <textarea id="regexText" spellcheck="false" placeholder="Enter text to test"></textarea>
+    <div class="devtool-actions"><button class="devtool-btn" type="button" onclick="devTools.regex()">Test expression</button><button class="devtool-btn secondary" type="button" onclick="devTools.clear('regexText','regexOutput','regexStatus')">Clear</button></div>
+    <div id="regexStatus" class="devtool-status" role="status"></div><div id="regexOutput" class="devtool-output"></div>
+  </section>
+
+  <section class="devtool-section" id="timestamp-tool">
+    <h2>Unix Timestamp Converter</h2>
+    <div class="devtool-row"><input id="timestampInput" class="grow" placeholder="Unix timestamp, e.g. 1756380000"><button class="devtool-btn" type="button" onclick="devTools.timestampToDate()">Timestamp → Date</button></div>
+    <div class="devtool-row"><input id="dateInput" class="grow" type="datetime-local"><button class="devtool-btn" type="button" onclick="devTools.dateToTimestamp()">Date → Timestamp</button></div>
+    <div id="timestampStatus" class="devtool-status" role="status"></div><div id="timestampOutput" class="devtool-output"></div>
+  </section>
+
+  <section class="devtool-section" id="url-tool">
+    <h2>URL Encoder / Decoder</h2>
+    <textarea id="urlInput" spellcheck="false" placeholder="Enter a URL, query value, or text"></textarea>
+    <div class="devtool-actions"><button class="devtool-btn" type="button" onclick="devTools.url(true)">Encode</button><button class="devtool-btn" type="button" onclick="devTools.url(false)">Decode</button><button class="devtool-btn secondary" type="button" onclick="devTools.clear('urlInput','urlOutput','urlStatus')">Clear</button><button class="devtool-btn secondary" type="button" onclick="devTools.copy('urlOutput')">Copy result</button></div>
+    <div id="urlStatus" class="devtool-status" role="status"></div><div id="urlOutput" class="devtool-output"></div>
+  </section>
+
+  <section class="devtool-section" id="html-tool">
+    <h2>HTML Encoder / Decoder</h2>
+    <textarea id="htmlInput" spellcheck="false" placeholder="Enter HTML or encoded text"></textarea>
+    <div class="devtool-actions"><button class="devtool-btn" type="button" onclick="devTools.html(true)">Encode</button><button class="devtool-btn" type="button" onclick="devTools.html(false)">Decode</button><button class="devtool-btn secondary" type="button" onclick="devTools.clear('htmlInput','htmlOutput','htmlStatus')">Clear</button><button class="devtool-btn secondary" type="button" onclick="devTools.copy('htmlOutput')">Copy result</button></div>
+    <div id="htmlStatus" class="devtool-status" role="status"></div><div id="htmlOutput" class="devtool-output"></div>
+  </section>
+
+  <h2>Continue Learning</h2>
+  <ul>
+    <li><a href="/developer-json-formatting-guide/">JSON Formatting and Validation: A Developer Guide</a></li>
+    <li><a href="/base64-encoding-decoding-developers/">Base64 Encoding and Decoding for Developers</a></li>
+    <li><a href="/visual-studio-tutorials/">Visual Studio Tutorials</a></li>
+    <li><a href="/tutorials/">All Tutorials</a></li>
+  </ul>
+</div>
+
+<script>
+(function(){
+  const byId=id=>document.getElementById(id);
+  const set=(id,text,kind)=>{const el=byId(id);el.textContent=text||'';el.className='devtool-status'+(kind?' '+kind:'');};
+  const output=(id,text)=>{byId(id).textContent=text||'';};
+  const bytesToBase64=text=>{const bytes=new TextEncoder().encode(text);let binary='';for(const b of bytes)binary+=String.fromCharCode(b);return btoa(binary)};
+  const base64ToText=value=>{const binary=atob(value.replace(/\s/g,''));const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));return new TextDecoder().decode(bytes)};
+  const uuid=()=>crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
+  const decodePart=value=>{const normalized=value.replace(/-/g,'+').replace(/_/g,'/');const padded=normalized+'='.repeat((4-normalized.length%4)%4);return decodeURIComponent(atob(padded).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''))};
+  const escapeHtml=value=>value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  window.devTools={
+    formatJson(){try{const value=JSON.parse(byId('jsonInput').value);output('jsonOutput',JSON.stringify(value,null,2));set('jsonStatus','Valid JSON.','ok')}catch(e){output('jsonOutput','');set('jsonStatus','Invalid JSON: '+e.message,'error')}},
+    base64(encode){try{const value=byId('base64Input').value;const result=encode?bytesToBase64(value):base64ToText(value);output('base64Output',result);set('base64Status',encode?'Encoded successfully.':'Decoded successfully.','ok')}catch(e){output('base64Output','');set('base64Status','Unable to decode Base64: '+e.message,'error')}},
+    guids(){let count=Math.min(50,Math.max(1,Number.parseInt(byId('guidCount').value,10)||1));output('guidOutput',Array.from({length:count},uuid).join('\n'))},
+    jwt(){try{const parts=byId('jwtInput').value.trim().split('.');if(parts.length!==3)throw new Error('A JWT must contain three dot-separated parts.');const header=JSON.parse(decodePart(parts[0]));const payload=JSON.parse(decodePart(parts[1]));output('jwtOutput','Header:\n'+JSON.stringify(header,null,2)+'\n\nPayload:\n'+JSON.stringify(payload,null,2));set('jwtStatus','JWT decoded locally. Signature was not verified.','ok')}catch(e){output('jwtOutput','');set('jwtStatus','Unable to decode JWT: '+e.message,'error')}},
+    regex(){try{const pattern=byId('regexPattern').value;const flags=byId('regexFlags').value;const text=byId('regexText').value;const re=new RegExp(pattern,flags);const matches=flags.includes('g')?[...text.matchAll(re)].map(m=>({match:m[0],index:m.index,groups:m.groups||{}})):((m=text.match(re))?[{match:m[0],index:m.index,groups:m.groups||{}}]:[]);output('regexOutput',matches.length?JSON.stringify(matches,null,2):'No matches.');set('regexStatus',matches.length+' match'+(matches.length===1?'':'es')+' found.','ok')}catch(e){output('regexOutput','');set('regexStatus','Invalid regular expression: '+e.message,'error')}},
+    timestampToDate(){const raw=byId('timestampInput').value.trim();if(!/^-?\d+(\.\d+)?$/.test(raw)){set('timestampStatus','Enter a numeric Unix timestamp.','error');return}const n=Number(raw);const ms=Math.abs(n)<1e11?n*1000:n;const date=new Date(ms);if(Number.isNaN(date.getTime())){set('timestampStatus','Invalid timestamp.','error');return}output('timestampOutput',date.toISOString()+'\nLocal time: '+date.toString());set('timestampStatus','Converted successfully.','ok')},
+    dateToTimestamp(){const value=byId('dateInput').value;if(!value){set('timestampStatus','Choose a date and time.','error');return}const ms=new Date(value).getTime();output('timestampOutput','Seconds: '+Math.floor(ms/1000)+'\nMilliseconds: '+ms);set('timestampStatus','Converted successfully.','ok')},
+    url(encode){try{const value=byId('urlInput').value;const result=encode?encodeURIComponent(value):decodeURIComponent(value);output('urlOutput',result);set('urlStatus',encode?'Encoded successfully.':'Decoded successfully.','ok')}catch(e){output('urlOutput','');set('urlStatus','Unable to decode the supplied value: '+e.message,'error')}},
+    html(encode){try{const value=byId('htmlInput').value;let result;if(encode){result=escapeHtml(value)}else{const doc=new DOMParser().parseFromString(value,'text/html');result=doc.documentElement.textContent||''}output('htmlOutput',result);set('htmlStatus',encode?'Encoded successfully.':'Decoded successfully.','ok')}catch(e){output('htmlOutput','');set('htmlStatus','Unable to process HTML: '+e.message,'error')}},
+    copy(id){const text=byId(id).textContent;if(!text)return;navigator.clipboard?.writeText(text).catch(()=>{});},
+    clear(input,out,status){byId(input).value='';output(out,'');set(status,'')}
+  };
+  const now=new Date();now.setMinutes(now.getMinutes()-now.getTimezoneOffset());byId('dateInput').value=now.toISOString().slice(0,16);
+})();
+</script>
