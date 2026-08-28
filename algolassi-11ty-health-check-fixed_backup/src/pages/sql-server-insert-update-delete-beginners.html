@@ -1,0 +1,61 @@
+---
+title: "INSERT, UPDATE, and DELETE in SQL Server for Beginners"
+layout: layouts/base.njk
+permalink: "/sql-server-insert-update-delete-beginners/"
+contentType: "page"
+description: "Learn the basic SQL Server INSERT, UPDATE, and DELETE statements with safe beginner examples and WHERE clause guidance."
+---
+<h1>INSERT, UPDATE, and DELETE in SQL Server for Beginners</h1>
+<p>After creating a table, you need to add, change, and remove rows. SQL Server provides <code>INSERT</code>, <code>UPDATE</code>, and <code>DELETE</code> for these operations.</p>
+<h2>INSERT a Row</h2>
+<pre><code>INSERT INTO Students (StudentName, Age, EnrollmentDate)
+VALUES ('Anita', 21, '2026-08-28');
+</code></pre>
+<p>Listing the target columns explicitly makes the statement easier to read and safer when the table structure changes.</p>
+<h2>INSERT Multiple Rows</h2>
+<pre><code>INSERT INTO Students (StudentName, Age)
+VALUES
+    ('Rahul', 20),
+    ('Meena', 22),
+    ('Arun', 19);
+</code></pre>
+<h2>UPDATE a Row</h2>
+<pre><code>UPDATE Students
+SET Age = 23
+WHERE StudentName = 'Meena';
+</code></pre>
+<p>The <code>WHERE</code> clause limits which rows are changed.</p>
+<h2>Why WHERE Matters</h2>
+<p>Be careful with an UPDATE without a WHERE clause:</p>
+<pre><code>UPDATE Students
+SET Age = 25;
+</code></pre>
+<p>This changes every row in the table. In production, verify the rows selected by your condition before executing a data-changing statement.</p>
+<h2>DELETE a Row</h2>
+<pre><code>DELETE FROM Students
+WHERE StudentName = 'Arun';
+</code></pre>
+<p>As with <code>UPDATE</code>, the <code>WHERE</code> clause is critical when you intend to remove only selected rows.</p>
+<h2>Check Before Changing Data</h2>
+<pre><code>SELECT *
+FROM Students
+WHERE StudentName = 'Meena';
+</code></pre>
+<p>Previewing the matching rows before an UPDATE or DELETE is a simple habit that can prevent accidental changes.</p>
+<h2>Use a Transaction While Practicing</h2>
+<pre><code>BEGIN TRANSACTION;
+
+UPDATE Students
+SET Age = Age + 1
+WHERE Age &lt; 21;
+
+SELECT *
+FROM Students;
+
+-- COMMIT TRANSACTION;
+-- ROLLBACK TRANSACTION;
+</code></pre>
+<p>While learning, you can test the result and then choose <code>COMMIT</code> to keep the changes or <code>ROLLBACK</code> to undo them.</p>
+<h2>What to Learn Next</h2>
+<p>Once you are comfortable changing rows, learn how to retrieve related data with <code>SELECT</code>, filtering, sorting, and joins.</p>
+<p>Start with <a href="/sql-select-where-order-by-beginners/">SQL SELECT, WHERE, and ORDER BY for Beginners</a> or continue to the <a href="/sql-server-tutorials/">SQL Server Tutorials</a> hub.</p>
