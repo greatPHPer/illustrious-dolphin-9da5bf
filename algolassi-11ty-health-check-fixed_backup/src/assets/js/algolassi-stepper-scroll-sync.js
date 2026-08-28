@@ -1,4 +1,4 @@
-/* Algolassi steppers: existing flow scroll sync only. Developer Tools navigation is handled by maui-flow-enhancer.js. */
+/* Algolassi steppers: existing flow scroll sync + Developer Tools breadcrumb sync. */
 (function () {
   "use strict";
   var ticking = false;
@@ -36,17 +36,25 @@
   }
 
   function syncDeveloperToolsBreadcrumb() {
-    var path = (location.pathname || "/").replace(/\\/+$/, "/") || "/";
+    var path = location.pathname || "/";
+    if (path.charAt(path.length - 1) !== "/") path += "/";
     var title = developerToolTitles[path];
     if (!title) return;
-    var current = document.querySelector(".site-main > .breadcrumbs .breadcrumb-current");
+
+    var current = document.querySelector(".breadcrumbs > .breadcrumb-current");
+    if (!current) current = document.querySelector(".site-main .breadcrumbs .breadcrumb-current");
     if (!current) return;
 
-    Array.prototype.slice.call(current.childNodes).forEach(function (node) {
-      if (node.nodeType === 3) node.remove();
+    var menu = null;
+    var children = Array.prototype.slice.call(current.children || []);
+    children.forEach(function (child) {
+      if (child.classList && child.classList.contains("breadcrumb-child-menu")) menu = child;
     });
 
-    var menu = current.querySelector(":scope > .breadcrumb-child-menu");
+    Array.prototype.slice.call(current.childNodes).forEach(function (node) {
+      if (node.nodeType === 3) node.parentNode.removeChild(node);
+    });
+
     var text = document.createTextNode(" " + title + " ");
     if (menu) current.insertBefore(text, menu);
     else current.appendChild(text);
@@ -75,10 +83,18 @@
 
   document.addEventListener("DOMContentLoaded", init);
   if (document.readyState !== "loading") init();
+
   window.addEventListener("algolassi:spa-navigation", function () {
-    window.requestAnimationFrame(syncDeveloperToolsBreadcrumb);
+    window.requestAnimationFrame(function () {
+      syncDeveloperToolsBreadcrumb();
+      window.setTimeout(syncDeveloperToolsBreadcrumb, 50);
+    });
   });
+
   window.addEventListener("popstate", function () {
-    window.requestAnimationFrame(syncDeveloperToolsBreadcrumb);
+    window.requestAnimationFrame(function () {
+      syncDeveloperToolsBreadcrumb();
+      window.setTimeout(syncDeveloperToolsBreadcrumb, 50);
+    });
   });
 })();
