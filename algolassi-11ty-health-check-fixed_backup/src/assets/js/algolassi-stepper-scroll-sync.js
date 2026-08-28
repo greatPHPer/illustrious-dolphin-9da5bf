@@ -2,6 +2,18 @@
 (function () {
   "use strict";
   var ticking = false;
+  var developerToolTitles = {
+    "/developer-tools/": "Developer Tools",
+    "/developer-tools/json-formatter/": "JSON Formatter & Validator",
+    "/developer-tools/base64-encoder-decoder/": "Base64 Encoder & Decoder",
+    "/developer-tools/guid-generator/": "GUID / UUID Generator",
+    "/developer-tools/jwt-decoder/": "JWT Decoder / Inspector",
+    "/developer-tools/regex-tester/": "Regular Expression Tester",
+    "/developer-tools/unix-timestamp-converter/": "Unix Timestamp Converter",
+    "/developer-tools/url-encoder-decoder/": "URL Encoder & Decoder",
+    "/developer-tools/html-encoder-decoder/": "HTML Encoder & Decoder",
+    "/developer-tools/code-equals-aligner/": "Code Equals Sign Aligner"
+  };
 
   function update(flow) {
     if (!flow || !document.documentElement.contains(flow)) return;
@@ -23,6 +35,23 @@
     });
   }
 
+  function syncDeveloperToolsBreadcrumb() {
+    var path = (location.pathname || "/").replace(/\\/+$/, "/") || "/";
+    var title = developerToolTitles[path];
+    if (!title) return;
+    var current = document.querySelector(".site-main > .breadcrumbs .breadcrumb-current");
+    if (!current) return;
+
+    Array.prototype.slice.call(current.childNodes).forEach(function (node) {
+      if (node.nodeType === 3) node.remove();
+    });
+
+    var menu = current.querySelector(":scope > .breadcrumb-child-menu");
+    var text = document.createTextNode(" " + title + " ");
+    if (menu) current.insertBefore(text, menu);
+    else current.appendChild(text);
+  }
+
   function attach(flow) {
     if (!flow || flow.dataset.scrollSyncAttached === "1") return;
     flow.dataset.scrollSyncAttached = "1";
@@ -41,8 +70,15 @@
 
   function init() {
     document.querySelectorAll(".maui-flow,.algolassi-auto-stepper").forEach(attach);
+    syncDeveloperToolsBreadcrumb();
   }
 
   document.addEventListener("DOMContentLoaded", init);
   if (document.readyState !== "loading") init();
+  window.addEventListener("algolassi:spa-navigation", function () {
+    window.requestAnimationFrame(syncDeveloperToolsBreadcrumb);
+  });
+  window.addEventListener("popstate", function () {
+    window.requestAnimationFrame(syncDeveloperToolsBreadcrumb);
+  });
 })();
