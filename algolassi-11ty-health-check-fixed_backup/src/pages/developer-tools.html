@@ -3,16 +3,24 @@ title: "Developer Tools"
 layout: layouts/base.njk
 permalink: "/developer-tools/"
 contentType: "page"
-date: "2026-08-09T10:35:00"
-description: "Practical developer utilities and guides for JSON, Base64, GUIDs, JWTs, regular expressions, timestamps, and everyday debugging tasks."
+description: "Free browser-based developer tools for everyday development work."
 ---
-<p>Welcome to the <strong>Developer Tools</strong> pillar at Algolassi.</p>
-<p>This section is designed around small, useful utilities that solve repetitive development tasks quickly and safely.</p>
-<h2>Tool Roadmap</h2>
-<ul><li>JSON formatting and validation</li><li>GUID generation</li><li>Base64 encoding and decoding</li><li>JWT inspection</li><li>Regular expression testing</li><li>Unix timestamp conversion</li><li>URL and query-string helpers</li><li>Developer-focused troubleshooting guides</li></ul>
-<h2>Featured Guides</h2>
-<ul><li><a href="/developer-json-formatting-guide/">JSON Formatting and Validation: A Developer Guide</a></li><li><a href="/base64-encoding-decoding-developers/">Base64 Encoding and Decoding for Developers</a></li><li><a href="/visual-studio-tutorials/">Visual Studio Tutorials</a></li></ul>
-<h2>Safety</h2>
-<p>Do not paste production secrets, passwords, private keys, access tokens, or confidential customer data into online tools.</p>
-<h2>Continue Learning</h2>
-<ul><li><a href="/tutorials/">All Tutorials</a></li><li><a href="/net-tutorials/">.NET Tutorials</a></li><li><a href="/javascript-tutorials/">JavaScript Tutorials</a></li></ul>
+<style>
+.devtools-page{max-width:1100px;margin:0 auto}.devtools-intro{max-width:760px}.devtools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:1rem;margin:1.8rem 0}.devtool-card{display:block;border:1px solid var(--border-color,#d8dee4);border-radius:12px;padding:1.2rem;background:var(--card-bg,#fff);text-decoration:none;color:inherit;transition:transform .15s ease,box-shadow .15s ease}.devtool-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.08)}.devtool-icon{display:inline-flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:8px;margin-bottom:.7rem;background:var(--accent-color,#2563eb);color:#fff;font-weight:700;font-size:.82rem}.devtool-card h2{font-size:1.08rem;margin:.1rem 0 .45rem}.devtool-card p{margin:0;opacity:.82;font-size:.92rem}.devtool-link{display:inline-block;margin-top:.85rem;font-weight:600}.devtools-note{border-left:4px solid var(--accent-color,#2563eb);padding:.75rem 1rem;margin:1.5rem 0}.devtools-page code{font-size:.9em}html[data-theme="dark"] .devtool-card{background:var(--card-bg,#111827)}
+</style>
+<div class="devtools-page">
+<h1>Developer Tools</h1>
+<div class="devtools-intro"><p>Free, practical browser-based utilities for everyday development work. Choose a tool below and open it on its own focused page.</p><p class="devtools-note"><strong>Privacy:</strong> these tools process normal input locally in your browser. Do not paste production passwords, private keys, access tokens, API secrets, or confidential customer data into any online tool.</p></div>
+<div class="devtools-grid">
+<a class="devtool-card" href="/developer-tools/json-formatter/"><span class="devtool-icon">{ }</span><h2>JSON Formatter &amp; Validator</h2><p>Format JSON and check it for syntax errors.</p><span class="devtool-link">Open tool →</span></a>
+<a class="devtool-card" href="/developer-tools/base64-encoder-decoder/"><span class="devtool-icon">64</span><h2>Base64 Encoder / Decoder</h2><p>Encode and decode UTF-8 text as Base64.</p><span class="devtool-link">Open tool →</span></a>
+<a class="devtool-card" href="/developer-tools/guid-generator/"><span class="devtool-icon">ID</span><h2>GUID / UUID Generator</h2><p>Generate UUIDs quickly in your browser.</p><span class="devtool-link">Open tool →</span></a>
+<a class="devtool-card" href="/developer-tools/jwt-decoder/"><span class="devtool-icon">JWT</span><h2>JWT Inspector</h2><p>Decode JWT headers and payloads for debugging.</p><span class="devtool-link">Open tool →</span></a>
+<a class="devtool-card" href="/developer-tools/regex-tester/"><span class="devtool-icon">.*</span><h2>Regex Tester</h2><p>Test JavaScript regular expressions and inspect matches.</p><span class="devtool-link">Open tool →</span></a>
+<a class="devtool-card" href="/developer-tools/unix-timestamp-converter/"><span class="devtool-icon">TS</span><h2>Unix Timestamp Converter</h2><p>Convert timestamps and dates in both directions.</p><span class="devtool-link">Open tool →</span></a>
+<a class="devtool-card" href="/developer-tools/url-encoder-decoder/"><span class="devtool-icon">URL</span><h2>URL Encoder / Decoder</h2><p>Encode or decode URLs, query values, and text.</p><span class="devtool-link">Open tool →</span></a>
+<a class="devtool-card" href="/developer-tools/html-encoder-decoder/"><span class="devtool-icon">&lt;&gt;</span><h2>HTML Encoder / Decoder</h2><p>Encode HTML-sensitive characters or decode entities.</p><span class="devtool-link">Open tool →</span></a>
+<a class="devtool-card" href="/developer-tools/code-equals-aligner/"><span class="devtool-icon">=</span><h2>Code Equals Sign Aligner</h2><p>Align assignment equals signs into the same column for cleaner code.</p><span class="devtool-link">Open tool →</span></a>
+</div>
+<h2>Developer Guides</h2><ul><li><a href="/developer-json-formatting-guide/">JSON Formatting and Validation: A Developer Guide</a></li><li><a href="/base64-encoding-decoding-developers/">Base64 Encoding and Decoding for Developers</a></li><li><a href="/visual-studio-tutorials/">Visual Studio Tutorials</a></li><li><a href="/tutorials/">All Tutorials</a></li></ul>
+</div>
