@@ -164,12 +164,12 @@
     // Keep the history panel open. Users can close it explicitly.
     refreshPanel();
 
-    var box = document.querySelector(".dt .box");
-    if (box) {
+    var inputAnchor = document.getElementById("input-2");
+    if (inputAnchor) {
       var currentScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-      var boxTop = box.getBoundingClientRect().top + currentScroll;
-      var targetScroll = currentScroll + ((boxTop - currentScroll) / 2);
-      window.scrollTo({ top: Math.max(0, targetScroll), behavior: "smooth" });
+      var anchorTop = inputAnchor.getBoundingClientRect().top + currentScroll;
+      var targetScroll = Math.max(0, anchorTop - 20);
+      window.scrollTo({ top: targetScroll, behavior: "smooth" });
     }
   }
 
