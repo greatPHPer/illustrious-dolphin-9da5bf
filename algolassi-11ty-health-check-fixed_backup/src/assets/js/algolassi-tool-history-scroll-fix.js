@@ -9,7 +9,7 @@
       if (!anchor) return;
       var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
       var anchorTop = anchor.getBoundingClientRect().top + scrollTop;
-      window.scrollTo({ top: Math.max(0, anchorTop - 100), behavior: "smooth" });
+      window.scrollTo({ top: Math.max(0, anchorTop - 150), behavior: "smooth" });
     }, 120);
   }, true);
 })();
