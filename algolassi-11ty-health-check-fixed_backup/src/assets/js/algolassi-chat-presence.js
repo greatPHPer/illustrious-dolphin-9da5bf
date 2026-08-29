@@ -3,6 +3,7 @@
   "use strict";
   var SUPABASE_URL = "https://ashezapnoqslggtxcncj.supabase.co";
   var SUPABASE_KEY = "sb_publishable_ki4D3v_JZk4elETfkYtmGA_xWDtbpBg";
+  var SUPABASE_JS = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
   var PRESENCE_CHANNEL = "algolassi-community-presence-v1", CHAT_CHANNEL = "algolassi-community-chat-v1", GUEST_KEY = "algolassi_guest_id_v1";
   var client = null, channel = null, chatChannel = null, host = null, presence = {}, currentUser = null, currentUsername = "", initialized = false, messages = [];
   var preserveChatScrollTop = null, olderLoadInProgress = false, hasOlderMessages = true, olderScrollRestore = null;
@@ -30,12 +31,22 @@
   function getCurrentUser(){if(!client)return Promise.resolve(null);return client.auth.getUser().then(function(r){return r.data&&r.data.user?r.data.user:null;}).catch(function(){return null;});}
   async function refreshIdentity(user){currentUser=user||null;currentUsername="";if(user&&client){try{var r=await client.from("profiles").select("username").eq("user_id",user.id).maybeSingle();if(!r.error&&r.data)currentUsername=r.data.username||"";}catch(e){}}if(channel){var payload=user?{user_id:user.id,display_name:currentUsername||googleName(user),kind:"google",reputation:0}:{guest_id:guestId(),display_name:guestId(),kind:"guest",reputation:0};channel.track(payload).catch(function(){});}render();}
   function loadMessages(){if(!client)return;client.from("chat_messages").select("id,user_id,guest_id,username,message,created_at").order("id",{ascending:false}).limit(50).then(function(r){if(r.error)throw r.error;messages=(r.data||[]).reverse();hasOlderMessages=r.data&&r.data.length===50;scrollToNewestAfterRender=true;initialMessagesLoaded=true;render();var box=document.getElementById("algolassi-chat-messages");forceInitialChatScroll(box);}).catch(function(){initialMessagesLoaded=true;render();});}
-  function bindChatRealtime(){chatChannel=client.channel(CHAT_CHANNEL);chatChannel.on("postgres_changes",{event:"INSERT",schema:"public",table:"chat_messages"},function(p){if(!p||!p.new)return;if(!messages.some(function(i){return String(i.id)===String(p.new.id);})){messages.push(p.new);if(messages.length>50)messages.shift();scrollToNewestAfterRender=true;render();}});chatChannel.subscribe(function(){ });}
+  function bindChatRealtime(){chatChannel=client.channel(CHAT_CHANNEL);chatChannel.on("postgres_changes",{event:"INSERT",schema:"public",table:"chat_messages"},function(p){if(!p||!p.new)return;if(!messages.some(function(i){return String(i.id)===String(p.new.id);})){messages.push(p.new);if(messages.length>50)messages.shift();scrollToNewestAfterRender=true;render();}});chatChannel.subscribe(function(){});}
   function bindForm(){var form=document.getElementById("algolassi-chat-form");if(!form||form.dataset.bound==="true")return;form.dataset.bound="true";form.addEventListener("submit",function(event){event.preventDefault();var input=document.getElementById("algolassi-chat-input"),status=document.getElementById("algolassi-chat-status"),text=input?input.value.trim():"";if(!text||!client)return;var check=validateInternalLinks(text);if(!check.ok){if(status)status.textContent="External links aren't allowed in Algolassi Chat. Please share an Algolassi link.";return;}var payload=currentUser?{user_id:currentUser.id,guest_id:null,username:currentUsername||googleName(currentUser),message:text}:{user_id:null,guest_id:guestId(),username:guestId(),message:text};if(status)status.textContent="Sending...";input.disabled=true;client.from("chat_messages").insert(payload).select("id,user_id,guest_id,username,message,created_at").single().then(function(r){if(r.error)throw r.error;if(r.data&&!messages.some(function(i){return String(i.id)===String(r.data.id);}))messages.push(r.data);input.value="";if(status)status.textContent="";scrollToNewestAfterRender=true;render();}).catch(function(){if(status)status.textContent="Message could not be sent. Please try again.";}).finally(function(){var ni=document.getElementById("algolassi-chat-input");if(ni){ni.disabled=false;ni.focus();}});});}
+  function getSharedSupabaseClient(){
+    if(window.AlgolassiSupabase)return Promise.resolve(window.AlgolassiSupabase);
+    if(window.AlgolassiSupabasePromise)return window.AlgolassiSupabasePromise;
+    window.AlgolassiSupabasePromise=import(SUPABASE_JS).then(function(module){
+      if(window.AlgolassiSupabase)return window.AlgolassiSupabase;
+      window.AlgolassiSupabase=module.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+      return window.AlgolassiSupabase;
+    });
+    return window.AlgolassiSupabasePromise;
+  }
   function start(){if(initialized)return;initialized=true;ensureHost();bindChatLinkNavigation();render();window.addEventListener("resize",reposition);window.addEventListener("scroll",reposition,{passive:true});setTimeout(reposition,300);
     var beginRealtime=function(){
-      import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm").then(function(m){
-        client=m.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+      getSharedSupabaseClient().then(function(sharedClient){
+        client=sharedClient;
         window.AlgolassiChatSupabase=client;
         channel=client.channel(PRESENCE_CHANNEL,{config:{presence:{key:"algolassi-presence"}}});
         channel.on("presence",{event:"sync"},function(){presence=channel.presenceState();render();});
