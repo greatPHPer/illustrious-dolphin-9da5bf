@@ -6,6 +6,16 @@
   var MAX_FIELD_LENGTH = 16000;
   var initialized = false;
   var renderTimer = null;
+  var styleInstalled = false;
+
+  function installStyle() {
+    if (styleInstalled || document.getElementById("algolassi-tool-history-style")) return;
+    styleInstalled = true;
+    var style = document.createElement("style");
+    style.id = "algolassi-tool-history-style";
+    style.textContent = ".algolassi-tool-history-wrap{margin:.35rem 0 1rem}.algolassi-tool-history-button{display:inline-flex;align-items:center;gap:.35rem;padding:.55rem .8rem;border:1px solid var(--border-color,#cbd5e1);border-radius:8px;text-decoration:none;color:inherit;background:var(--card-bg,#fff);font-weight:600}.algolassi-tool-history-button:hover{background:var(--code-bg,#f6f8fa)}html[data-theme=\"dark\"] .algolassi-tool-history-button{background:var(--card-bg,#111827)}";
+    document.head.appendChild(style);
+  }
 
   function readHistory() {
     try {
@@ -58,9 +68,7 @@
 
   function snapshotOutput() {
     var node = document.getElementById("output");
-    if (!node) {
-      node = document.querySelector(".dt pre.out, .dt .out");
-    }
+    if (!node) node = document.querySelector(".dt pre.out, .dt .out");
     return node ? trim(node.textContent || node.innerText || "") : "";
   }
 
@@ -90,11 +98,8 @@
   }
 
   function formatTime(iso) {
-    try {
-      return new Date(iso).toLocaleString();
-    } catch (error) {
-      return iso;
-    }
+    try { return new Date(iso).toLocaleString(); }
+    catch (error) { return iso; }
   }
 
   function renderHistoryPage() {
@@ -114,25 +119,21 @@
           ? '<div class="alth-section"><h3>Input</h3>' + entry.input.map(function (item) {
               var label = item.id || item.name || "Value";
               return '<div class="alth-field"><strong>' + escapeHtml(label) + '</strong><pre>' + escapeHtml(item.value) + '</pre></div>';
-            }).join("") + '</div>'
-          : '';
+            }).join("") + '</div>' : '';
         var output = entry.output
           ? '<div class="alth-section"><h3>Result</h3><pre>' + escapeHtml(entry.output) + '</pre></div>'
           : '<div class="alth-section"><h3>Result</h3><p class="alth-muted">No text result captured.</p></div>';
         return '<article class="alth-card" data-history-id="' + escapeHtml(entry.id) + '">' +
           '<div class="alth-card-head"><div><h2>' + escapeHtml(entry.tool) + '</h2><p>' + escapeHtml(entry.operation) + ' · ' + escapeHtml(formatTime(entry.timestamp)) + '</p></div><div class="alth-actions"><a class="alth-link" href="' + escapeHtml(entry.url) + '">Open tool</a><button type="button" class="alth-delete" data-history-delete="' + escapeHtml(entry.id) + '">Delete</button></div></div>' +
-          inputs + output +
-          '</article>';
+          inputs + output + '</article>';
       }).join("");
 
     var clearButton = document.getElementById("alth-clear-all");
-    if (clearButton) {
-      clearButton.addEventListener("click", function () {
-        if (!window.confirm("Clear all saved Developer Tool history from this browser?")) return;
-        try { localStorage.removeItem(STORAGE_KEY); } catch (error) {}
-        renderHistoryPage();
-      });
-    }
+    if (clearButton) clearButton.addEventListener("click", function () {
+      if (!window.confirm("Clear all saved Developer Tool history from this browser?")) return;
+      try { localStorage.removeItem(STORAGE_KEY); } catch (error) {}
+      renderHistoryPage();
+    });
 
     host.querySelectorAll("[data-history-delete]").forEach(function (button) {
       button.addEventListener("click", function () {
@@ -146,10 +147,8 @@
   function addHistoryButton() {
     if (!/^\/developer-tools(?:\/|$)/.test(window.location.pathname) || isHistoryPage()) return;
     if (document.getElementById("algolassi-tool-history-button")) return;
-
     var heading = document.querySelector(".dt h1, .devtools-page h1");
     if (!heading) return;
-
     var wrap = document.createElement("div");
     wrap.className = "algolassi-tool-history-wrap";
     wrap.innerHTML = '<a id="algolassi-tool-history-button" class="algolassi-tool-history-button" href="/developer-tools/history/">↺ History</a>';
@@ -159,6 +158,7 @@
   function scheduleRender() {
     if (renderTimer) window.clearTimeout(renderTimer);
     renderTimer = window.setTimeout(function () {
+      installStyle();
       addHistoryButton();
       renderHistoryPage();
     }, 40);
@@ -172,39 +172,30 @@
   function start() {
     if (initialized) return;
     initialized = true;
+    installStyle();
 
     document.addEventListener("click", function (event) {
       var button = event.target && event.target.closest ? event.target.closest("button") : null;
       if (!button || operationIsIgnorable(button)) return;
       if (!button.closest(".dt")) return;
       if (!/^\/developer-tools\//.test(window.location.pathname)) return;
-
-      window.setTimeout(function () {
-        addEntry((button.textContent || "Operation").trim());
-      }, 60);
+      window.setTimeout(function () { addEntry((button.textContent || "Operation").trim()); }, 60);
     });
 
     window.addEventListener("algolassi:spa-navigation", scheduleRender);
     window.addEventListener("storage", function (event) {
       if (event.key === STORAGE_KEY) renderHistoryPage();
     });
-
     scheduleRender();
   }
 
   window.AlgolassiToolHistory = {
     getAll: readHistory,
     add: addEntry,
-    clear: function () {
-      try { localStorage.removeItem(STORAGE_KEY); } catch (error) {}
-      renderHistoryPage();
-    },
+    clear: function () { try { localStorage.removeItem(STORAGE_KEY); } catch (error) {} renderHistoryPage(); },
     render: renderHistoryPage
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start, { once: true });
-  } else {
-    start();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
+  else start();
 })();
