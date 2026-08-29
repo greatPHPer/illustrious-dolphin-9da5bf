@@ -5,9 +5,11 @@
   var OFFSET = 250;
 
   function getScrollOffset() {
-    return /\/developer-tools\/unix-timestamp-converter\/?$/.test(window.location.pathname)
-      ? 400
-      : OFFSET;
+    var isAndroid = /Android/i.test(navigator.userAgent || "");
+    var isTimestamp = /\/developer-tools\/unix-timestamp-converter\/?$/.test(window.location.pathname);
+
+    if (isAndroid) return isTimestamp ? 550 : 400;
+    return isTimestamp ? 400 : OFFSET;
   }
 
   function findSavedEntry(item) {
