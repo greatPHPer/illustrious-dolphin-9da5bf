@@ -8,7 +8,7 @@
     var isAndroid = /Android/i.test(navigator.userAgent || "");
     var isTimestamp = /\/developer-tools\/unix-timestamp-converter\/?$/.test(window.location.pathname);
 
-    if (isAndroid) return isTimestamp ? 600 : 400;
+    if (isAndroid) return isTimestamp ? 650 : 400;
     return isTimestamp ? 400 : OFFSET;
   }
 
