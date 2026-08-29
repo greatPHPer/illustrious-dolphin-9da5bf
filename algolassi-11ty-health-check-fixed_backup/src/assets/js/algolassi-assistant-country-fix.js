@@ -3,14 +3,20 @@
  *
  * Privacy model:
  * - timezone is used as a strong country signal;
- * - IP geolocation is used only to obtain approximate region/city news context;
+ * - IP geolocation is used only for approximate country/region/city news context;
  * - exact latitude/longitude is never stored in localStorage;
  * - browser language is used for language preference, not physical location.
+ *
+ * IPinfo Lite:
+ * - Uses the authenticated /lite/me endpoint when ALGOLASSI_IPINFO_TOKEN is configured.
+ * - Caches the result in the existing assistant state to avoid repeat lookups during SPA navigation.
+ * - Falls back to timezone detection when the API is unavailable.
  */
 (function () {
   "use strict";
 
   var KEY = "algolassi_assistant_v1";
+  var IPINFO_CACHE_TTL = 24 * 60 * 60 * 1000;
   var COUNTRY = {
     IN: { name: "India", flag: "🇮🇳", hl: "en-IN", gl: "IN", ceid: "IN:en" },
     US: { name: "United States", flag: "🇺🇸", hl: "en-US", gl: "US", ceid: "US:en" },
@@ -152,25 +158,40 @@
       .catch(function () {});
   }
 
-  function requestApproximateLocation() {
-    return fetch("https://ipapi.co/json/", { credentials: "omit" })
-      .then(function (response) { return response.ok ? response.json() : null; })
+  function cachedIpInfo(state) {
+    if (!state.ipinfoLite || !state.ipinfoLite.savedAt) return null;
+    if (Date.now() - Number(state.ipinfoLite.savedAt) > IPINFO_CACHE_TTL) return null;
+    return state.ipinfoLite;
+  }
+
+  function requestApproximateLocation(state) {
+    var token = String(window.ALGOLASSI_IPINFO_TOKEN || "").trim();
+    var cached = cachedIpInfo(state);
+    if (cached) return Promise.resolve(cached);
+    if (!token) return Promise.resolve(null);
+
+    var endpoint = "https://api.ipinfo.io/lite/me?token=" + encodeURIComponent(token);
+    return fetch(endpoint, { credentials: "omit" })
+      .then(function (response) {
+        if (!response.ok) throw new Error("IPinfo Lite HTTP " + response.status);
+        return response.json();
+      })
       .then(function (data) {
-        if (!data) return null;
-        return {
-          country: data.country_code ? String(data.country_code).toUpperCase() : "",
-          region: data.region || data.region_code || "",
-          city: data.city || ""
+        var location = {
+          country: data && data.country_code ? String(data.country_code).toUpperCase() : "",
+          region: "",
+          city: ""
         };
+        var next = Object.assign({}, location, { savedAt: Date.now() });
+        state.ipinfoLite = next;
+        writeState(state);
+        return next;
       });
   }
 
   function init() {
     var existing = readState();
 
-    /* Clear one stale pre-migration news cooldown so old browser state cannot
-       suppress the repaired live-news feature. New cooldowns are owned by the
-       main assistant and are left untouched after this one-time migration. */
     if (existing.newsStateVersion !== 1) {
       existing.newsStateVersion = 1;
       existing.newsShownAt = 0;
@@ -178,12 +199,14 @@
     }
 
     var tzCountry = timezoneCountry();
-    requestApproximateLocation()
+    var cached = cachedIpInfo(existing);
+
+    requestApproximateLocation(existing)
       .then(function (location) {
         var country = tzCountry || (location && location.country) || existing.detectedCountry || "";
         if (!country) return;
         var source = location && location.country
-          ? (tzCountry ? "timezone+ip" : "ip")
+          ? (tzCountry ? "timezone+ipinfo" : "ipinfo")
           : "timezone";
         var region = location && location.region ? location.region : (existing.detectedRegion || "");
         var city = location && location.city ? location.city : (existing.detectedCity || "");
@@ -198,6 +221,8 @@
           setTimeout(function () {
             showCorrectNews(tzCountry, existing.detectedRegion || "", existing.detectedCity || "");
           }, 10000);
+        } else if (cached && cached.country) {
+          apply(cached.country, "ipinfo-cache", existing.detectedRegion || "", existing.detectedCity || "");
         }
       });
   }
