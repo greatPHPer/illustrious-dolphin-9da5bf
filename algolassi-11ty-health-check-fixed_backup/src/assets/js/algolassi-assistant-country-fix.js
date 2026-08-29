@@ -135,8 +135,16 @@
   function showCorrectNews(country, region, city) {
     var config = COUNTRY[country];
     if (!config) return;
+
+    // rss2json is an optional third-party proxy. Do not call it unless an
+    // application-owned news endpoint has explicitly been configured.
+    // This keeps a proxy outage from creating a failed network request on
+    // every page while country detection continues to work normally.
+    var endpoint = String(window.ALGOLASSI_ASSISTANT_NEWS_ENDPOINT || "").trim();
+    if (!endpoint) return;
+
     var rss = buildNewsUrl(country, region, city);
-    var proxy = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rss);
+    var proxy = endpoint + (endpoint.indexOf("?") >= 0 ? "&" : "?") + "rss_url=" + encodeURIComponent(rss);
 
     fetch(proxy, { credentials: "omit" })
       .then(function (response) { return response.ok ? response.json() : null; })
