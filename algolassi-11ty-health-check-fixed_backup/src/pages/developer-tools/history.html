@@ -1,0 +1,22 @@
+---
+title: "Developer Tools History"
+layout: layouts/base.njk
+permalink: "/developer-tools/history/"
+contentType: "page"
+description: "View your saved Algolassi Developer Tools operations in this browser."
+---
+<style>
+.alth{max-width:1000px;margin:0 auto}.alth-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}.alth-head h1{margin-bottom:.35rem}.alth-sub{margin-top:0;color:var(--muted,#667085)}.alth-back{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem .8rem;border:1px solid var(--border-color,#cbd5e1);border-radius:8px;text-decoration:none;color:inherit}.alth-toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin:1.4rem 0}.alth-toolbar p{margin:0;color:var(--muted,#667085)}.alth-danger,.alth-delete{border:1px solid #dc2626;background:transparent;color:#dc2626;border-radius:7px;padding:.5rem .75rem;cursor:pointer}.alth-card{border:1px solid var(--border-color,#d8dee4);border-radius:12px;padding:1rem 1.1rem;margin:0 0 1rem;background:var(--card-bg,#fff)}html[data-theme="dark"] .alth-card{background:var(--card-bg,#111827)}.alth-card-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}.alth-card-head h2{font-size:1.05rem;margin:0 0 .25rem}.alth-card-head p{margin:0;color:var(--muted,#667085);font-size:.9rem}.alth-actions{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}.alth-link{padding:.48rem .7rem;border:1px solid var(--border-color,#cbd5e1);border-radius:7px;text-decoration:none;color:inherit;font-size:.9rem}.alth-section{margin-top:1rem}.alth-section h3{font-size:.85rem;margin:.2rem 0 .4rem}.alth-section pre,.alth-field pre{margin:0;padding:.75rem;background:var(--code-bg,#f6f8fa);border-radius:8px;white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:320px}.alth-field{margin:.45rem 0}.alth-field strong{display:block;font-size:.78rem;color:var(--muted,#667085);margin-bottom:.25rem}.alth-muted{color:var(--muted,#667085)}.alth-empty{border:1px dashed var(--border-color,#cbd5e1);border-radius:12px;padding:2rem;text-align:center;margin-top:1.5rem}.alth-note{border-left:4px solid var(--accent-color,#2563eb);padding:.75rem 1rem;margin:1rem 0;background:rgba(37,99,235,.05)}
+@media(max-width:700px){.alth-card-head{display:block}.alth-actions{margin-top:.75rem}.alth-card{padding:.9rem}.alth-section pre,.alth-field pre{max-height:240px}}
+</style>
+<div class="alth">
+  <div class="alth-head">
+    <div>
+      <h1>Developer Tools History</h1>
+      <p class="alth-sub">Your recent Developer Tool operations, saved only in this browser.</p>
+    </div>
+    <a class="alth-back" href="/developer-tools/">← Developer Tools</a>
+  </div>
+  <div class="alth-note"><strong>Privacy:</strong> history is stored locally in your browser. It may contain sensitive text you entered into a tool, so use <strong>Clear all history</strong> when working with confidential data.</div>
+  <div id="algolassi-tool-history-app"></div>
+</div>
