@@ -2,7 +2,13 @@
   "use strict";
 
   var STORAGE_KEY = "algolassi_developer_tool_history_v1";
-  var OFFSET = 150;
+  var OFFSET = 250;
+
+  function getScrollOffset() {
+    return /\/developer-tools\/unix-timestamp-converter\/?$/.test(window.location.pathname)
+      ? 400
+      : OFFSET;
+  }
 
   function findSavedEntry(item) {
     var id = item.getAttribute("data-history-id");
@@ -66,7 +72,7 @@
 
       var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
       var targetTop = target.getBoundingClientRect().top + scrollTop;
-      window.scrollTo({ top: Math.max(0, targetTop - OFFSET), behavior: "smooth" });
+      window.scrollTo({ top: Math.max(0, targetTop - getScrollOffset()), behavior: "smooth" });
     }, 120);
   }, true);
 })();
