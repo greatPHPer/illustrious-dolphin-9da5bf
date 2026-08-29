@@ -18,10 +18,10 @@
       ".algolassi-tool-history-wrap{margin:.35rem 0 1rem}",
       ".algolassi-tool-history-button{display:inline-flex;align-items:center;gap:.35rem;padding:.55rem .8rem;border:1px solid var(--border-color,#cbd5e1);border-radius:8px;text-decoration:none;color:inherit;background:var(--card-bg,#fff);font-weight:600;cursor:pointer}",
       ".algolassi-tool-history-button:hover{background:var(--code-bg,#f6f8fa)}",
-      "html[data-theme=\\\"dark\\\"] .algolassi-tool-history-button{background:var(--card-bg,#111827)}",
+      "html[data-theme=\"dark\"] .algolassi-tool-history-button{background:var(--card-bg,#111827)}",
       ".algolassi-tool-history-panel{display:none;border:1px solid var(--border-color,#d8dee4);border-radius:12px;background:var(--card-bg,#fff);margin:0 0 1rem;overflow:hidden}",
       ".algolassi-tool-history-panel.open{display:block}",
-      "html[data-theme=\\\"dark\\\"] .algolassi-tool-history-panel{background:var(--card-bg,#111827)}",
+      "html[data-theme=\"dark\"] .algolassi-tool-history-panel{background:var(--card-bg,#111827)}",
       ".althp-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.7rem .85rem;border-bottom:1px solid var(--border-color,#d8dee4)}",
       ".althp-head strong{font-size:.95rem}",
       ".althp-head-actions{display:flex;gap:.4rem;align-items:center}",
@@ -35,7 +35,6 @@
       ".althp-item-operation{font-weight:700;font-size:.86rem;margin-bottom:.2rem}",
       ".althp-item-preview{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.88}",
       ".althp-note{padding:.55rem .85rem;font-size:.74rem;color:var(--muted,#667085);border-top:1px solid var(--border-color,#e5e7eb)}",
-      ".althp-danger{color:#b91c1c}",
       "@media(max-width:700px){.althp-list{max-height:45vh}.althp-item{padding:.65rem .75rem}.althp-item-preview{font-size:.74rem}.althp-head{padding:.65rem .75rem}}"
     ].join("");
     document.head.appendChild(style);
@@ -148,7 +147,10 @@
     var fields = entry.input || [];
     fields.forEach(function (saved) {
       var node = saved.id ? document.getElementById(saved.id) : null;
-      if (!node && saved.name) node = document.querySelector('.dt [name="' + CSS.escape(saved.name) + '"]');
+      if (!node && saved.name) {
+        try { node = document.querySelector('.dt [name="' + CSS.escape(saved.name) + '"]'); }
+        catch (error) { node = null; }
+      }
       if (!node) return;
       node.value = saved.value == null ? "" : saved.value;
       node.dispatchEvent(new Event("input", { bubbles: true }));
@@ -165,7 +167,12 @@
     refreshPanel();
 
     var box = document.querySelector(".dt .box");
-    if (box) box.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (box) {
+      var currentY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      var boxTop = box.getBoundingClientRect().top + currentY;
+      var targetY = currentY + ((boxTop - currentY) / 2);
+      window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
+    }
   }
 
   function renderPanel() {
