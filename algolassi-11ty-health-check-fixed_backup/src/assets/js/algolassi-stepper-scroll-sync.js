@@ -35,6 +35,10 @@
     });
   }
 
+  function updateAllFlows() {
+    document.querySelectorAll(".maui-flow,.algolassi-auto-stepper").forEach(update);
+  }
+
   function syncDeveloperToolsBreadcrumb() {
     var path = location.pathname || "/";
     if (path.charAt(path.length - 1) !== "/") path += "/";
@@ -68,7 +72,7 @@
       ticking = true;
       window.requestAnimationFrame(function () {
         ticking = false;
-        update(flow);
+        updateAllFlows();
       });
     }
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -86,15 +90,21 @@
 
   window.addEventListener("algolassi:spa-navigation", function () {
     window.requestAnimationFrame(function () {
-      syncDeveloperToolsBreadcrumb();
-      window.setTimeout(syncDeveloperToolsBreadcrumb, 50);
+      init();
+      window.setTimeout(function () {
+        init();
+        updateAllFlows();
+      }, 50);
     });
   });
 
   window.addEventListener("popstate", function () {
     window.requestAnimationFrame(function () {
-      syncDeveloperToolsBreadcrumb();
-      window.setTimeout(syncDeveloperToolsBreadcrumb, 50);
+      init();
+      window.setTimeout(function () {
+        init();
+        updateAllFlows();
+      }, 50);
     });
   });
 })();
