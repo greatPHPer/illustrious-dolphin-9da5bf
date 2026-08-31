@@ -98,3 +98,14 @@ INNER JOIN Courses AS c
 <p>After these basics, continue with aggregate functions, GROUP BY, HAVING, views, stored procedures, transactions, CTEs, temporary tables, indexes, and query performance.</p>
 <p>Explore the complete <a href="/sql-server-tutorials/">SQL Server Tutorials</a> section on Algolassi.</p>
 <p>You can also return to the <a href="/beginner-tutorials/">Beginner Tutorials</a> hub for fundamentals across C#, .NET, SQL, JavaScript, Git, and Visual Studio.</p>
+
+<script>
+(function () {
+  "use strict";
+  function removeGeneratedStepper() {
+    document.querySelectorAll(".algolassi-auto-stepper").forEach(function (el) { el.remove(); });
+  }
+  window.addEventListener("algolassi:spa-navigation", removeGeneratedStepper);
+  window.addEventListener("popstate", removeGeneratedStepper);
+})();
+</script>
