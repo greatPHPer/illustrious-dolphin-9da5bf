@@ -35,40 +35,49 @@
     });
   }
 
+  function updateAllFlows() {
+    document.querySelectorAll(".maui-flow,.algolassi-auto-stepper").forEach(update);
+  }
+
   function syncDeveloperToolsBreadcrumb() {
     var path = location.pathname || "/";
     if (path.charAt(path.length - 1) !== "/") path += "/";
     var title = developerToolTitles[path];
     if (!title) return;
-
     var current = document.querySelector(".breadcrumbs > .breadcrumb-current");
     if (!current) current = document.querySelector(".site-main .breadcrumbs .breadcrumb-current");
     if (!current) return;
-
     var menu = null;
-    var children = Array.prototype.slice.call(current.children || []);
-    children.forEach(function (child) {
+    Array.prototype.slice.call(current.children || []).forEach(function (child) {
       if (child.classList && child.classList.contains("breadcrumb-child-menu")) menu = child;
     });
-
     Array.prototype.slice.call(current.childNodes).forEach(function (node) {
       if (node.nodeType === 3) node.parentNode.removeChild(node);
     });
-
     var text = document.createTextNode(" " + title + " ");
-    if (menu) current.insertBefore(text, menu);
-    else current.appendChild(text);
+    if (menu) current.insertBefore(text, menu); else current.appendChild(text);
   }
 
   function attach(flow) {
     if (!flow || flow.dataset.scrollSyncAttached === "1") return;
     flow.dataset.scrollSyncAttached = "1";
+    flow.addEventListener("click", function (event) {
+      var button = event.target && event.target.closest ? event.target.closest("button[data-target]") : null;
+      if (!button || !flow.contains(button)) return;
+      var target = document.getElementById(button.getAttribute("data-target"));
+      if (!target) return;
+      event.preventDefault();
+      event.stopPropagation();
+      var offset = window.innerWidth <= 1250 ? flow.getBoundingClientRect().height + 18 : 110;
+      var top = window.scrollY + target.getBoundingClientRect().top - offset;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    });
     function onScroll() {
       if (ticking) return;
       ticking = true;
       window.requestAnimationFrame(function () {
         ticking = false;
-        update(flow);
+        updateAllFlows();
       });
     }
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -86,15 +95,21 @@
 
   window.addEventListener("algolassi:spa-navigation", function () {
     window.requestAnimationFrame(function () {
-      syncDeveloperToolsBreadcrumb();
-      window.setTimeout(syncDeveloperToolsBreadcrumb, 50);
+      init();
+      window.setTimeout(function () {
+        init();
+        updateAllFlows();
+      }, 50);
     });
   });
 
   window.addEventListener("popstate", function () {
     window.requestAnimationFrame(function () {
-      syncDeveloperToolsBreadcrumb();
-      window.setTimeout(syncDeveloperToolsBreadcrumb, 50);
+      init();
+      window.setTimeout(function () {
+        init();
+        updateAllFlows();
+      }, 50);
     });
   });
 })();
