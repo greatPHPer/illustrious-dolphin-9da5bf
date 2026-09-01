@@ -117,18 +117,33 @@
     return createElement("span", "breadcrumb-current", "📄 " + (text || "Developer Tool"));
   }
 
+  function showMenu(menu) {
+    menu.classList.add("open");
+    menu.style.setProperty("visibility", "visible", "important");
+    menu.style.setProperty("opacity", "1", "important");
+    menu.style.setProperty("pointer-events", "auto", "important");
+    menu.style.setProperty("transform", "translateY(0) scale(1)", "important");
+  }
+
+  function hideMenu(menu) {
+    menu.classList.remove("open");
+    menu.style.removeProperty("visibility");
+    menu.style.removeProperty("opacity");
+    menu.style.removeProperty("pointer-events");
+    menu.style.removeProperty("transform");
+  }
+
   function attachHover(item) {
     if (!item || item.dataset.toolmenuHoverAttached === "1") return;
     item.dataset.toolmenuHoverAttached = "1";
-
     var menu = item.querySelector(":scope > .algolassi-toolmenu-menu");
     if (!menu) return;
 
-    item.addEventListener("mouseenter", function () { menu.classList.add("open"); });
-    item.addEventListener("mouseleave", function () { menu.classList.remove("open"); });
-    item.addEventListener("focusin", function () { menu.classList.add("open"); });
+    item.addEventListener("mouseenter", function () { showMenu(menu); });
+    item.addEventListener("mouseleave", function () { hideMenu(menu); });
+    item.addEventListener("focusin", function () { showMenu(menu); });
     item.addEventListener("focusout", function (event) {
-      if (!item.contains(event.relatedTarget)) menu.classList.remove("open");
+      if (!item.contains(event.relatedTarget)) hideMenu(menu);
     });
   }
 
@@ -178,15 +193,15 @@
     rebuild();
   }
 
+  function refreshAfterSpa() {
+    refresh();
+    window.setTimeout(refresh, 50);
+    window.setTimeout(refresh, 200);
+  }
+
   document.addEventListener("DOMContentLoaded", refresh, { once: true });
   window.addEventListener("load", refresh);
-  window.addEventListener("algolassi:spa-navigation", function () {
-    window.requestAnimationFrame(refresh);
-    window.setTimeout(refresh, 50);
-  });
-  window.addEventListener("popstate", function () {
-    window.requestAnimationFrame(refresh);
-    window.setTimeout(refresh, 50);
-  });
+  window.addEventListener("algolassi:spa-navigation", refreshAfterSpa);
+  window.addEventListener("popstate", refreshAfterSpa);
   if (document.readyState !== "loading") window.requestAnimationFrame(refresh);
 })();
