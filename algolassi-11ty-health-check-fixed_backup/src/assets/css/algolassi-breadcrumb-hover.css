@@ -37,6 +37,20 @@
 .breadcrumb-child-menu > a.breadcrumb-dropdown-current:hover { background: #e9f2ff !important; border: 0 !important; }
 .breadcrumb-item > .breadcrumb-menu:not(.breadcrumb-child-menu-source-hidden) { visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }
 
+/* Developer Tools menus are generated after the shared breadcrumb script on SPA navigation.
+   Keep their hover behavior independent of script initialization order. */
+.algolassi-toolmenu-managed:hover > .algolassi-toolmenu-menu,
+.algolassi-toolmenu-managed:focus-within > .algolassi-toolmenu-menu {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) scale(1) !important;
+  transition-delay: 0s !important;
+}
+.algolassi-toolmenu-menu { min-width: 230px !important; }
+.algolassi-toolmenu-menu > a { display: block !important; width: 100% !important; box-sizing: border-box !important; padding: 9px 11px !important; color: #475467 !important; background: transparent !important; text-decoration: none !important; white-space: normal !important; }
+.algolassi-toolmenu-menu > a:hover { background: #f4f8ff !important; color: #1769e0 !important; }
+
 @media (max-width: 700px) {
   .breadcrumbs { width: 100% !important; max-width: 100% !important; padding: 6px 0 !important; font-size: 14px !important; }
   .breadcrumb-trigger, .breadcrumb-current { min-height: 38px !important; padding: 7px 9px !important; font-size: 14px !important; }
@@ -44,6 +58,7 @@
   .breadcrumb-child-menu { left: 0 !important; }
   .breadcrumb-child-item:hover > .breadcrumb-child-menu, .breadcrumb-child-item:focus-within > .breadcrumb-child-menu, .breadcrumb-child-menu.open { transform: translateY(0) scale(1) !important; }
   .breadcrumb-child-menu > a { font-size: 14px !important; }
+  .algolassi-toolmenu-menu { min-width: 210px !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
