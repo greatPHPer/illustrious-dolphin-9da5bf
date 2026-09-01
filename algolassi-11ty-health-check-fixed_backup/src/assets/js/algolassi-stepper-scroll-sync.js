@@ -168,22 +168,10 @@
   if (document.readyState !== "loading") init();
 
   window.addEventListener("algolassi:spa-navigation", function () {
-    window.requestAnimationFrame(function () {
-      init();
-      window.setTimeout(function () {
-        init();
-        updateAllFlows();
-      }, 50);
-    });
+    init();
   });
 
   window.addEventListener("popstate", function () {
-    window.requestAnimationFrame(function () {
-      init();
-      window.setTimeout(function () {
-        init();
-        updateAllFlows();
-      }, 50);
-    });
+    init();
   });
 })();
