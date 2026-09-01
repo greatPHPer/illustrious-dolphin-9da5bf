@@ -3,7 +3,7 @@
  *
  * Developer Tools:
  *   Home → Category → Current Tool
- *                    ↳ category-specific tool menu on hover
+ *                      ↳ category-specific tool menu on hover
  */
 (function () {
   "use strict";
@@ -79,25 +79,9 @@
 
   function createHomeItem() {
     var item = createElement("div", "breadcrumb-item");
-    var link = createElement("a", "breadcrumb-trigger crumb-trigger");
+    var link = createElement("a", "breadcrumb-trigger crumb-trigger", "🏠 Home");
     link.href = "/";
-    link.textContent = "🏠 Home";
-    var arrow = createElement("span", "breadcrumb-arrow", "▼");
-    link.appendChild(arrow);
-
-    // Preserve the familiar Home dropdown contents without making it part of
-    // the Developer Tools hierarchy used for the second/third levels.
-    var menu = createElement("div", "breadcrumb-menu");
-    menu.setAttribute("data-menu", "home");
-    var tutorials = createElement("a", "", "📚 Tutorials");
-    tutorials.href = "/tutorials/";
-    var about = createElement("a", "", "ℹ️ About");
-    about.href = "/about-algolassi/";
-    menu.appendChild(tutorials);
-    menu.appendChild(about);
-
     item.appendChild(link);
-    item.appendChild(menu);
     return item;
   }
 
@@ -105,42 +89,51 @@
     return createElement("span", "breadcrumb-separator", "/");
   }
 
-  function createCategoryItem(category, currentPath) {
-    var item = createElement("div", "breadcrumb-item");
-    var link = createElement("a", "breadcrumb-trigger crumb-trigger");
-    link.href = category.url;
-    link.setAttribute("data-menu", "devtools-" + category.key);
-    link.textContent = category.title;
-    link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
-
+  function buildToolMenu(category, currentPath) {
     var menu = createElement("div", "breadcrumb-menu");
     menu.setAttribute("data-menu", "devtools-" + category.key);
 
     category.tools.forEach(function (tool) {
-      var toolLink = createElement("a", "", tool.title);
-      toolLink.href = tool.url;
+      var link = createElement("a", "", tool.title);
+      link.href = tool.url;
       if (normalize(tool.url) === normalize(currentPath)) {
-        toolLink.classList.add("breadcrumb-dropdown-current");
+        link.classList.add("breadcrumb-dropdown-current");
       }
-      menu.appendChild(toolLink);
+      menu.appendChild(link);
     });
 
     if (!category.tools.length) {
       menu.appendChild(createElement("span", "breadcrumb-toolmenu-empty", "More tools coming soon"));
     }
 
+    return menu;
+  }
+
+  function createCategoryItem(category, currentPath) {
+    var item = createElement("div", "breadcrumb-item");
+    var link = createElement("a", "breadcrumb-trigger crumb-trigger", category.title);
+    link.href = category.url;
+    link.setAttribute("data-menu", "devtools-" + category.key);
+    link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
     item.appendChild(link);
-    item.appendChild(menu);
+    item.appendChild(buildToolMenu(category, currentPath));
+    return item;
+  }
+
+  function createCategoryCurrentItem(category, currentPath) {
+    var item = createElement("div", "breadcrumb-item");
+    var link = createElement("a", "breadcrumb-trigger crumb-trigger breadcrumb-current", category.title);
+    link.href = category.url;
+    link.setAttribute("data-menu", "devtools-" + category.key);
+    link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
+    item.appendChild(link);
+    item.appendChild(buildToolMenu(category, currentPath));
     return item;
   }
 
   function createCurrentItem(title, category, currentPath) {
     var item = createElement("span", "breadcrumb-current", "📄 " + title);
-
-    // When this is a tool page, the existing child-menu enhancer will clone
-    // the category's .breadcrumb-menu onto this current breadcrumb item.
     item.setAttribute("data-tool-current", category.key);
-
     return item;
   }
 
@@ -162,20 +155,17 @@
     var isRoot = path === ROOT;
     if (!category && !isRoot) return false;
 
-    // Do not touch tutorial or unrelated breadcrumbs.
     breadcrumbs.innerHTML = "";
     breadcrumbs.appendChild(createHomeItem());
     breadcrumbs.appendChild(createSeparator());
 
     if (isRoot) {
-      var rootItem = createElement("span", "breadcrumb-current", "🛠️ Developer Tools");
-      breadcrumbs.appendChild(rootItem);
+      breadcrumbs.appendChild(createElement("span", "breadcrumb-current", "🛠️ Developer Tools"));
       return true;
     }
 
     if (normalize(category.url) === path) {
-      var categoryCurrent = createElement("span", "breadcrumb-current", category.title);
-      breadcrumbs.appendChild(categoryCurrent);
+      breadcrumbs.appendChild(createCategoryCurrentItem(category, path));
       return true;
     }
 
@@ -186,11 +176,7 @@
   }
 
   function refresh() {
-    var changed = rebuild();
-    if (!changed) return;
-
-    // The child-menu system owns the hover/touch behavior and will clone the
-    // category's menu onto the current tool item after this DOM is rebuilt.
+    if (!rebuild()) return;
     window.requestAnimationFrame(function () {
       try { window.dispatchEvent(new Event("resize")); } catch (e) {}
     });
