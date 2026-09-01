@@ -60,9 +60,6 @@
     return item;
   }
 
-  // Level-2 menu selection is based ONLY on the active category.
-  // It must remain highlighted even when the current URL is one of that
-  // category's individual tools.
   function buildCategoryMenu(activeCategory) {
     var menu = createElement("div", "breadcrumb-menu algolassi-toolmenu-menu");
     menu.setAttribute("data-menu", "developer-tools-categories");
@@ -79,7 +76,6 @@
     return menu;
   }
 
-  // Level-3 menu selection is based ONLY on the current tool URL.
   function buildToolMenu(category, currentPath) {
     var menu = createElement("div", "breadcrumb-menu algolassi-toolmenu-menu");
     menu.setAttribute("data-tool-category-menu", category.key);
@@ -119,8 +115,6 @@
     return item;
   }
 
-  // Level 3 is always present once a Developer Tools category is known.
-  // It owns the category's actual tool submenu, including selected-item alignment.
   function createCurrentItem(category, currentPath) {
     var heading = document.querySelector(".site-main h1");
     var text = heading && heading.textContent.trim()
@@ -139,14 +133,10 @@
 
   function alignToolMenu(item, menu) {
     if (!item || !menu) return;
+    if (menu.classList.contains("open")) return;
 
     var selected = menu.querySelector("a.breadcrumb-dropdown-current");
-    if (!selected) {
-      menu.style.removeProperty("max-height");
-      menu.style.removeProperty("overflow-y");
-      menu.style.removeProperty("top");
-      return;
-    }
+    if (!selected) return;
 
     menu.style.setProperty("visibility", "visible", "important");
     menu.style.setProperty("opacity", "0", "important");
@@ -197,7 +187,7 @@
   }
 
   function showMenu(item, menu) {
-    alignToolMenu(item, menu);
+    if (!menu.classList.contains("open")) alignToolMenu(item, menu);
     menu.classList.add("open");
     menu.style.setProperty("visibility", "visible", "important");
     menu.style.setProperty("opacity", "1", "important");
