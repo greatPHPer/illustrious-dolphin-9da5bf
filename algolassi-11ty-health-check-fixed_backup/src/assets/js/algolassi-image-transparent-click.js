@@ -3,6 +3,7 @@
   "use strict";
 
   var picking = false;
+  var hasSelection = false;
   var busy = false;
 
   function q(id) { return document.getElementById(id); }
@@ -76,6 +77,7 @@
       var hex = toHex(rgb);
       var input = q("transparent-color");
       if (input) input.value = hex;
+      hasSelection = true;
       setPicking(false);
       status("Selected background " + hex.toUpperCase() + ". Click Transparent Background to apply it.", true);
     } catch (error) {
@@ -92,6 +94,14 @@
     document.addEventListener("click", function (event) {
       var button = event.target && event.target.closest ? event.target.closest("#image-transparent-button") : null;
       if (!button) return;
+
+      // After a background color has been selected by clicking the image,
+      // allow the original Image Tools handler to perform the existing
+      // transparent-color processing and add the result to history.
+      if (hasSelection) {
+        hasSelection = false;
+        return;
+      }
 
       if (!picking) {
         event.preventDefault();
@@ -115,6 +125,8 @@
     }, true);
 
     window.addEventListener("algolassi:spa-navigation", function () {
+      picking = false;
+      hasSelection = false;
       setPicking(false);
     });
   }
