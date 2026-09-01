@@ -121,12 +121,19 @@
     return item;
   }
 
-  // Level 3 is the current tool, and ONLY this level owns the category's tool list.
+  // Level 3 is always present once a Developer Tools category is known.
+  // On a category landing page it defaults to that category's name; on a
+  // tool page it becomes the current tool title. In both cases it owns the
+  // category's actual tool submenu.
   function createCurrentItem(category, currentPath) {
     var heading = document.querySelector(".site-main h1");
     var text = heading && heading.textContent.trim()
       ? heading.textContent.trim()
       : document.title.replace(/\s*\|\s*Algolassi\s*$/i, "").trim();
+
+    if (normalize(category.url) === normalize(currentPath)) {
+      text = category.title.replace(/^[^A-Za-z0-9]+/, "").trim();
+    }
 
     var item = createElement("span", "breadcrumb-current breadcrumb-child-item algolassi-toolmenu-current", "📄 " + (text || "Developer Tool") + " ");
     item.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
@@ -193,14 +200,13 @@
     breadcrumbs.appendChild(categoryItem);
     attachHover(categoryItem);
 
-    if (isCategoryPage) {
-      return true;
-    }
-
+    // Keep a third breadcrumb level on category landing pages as well as
+    // individual tool pages. This is the default owner of the actual tool list.
     breadcrumbs.appendChild(createSeparator());
     var currentItem = createCurrentItem(category, path);
     breadcrumbs.appendChild(currentItem);
     attachHover(currentItem);
+
     return true;
   }
 
