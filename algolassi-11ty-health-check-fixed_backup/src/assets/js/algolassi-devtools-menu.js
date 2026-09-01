@@ -98,23 +98,33 @@
     return item;
   }
 
-  function createCategoryItem(category, currentPath) {
+  function createCategoryItem(category, currentPath, isCategoryPage) {
     var item = createElement("div", "breadcrumb-item breadcrumb-child-item algolassi-toolmenu-managed algolassi-toolmenu-category");
     var link = createElement("a", "breadcrumb-trigger crumb-trigger", category.title);
     link.href = category.url;
     link.setAttribute("data-menu", "devtools-" + category.key);
-    link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
+    if (isCategoryPage) link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
     item.appendChild(link);
-    item.appendChild(buildToolMenu(category, currentPath));
+
+    // Category landing pages own the category's tool list.
+    if (isCategoryPage) {
+      item.appendChild(buildToolMenu(category, currentPath));
+    }
     return item;
   }
 
-  function createCurrentItem() {
+  function createCurrentItem(category, currentPath) {
     var heading = document.querySelector(".site-main h1");
     var text = heading && heading.textContent.trim()
       ? heading.textContent.trim()
       : document.title.replace(/\s*\|\s*Algolassi\s*$/i, "").trim();
-    return createElement("span", "breadcrumb-current", "📄 " + (text || "Developer Tool"));
+
+    // On an individual tool page the THIRD breadcrumb level owns the
+    // category's tool submenu. The level-2 category remains plain text.
+    var item = createElement("span", "breadcrumb-current algolassi-toolmenu-current", "📄 " + (text || "Developer Tool") + " ");
+    item.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
+    item.appendChild(buildToolMenu(category, currentPath));
+    return item;
   }
 
   function showMenu(menu) {
@@ -158,9 +168,7 @@
     var isRoot = path === ROOT;
     if (!isRoot && !category) return false;
 
-    /* Developer Tools owns the breadcrumb completely. Clear the incoming
-       generic/tutorial breadcrumb markup so SPA navigation cannot leave a
-       duplicated second hierarchy behind. */
+    /* Developer Tools owns its entire breadcrumb while inside /developer-tools/. */
     breadcrumbs.innerHTML = "";
     breadcrumbs.appendChild(createHomeItem());
     breadcrumbs.appendChild(createSeparator());
@@ -172,15 +180,19 @@
       return true;
     }
 
-    var categoryItem = createCategoryItem(category, path);
+    var isCategoryPage = normalize(category.url) === path;
+    var categoryItem = createCategoryItem(category, path, isCategoryPage);
     breadcrumbs.appendChild(categoryItem);
-    attachHover(categoryItem);
 
-    if (normalize(category.url) !== path) {
-      breadcrumbs.appendChild(createSeparator());
-      breadcrumbs.appendChild(createCurrentItem());
+    if (isCategoryPage) {
+      attachHover(categoryItem);
+      return true;
     }
 
+    breadcrumbs.appendChild(createSeparator());
+    var currentItem = createCurrentItem(category, path);
+    breadcrumbs.appendChild(currentItem);
+    attachHover(currentItem);
     return true;
   }
 
