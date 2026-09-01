@@ -107,7 +107,7 @@
     window.addEventListener("algolassi:news-reopen",settle);
     window.addEventListener("algolassi:chat-layout-change",settle);
     window.addEventListener("algolassi:chat-restored",settle);
-    if(window.MutationObserver){newsObserver=new MutationObserver(function(){settle();});[document.getElementById("algolassi-chat-presence-host"),document.getElementById("algolassi-radio-host"),document.getElementById("algolassi-radio-reopen"),document.getElementById("algolassi-assistant-host")].forEach(function(x){if(x)newsObserver.observe(x,{childList:true,subtree:true,attributes:true,attributeFilter:["style","class","aria-hidden"]});});}
+    if(window.MutationObserver){newsObserver=new MutationObserver(function(){settle();});[document.getElementById("algolassi-chat-presence-host"),document.getElementById("algolassi-radio-host"),document.getElementById("algolassi-radio-reopen"),document.getElementById("algolassi-assistant-host")].forEach(function(x){if(x)newsObserver.observe(x,{childList:true,subtree:true});});}
     if(window.ResizeObserver){var ro=new ResizeObserver(function(){settle();});[document.getElementById("algolassi-chat-presence-host"),document.getElementById("algolassi-radio-host"),document.getElementById("algolassi-radio-reopen"),document.getElementById("algolassi-assistant-host")].forEach(function(x){if(x)ro.observe(x);});}
     timer=setInterval(updateAll,250);
   }
