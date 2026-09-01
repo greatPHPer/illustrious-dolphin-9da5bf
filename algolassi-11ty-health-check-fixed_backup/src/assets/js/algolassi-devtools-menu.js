@@ -60,20 +60,26 @@
     return item;
   }
 
-  function buildCategoryMenu(currentPath) {
+  // Level-2 menu selection is based ONLY on the active category.
+  // It must remain highlighted even when the current URL is one of that
+  // category's individual tools.
+  function buildCategoryMenu(activeCategory) {
     var menu = createElement("div", "breadcrumb-menu algolassi-toolmenu-menu");
     menu.setAttribute("data-menu", "developer-tools-categories");
 
     CATEGORIES.forEach(function (category) {
       var link = createElement("a", "", category.title);
       link.href = category.url;
-      if (normalize(category.url) === normalize(currentPath)) link.className = "breadcrumb-dropdown-current";
+      if (activeCategory && category.key === activeCategory.key) {
+        link.className = "breadcrumb-dropdown-current";
+      }
       menu.appendChild(link);
     });
 
     return menu;
   }
 
+  // Level-3 menu selection is based ONLY on the current tool URL.
   function buildToolMenu(category, currentPath) {
     var menu = createElement("div", "breadcrumb-menu algolassi-toolmenu-menu");
     menu.setAttribute("data-tool-category-menu", category.key);
@@ -81,7 +87,9 @@
     category.tools.forEach(function (tool) {
       var link = createElement("a", "", tool.title);
       link.href = tool.url;
-      if (normalize(tool.url) === normalize(currentPath)) link.className = "breadcrumb-dropdown-current";
+      if (normalize(tool.url) === normalize(currentPath)) {
+        link.className = "breadcrumb-dropdown-current";
+      }
       menu.appendChild(link);
     });
 
@@ -89,26 +97,25 @@
     return menu;
   }
 
-  function createDeveloperRootItem(currentPath) {
+  function createDeveloperRootItem(activeCategory) {
     var item = createElement("div", "breadcrumb-item breadcrumb-child-item algolassi-toolmenu-managed algolassi-toolmenu-devtools");
     var link = createElement("a", "breadcrumb-trigger crumb-trigger", "🛠️ Developer Tools");
     link.href = ROOT;
     link.setAttribute("data-menu", "developer-tools");
     link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
     item.appendChild(link);
-    item.appendChild(buildCategoryMenu(currentPath));
+    item.appendChild(buildCategoryMenu(activeCategory));
     return item;
   }
 
-  // Level 2 is always the current category. Its submenu is the category switcher.
-  function createCategoryItem(category, currentPath) {
+  function createCategoryItem(category, activeCategory) {
     var item = createElement("div", "breadcrumb-item breadcrumb-child-item algolassi-toolmenu-managed algolassi-toolmenu-category");
     var link = createElement("a", "breadcrumb-trigger crumb-trigger", category.title);
     link.href = category.url;
     link.setAttribute("data-menu", "devtools-" + category.key);
     link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
     item.appendChild(link);
-    item.appendChild(buildCategoryMenu(currentPath));
+    item.appendChild(buildCategoryMenu(activeCategory));
     return item;
   }
 
@@ -141,7 +148,6 @@
       return;
     }
 
-    // Make the menu measurable without displaying a flash.
     menu.style.setProperty("visibility", "visible", "important");
     menu.style.setProperty("opacity", "0", "important");
     menu.style.setProperty("pointer-events", "none", "important");
@@ -238,13 +244,13 @@
     breadcrumbs.appendChild(createSeparator());
 
     if (isRoot) {
-      var rootItem = createDeveloperRootItem(path);
+      var rootItem = createDeveloperRootItem(null);
       breadcrumbs.appendChild(rootItem);
       attachHover(rootItem);
       return true;
     }
 
-    var categoryItem = createCategoryItem(category, path);
+    var categoryItem = createCategoryItem(category, category);
     breadcrumbs.appendChild(categoryItem);
     attachHover(categoryItem);
 
