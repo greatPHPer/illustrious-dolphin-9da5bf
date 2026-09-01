@@ -62,7 +62,7 @@
 
   function buildCategoryMenu(currentPath) {
     var menu = createElement("div", "breadcrumb-menu algolassi-toolmenu-menu");
-    menu.setAttribute("data-menu", "developer-tools");
+    menu.setAttribute("data-menu", "developer-tools-categories");
     CATEGORIES.forEach(function (category) {
       var link = createElement("a", "", category.title);
       link.href = category.url;
@@ -87,19 +87,19 @@
     return menu;
   }
 
-  function createDeveloperRootItem() {
+  function createDeveloperRootItem(currentPath) {
     var item = createElement("div", "breadcrumb-item algolassi-toolmenu-managed algolassi-toolmenu-devtools");
     var link = createElement("a", "breadcrumb-trigger crumb-trigger", "🛠️ Developer Tools");
     link.href = ROOT;
     link.setAttribute("data-menu", "developer-tools");
     link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
     item.appendChild(link);
-    item.appendChild(buildCategoryMenu(location.pathname));
+    item.appendChild(buildCategoryMenu(currentPath));
     return item;
   }
 
   function createCategoryItem(category, currentPath) {
-    var item = createElement("div", "breadcrumb-item algolassi-toolmenu-managed algolassi-toolmenu-category");
+    var item = createElement("div", "breadcrumb-item breadcrumb-child-item algolassi-toolmenu-managed algolassi-toolmenu-category");
     var link = createElement("a", "breadcrumb-trigger crumb-trigger", category.title);
     link.href = category.url;
     link.setAttribute("data-menu", "devtools-" + category.key);
@@ -136,7 +136,6 @@
   function attachHover(item) {
     if (!item || item.dataset.toolmenuHoverAttached === "1") return;
     item.dataset.toolmenuHoverAttached = "1";
-
     var menu = item.querySelector(":scope > .algolassi-toolmenu-menu");
     if (!menu) return;
 
@@ -159,19 +158,24 @@
     var isRoot = path === ROOT;
     if (!isRoot && !category) return false;
 
-    // Developer Tools owns its entire breadcrumb while inside /developer-tools/.
-    // This is essential for SPA navigation because the router injects the next
-    // page's old breadcrumb markup into .site-main before firing its event.
-    breadcrumbs.innerHTML = "";
-    breadcrumbs.appendChild(createHomeItem());
-    breadcrumbs.appendChild(createSeparator());
+    // Remove only our own generated Developer Tools breadcrumb nodes.
+    breadcrumbs.querySelectorAll(".algolassi-toolmenu-managed, .algolassi-toolmenu-separator").forEach(function (node) {
+      node.remove();
+    });
 
-    var devItem = createDeveloperRootItem();
-    breadcrumbs.appendChild(devItem);
-    attachHover(devItem);
+    if (isRoot) {
+      var rootCurrent = breadcrumbs.querySelector(":scope > .breadcrumb-current");
+      if (rootCurrent) rootCurrent.remove();
 
-    if (isRoot) return true;
+      breadcrumbs.appendChild(createSeparator());
+      var rootItem = createDeveloperRootItem(path);
+      breadcrumbs.appendChild(rootItem);
+      attachHover(rootItem);
+      return true;
+    }
 
+    // Category pages and tool pages show the CURRENT CATEGORY as level 2.
+    // Developer Tools itself is not inserted as an extra breadcrumb level.
     breadcrumbs.appendChild(createSeparator());
     var categoryItem = createCategoryItem(category, path);
     breadcrumbs.appendChild(categoryItem);
@@ -181,22 +185,19 @@
       breadcrumbs.appendChild(createSeparator());
       breadcrumbs.appendChild(createCurrentItem());
     }
+
     return true;
   }
 
-  function refresh() {
-    rebuild();
-  }
-
   function refreshAfterSpa() {
-    refresh();
-    window.setTimeout(refresh, 50);
-    window.setTimeout(refresh, 200);
+    rebuild();
+    window.setTimeout(rebuild, 50);
+    window.setTimeout(rebuild, 200);
   }
 
-  document.addEventListener("DOMContentLoaded", refresh, { once: true });
-  window.addEventListener("load", refresh);
+  document.addEventListener("DOMContentLoaded", rebuild, { once: true });
+  window.addEventListener("load", rebuild);
   window.addEventListener("algolassi:spa-navigation", refreshAfterSpa);
   window.addEventListener("popstate", refreshAfterSpa);
-  if (document.readyState !== "loading") window.requestAnimationFrame(refresh);
+  if (document.readyState !== "loading") window.requestAnimationFrame(rebuild);
 })();
