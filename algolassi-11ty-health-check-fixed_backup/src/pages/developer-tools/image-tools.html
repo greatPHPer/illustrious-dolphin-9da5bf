@@ -5,7 +5,7 @@ permalink: "/developer-tools/image-tools/"
 contentType: "page"
 description: "Browser-based image utilities for upload, background removal, cropping, scaling, and format conversion."
 ---
-<link rel="stylesheet" href="/assets/css/algolassi-image-tools.css?v=20260901-image-tools-1">
+<link rel="stylesheet" href="/assets/css/algolassi-image-tools.css?v=20260901-image-tools-2">
 
 <div class="devtools-page image-workspace">
   <h1>Image Tools</h1>
@@ -27,9 +27,17 @@ description: "Browser-based image utilities for upload, background removal, crop
       <div id="image-preview-stage" class="image-preview-stage">
         <div id="image-preview-empty" class="image-preview-empty">Upload an image to begin.</div>
         <img id="image-preview-img" class="image-hidden" alt="Current image preview">
+        <div id="image-crop-overlay" class="image-crop-overlay image-hidden" aria-hidden="true">
+          <div id="image-crop-rectangle" class="image-crop-rectangle"><span></span></div>
+        </div>
+        <div id="image-scale-preview" class="image-scale-preview image-hidden" aria-hidden="true">
+          <div class="image-scale-preview-label">Scale preview</div>
+          <img id="image-scale-preview-img" alt="Scaled image preview">
+        </div>
       </div>
       <div class="image-toolbar">
         <strong id="image-dimensions">No image selected</strong>
+        <span id="image-preview-mode" class="image-preview-mode">Current</span>
       </div>
     </div>
 
@@ -50,22 +58,25 @@ description: "Browser-based image utilities for upload, background removal, crop
 
       <hr>
 
-      <div class="image-control">
-        <label>Scale</label>
+      <div class="image-control image-scale-control">
+        <label>Scale <span id="scale-live-size" class="image-live-size"></span></label>
         <div class="image-control-inline">
           <input id="scale-width" type="number" min="1" placeholder="Width">
           <input id="scale-height" type="number" min="1" placeholder="Height">
         </div>
+        <label class="image-checkbox-label"><input id="scale-lock-ratio" type="checkbox" checked> Keep aspect ratio</label>
       </div>
       <div class="image-actions">
+        <button id="image-scale-preview-button" class="image-action-button secondary" type="button">Preview Scale</button>
         <button id="image-scale-button" class="image-action-button" type="button">Create Scaled Version</button>
       </div>
 
       <hr>
 
-      <div class="image-control">
-        <label>Crop rectangle</label>
-        <div class="image-control-inline">
+      <div class="image-control image-crop-control">
+        <label>Crop rectangle <span id="crop-live-size" class="image-live-size"></span></label>
+        <p class="image-control-help">Drag on the image to draw a crop rectangle. You can still edit X, Y, width, and height below.</p>
+        <div class="image-control-inline image-control-inline-four">
           <input id="crop-x" type="number" min="0" placeholder="X">
           <input id="crop-y" type="number" min="0" placeholder="Y">
           <input id="crop-width" type="number" min="1" placeholder="Width">
@@ -88,4 +99,4 @@ description: "Browser-based image utilities for upload, background removal, crop
   </section>
 </div>
 
-<script src="/assets/js/algolassi-image-tools.js?v=20260901-image-tools-1" defer></script>
+<script src="/assets/js/algolassi-image-tools.js?v=20260901-image-tools-2" defer></script>
