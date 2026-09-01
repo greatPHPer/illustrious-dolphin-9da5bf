@@ -61,7 +61,7 @@
   }
 
   function buildCategoryMenu(currentPath) {
-    var menu = createElement("div", "breadcrumb-child-menu");
+    var menu = createElement("div", "breadcrumb-menu algolassi-toolmenu-menu");
     menu.setAttribute("data-menu", "developer-tools");
     CATEGORIES.forEach(function (category) {
       var link = createElement("a", "", category.title);
@@ -73,7 +73,7 @@
   }
 
   function buildToolMenu(category, currentPath) {
-    var menu = createElement("div", "breadcrumb-child-menu");
+    var menu = createElement("div", "breadcrumb-menu algolassi-toolmenu-menu");
     menu.setAttribute("data-tool-category-menu", category.key);
     category.tools.forEach(function (tool) {
       var link = createElement("a", "", tool.title);
@@ -87,19 +87,19 @@
     return menu;
   }
 
-  function createDeveloperRootItem(currentPath) {
-    var item = createElement("div", "breadcrumb-item breadcrumb-child-item algolassi-toolmenu-devtools");
+  function createDeveloperRootItem() {
+    var item = createElement("div", "breadcrumb-item algolassi-toolmenu-managed algolassi-toolmenu-devtools");
     var link = createElement("a", "breadcrumb-trigger crumb-trigger", "🛠️ Developer Tools");
     link.href = ROOT;
     link.setAttribute("data-menu", "developer-tools");
     link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
     item.appendChild(link);
-    item.appendChild(buildCategoryMenu(currentPath));
+    item.appendChild(buildCategoryMenu(location.pathname));
     return item;
   }
 
-  function createCategoryItem(category, currentPath, currentPageIsCategory) {
-    var item = createElement("div", "breadcrumb-item breadcrumb-child-item algolassi-toolmenu-category");
+  function createCategoryItem(category, currentPath) {
+    var item = createElement("div", "breadcrumb-item algolassi-toolmenu-managed algolassi-toolmenu-category");
     var link = createElement("a", "breadcrumb-trigger crumb-trigger", category.title);
     link.href = category.url;
     link.setAttribute("data-menu", "devtools-" + category.key);
@@ -109,12 +109,27 @@
     return item;
   }
 
-  function createCurrentItem(category) {
+  function createCurrentItem() {
     var heading = document.querySelector(".site-main h1");
     var text = heading && heading.textContent.trim()
       ? heading.textContent.trim()
       : document.title.replace(/\s*\|\s*Algolassi\s*$/i, "").trim();
     return createElement("span", "breadcrumb-current", "📄 " + (text || "Developer Tool"));
+  }
+
+  function attachHover(item) {
+    if (!item || item.dataset.toolmenuHoverAttached === "1") return;
+    item.dataset.toolmenuHoverAttached = "1";
+
+    var menu = item.querySelector(":scope > .algolassi-toolmenu-menu");
+    if (!menu) return;
+
+    item.addEventListener("mouseenter", function () { menu.classList.add("open"); });
+    item.addEventListener("mouseleave", function () { menu.classList.remove("open"); });
+    item.addEventListener("focusin", function () { menu.classList.add("open"); });
+    item.addEventListener("focusout", function (event) {
+      if (!item.contains(event.relatedTarget)) menu.classList.remove("open");
+    });
   }
 
   function rebuild() {
@@ -128,37 +143,50 @@
     var isRoot = path === ROOT;
     if (!isRoot && !category) return false;
 
-    breadcrumbs.innerHTML = "";
-    breadcrumbs.appendChild(createHomeItem());
-    breadcrumbs.appendChild(createSeparator());
-    breadcrumbs.appendChild(createDeveloperRootItem(path));
+    breadcrumbs.querySelectorAll(".algolassi-toolmenu-managed, .algolassi-toolmenu-separator").forEach(function (node) {
+      node.remove();
+    });
 
     if (isRoot) {
+      var existingCurrent = breadcrumbs.querySelector(":scope > .breadcrumb-current");
+      if (existingCurrent) existingCurrent.remove();
       breadcrumbs.appendChild(createSeparator());
-      breadcrumbs.appendChild(createElement("span", "breadcrumb-current", "📄 Developer Tools"));
+      var rootItem = createDeveloperRootItem();
+      breadcrumbs.appendChild(rootItem);
+      attachHover(rootItem);
       return true;
     }
 
     breadcrumbs.appendChild(createSeparator());
-    breadcrumbs.appendChild(createCategoryItem(category, path, normalize(category.url) === path));
+    var devItem = createDeveloperRootItem();
+    breadcrumbs.appendChild(devItem);
+    attachHover(devItem);
+
+    breadcrumbs.appendChild(createSeparator());
+    var categoryItem = createCategoryItem(category, path);
+    breadcrumbs.appendChild(categoryItem);
+    attachHover(categoryItem);
 
     if (normalize(category.url) !== path) {
       breadcrumbs.appendChild(createSeparator());
-      breadcrumbs.appendChild(createCurrentItem(category));
+      breadcrumbs.appendChild(createCurrentItem());
     }
     return true;
   }
 
   function refresh() {
-    if (!rebuild()) return;
-    window.requestAnimationFrame(function () {
-      try { window.dispatchEvent(new Event("resize")); } catch (e) {}
-    });
+    rebuild();
   }
 
   document.addEventListener("DOMContentLoaded", refresh, { once: true });
   window.addEventListener("load", refresh);
-  window.addEventListener("algolassi:spa-navigation", function () { requestAnimationFrame(refresh); });
-  window.addEventListener("popstate", function () { requestAnimationFrame(refresh); });
-  if (document.readyState !== "loading") requestAnimationFrame(refresh);
+  window.addEventListener("algolassi:spa-navigation", function () {
+    window.requestAnimationFrame(refresh);
+    window.setTimeout(refresh, 50);
+  });
+  window.addEventListener("popstate", function () {
+    window.requestAnimationFrame(refresh);
+    window.setTimeout(refresh, 50);
+  });
+  if (document.readyState !== "loading") window.requestAnimationFrame(refresh);
 })();
