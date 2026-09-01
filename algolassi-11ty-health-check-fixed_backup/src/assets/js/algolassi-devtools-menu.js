@@ -105,11 +105,7 @@
     link.setAttribute("data-menu", "devtools-" + category.key);
     if (isCategoryPage) link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
     item.appendChild(link);
-
-    // Category landing pages own the category's tool list.
-    if (isCategoryPage) {
-      item.appendChild(buildToolMenu(category, currentPath));
-    }
+    if (isCategoryPage) item.appendChild(buildToolMenu(category, currentPath));
     return item;
   }
 
@@ -119,9 +115,7 @@
       ? heading.textContent.trim()
       : document.title.replace(/\s*\|\s*Algolassi\s*$/i, "").trim();
 
-    // On an individual tool page the THIRD breadcrumb level owns the
-    // category's tool submenu. The level-2 category remains plain text.
-    var item = createElement("span", "breadcrumb-current algolassi-toolmenu-current", "📄 " + (text || "Developer Tool") + " ");
+    var item = createElement("span", "breadcrumb-current breadcrumb-child-item algolassi-toolmenu-current", "📄 " + (text || "Developer Tool") + " ");
     item.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
     item.appendChild(buildToolMenu(category, currentPath));
     return item;
@@ -148,7 +142,6 @@
     item.dataset.toolmenuHoverAttached = "1";
     var menu = item.querySelector(":scope > .algolassi-toolmenu-menu");
     if (!menu) return;
-
     item.addEventListener("mouseenter", function () { showMenu(menu); });
     item.addEventListener("mouseleave", function () { hideMenu(menu); });
     item.addEventListener("focusin", function () { showMenu(menu); });
@@ -168,7 +161,6 @@
     var isRoot = path === ROOT;
     if (!isRoot && !category) return false;
 
-    /* Developer Tools owns its entire breadcrumb while inside /developer-tools/. */
     breadcrumbs.innerHTML = "";
     breadcrumbs.appendChild(createHomeItem());
     breadcrumbs.appendChild(createSeparator());
