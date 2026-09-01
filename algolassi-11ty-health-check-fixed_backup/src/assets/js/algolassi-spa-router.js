@@ -65,6 +65,23 @@
     }
   }
 
+  function activateImageToolScripts(main) {
+    if (!main || !main.querySelector(".image-workspace")) return;
+
+    Array.prototype.slice.call(main.querySelectorAll("script[src]")).forEach(function (source) {
+      var src = source.getAttribute("src") || "";
+      if (src.indexOf("/assets/js/algolassi-image-tools.js") === -1 &&
+          src.indexOf("/assets/js/algolassi-image-tools-stability.js") === -1) {
+        return;
+      }
+
+      var script = document.createElement("script");
+      script.src = src;
+      script.async = false;
+      document.body.appendChild(script);
+    });
+  }
+
   function initPage() {
     var initializers = [
       "AlgolassiCommentsInit",
@@ -107,6 +124,7 @@
         if (!currentMain || !nextMain) throw new Error("site-main not found");
 
         currentMain.innerHTML = nextMain.innerHTML;
+        activateImageToolScripts(currentMain);
         updateMeta(doc);
 
         if (push) {
