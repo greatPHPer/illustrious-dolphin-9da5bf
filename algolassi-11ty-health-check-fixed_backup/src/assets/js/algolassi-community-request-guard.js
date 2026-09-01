@@ -39,7 +39,7 @@
 
   var originalFetch = window.fetch;
   var cache = Object.create(null);
-  var TTL = 4000;
+  var TTL = 15000;
 
   function isGuardedGet(url, options) {
     var method = options && options.method ? String(options.method).toUpperCase() : "GET";
