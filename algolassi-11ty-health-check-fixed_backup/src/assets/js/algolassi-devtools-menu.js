@@ -2,8 +2,8 @@
  * Tutorial and other site breadcrumbs are left untouched.
  *
  * Developer Tools:
- *   Home → Category → Current Tool
- *                      ↳ category-specific tool menu on hover
+ *   Home → Developer Tools → Category → Current Tool
+ *          ↳ category list      ↳ category-specific tool menu
  */
 (function () {
   "use strict";
@@ -77,6 +77,10 @@
     return element;
   }
 
+  function createSeparator() {
+    return createElement("span", "breadcrumb-separator algolassi-toolmenu-separator", "/");
+  }
+
   function createHomeItem() {
     var item = createElement("div", "breadcrumb-item");
     var link = createElement("a", "breadcrumb-trigger crumb-trigger", "🏠 Home");
@@ -85,63 +89,64 @@
     return item;
   }
 
-  function createSeparator() {
-    return createElement("span", "breadcrumb-separator", "/");
-  }
-
-  function buildToolMenu(category, currentPath) {
+  function buildCategoryMenu(currentPath) {
     var menu = createElement("div", "breadcrumb-menu");
-    menu.setAttribute("data-menu", "devtools-" + category.key);
-
-    category.tools.forEach(function (tool) {
-      var link = createElement("a", "", tool.title);
-      link.href = tool.url;
-      if (normalize(tool.url) === normalize(currentPath)) {
-        link.classList.add("breadcrumb-dropdown-current");
-      }
+    menu.setAttribute("data-menu", "developer-tools");
+    CATEGORIES.forEach(function (category) {
+      var link = createElement("a", "", category.title);
+      link.href = category.url;
+      if (normalize(category.url) === normalize(currentPath)) link.className = "breadcrumb-dropdown-current";
       menu.appendChild(link);
     });
-
-    if (!category.tools.length) {
-      menu.appendChild(createElement("span", "breadcrumb-toolmenu-empty", "More tools coming soon"));
-    }
-
     return menu;
   }
 
-  function createCategoryItem(category, currentPath) {
-    var item = createElement("div", "breadcrumb-item");
+  function buildToolMenu(category, currentPath) {
+    var menu = createElement("div", "breadcrumb-child-menu");
+    menu.setAttribute("data-tool-category-menu", category.key);
+    category.tools.forEach(function (tool) {
+      var link = createElement("a", "", tool.title);
+      link.href = tool.url;
+      if (normalize(tool.url) === normalize(currentPath)) link.className = "breadcrumb-dropdown-current";
+      menu.appendChild(link);
+    });
+    if (!category.tools.length) {
+      menu.appendChild(createElement("span", "breadcrumb-toolmenu-empty", "More tools coming soon"));
+    }
+    return menu;
+  }
+
+  function createDeveloperRootItem(currentPath) {
+    var item = createElement("div", "breadcrumb-item algolassi-toolmenu-devtools");
+    var link = createElement("a", "breadcrumb-trigger crumb-trigger", "🛠️ Developer Tools");
+    link.href = ROOT;
+    link.setAttribute("data-menu", "developer-tools");
+    link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
+    item.appendChild(link);
+    item.appendChild(buildCategoryMenu(currentPath));
+    return item;
+  }
+
+  function createCategoryItem(category, currentPath, currentPageIsCategory) {
+    var item = createElement("div", "breadcrumb-item algolassi-toolmenu-category");
     var link = createElement("a", "breadcrumb-trigger crumb-trigger", category.title);
     link.href = category.url;
     link.setAttribute("data-menu", "devtools-" + category.key);
     link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
     item.appendChild(link);
-    item.appendChild(buildToolMenu(category, currentPath));
+
+    if (currentPageIsCategory || category.tools.length) {
+      item.appendChild(buildToolMenu(category, currentPath));
+    }
     return item;
   }
 
-  function createCategoryCurrentItem(category, currentPath) {
-    var item = createElement("div", "breadcrumb-item");
-    var link = createElement("a", "breadcrumb-trigger crumb-trigger breadcrumb-current", category.title);
-    link.href = category.url;
-    link.setAttribute("data-menu", "devtools-" + category.key);
-    link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
-    item.appendChild(link);
-    item.appendChild(buildToolMenu(category, currentPath));
-    return item;
-  }
-
-  function createCurrentItem(title, category, currentPath) {
-    var item = createElement("span", "breadcrumb-current", "📄 " + title);
-    item.setAttribute("data-tool-current", category.key);
-    return item;
-  }
-
-  function pageTitle() {
-    var heading = document.querySelector(".site-main h1");
-    if (heading && heading.textContent.trim()) return heading.textContent.trim();
-    var title = document.title.replace(/\s*\|\s*Algolassi\s*$/i, "").trim();
-    return title || "Developer Tool";
+  function createCurrentItem(category, currentPath) {
+    var title = document.querySelector(".site-main h1");
+    var text = title && title.textContent.trim()
+      ? title.textContent.trim()
+      : document.title.replace(/\s*\|\s*Algolassi\s*$/i, "").trim();
+    return createElement("span", "breadcrumb-current", "📄 " + (text || "Developer Tool"));
   }
 
   function rebuild() {
@@ -158,20 +163,22 @@
     breadcrumbs.innerHTML = "";
     breadcrumbs.appendChild(createHomeItem());
     breadcrumbs.appendChild(createSeparator());
+    breadcrumbs.appendChild(createDeveloperRootItem(path));
 
     if (isRoot) {
-      breadcrumbs.appendChild(createElement("span", "breadcrumb-current", "🛠️ Developer Tools"));
+      breadcrumbs.appendChild(createSeparator());
+      breadcrumbs.appendChild(createElement("span", "breadcrumb-current", "📄 Developer Tools"));
       return true;
     }
 
-    if (normalize(category.url) === path) {
-      breadcrumbs.appendChild(createCategoryCurrentItem(category, path));
-      return true;
-    }
-
-    breadcrumbs.appendChild(createCategoryItem(category, path));
     breadcrumbs.appendChild(createSeparator());
-    breadcrumbs.appendChild(createCurrentItem(pageTitle(), category, path));
+    breadcrumbs.appendChild(createCategoryItem(category, path, normalize(category.url) === path));
+
+    if (normalize(category.url) !== path) {
+      breadcrumbs.appendChild(createSeparator());
+      breadcrumbs.appendChild(createCurrentItem(category, path));
+    }
+
     return true;
   }
 
@@ -184,12 +191,7 @@
 
   document.addEventListener("DOMContentLoaded", refresh, { once: true });
   window.addEventListener("load", refresh);
-  window.addEventListener("algolassi:spa-navigation", function () {
-    window.requestAnimationFrame(refresh);
-  });
-  window.addEventListener("popstate", function () {
-    window.requestAnimationFrame(refresh);
-  });
-
-  if (document.readyState !== "loading") window.requestAnimationFrame(refresh);
+  window.addEventListener("algolassi:spa-navigation", function () { requestAnimationFrame(refresh); });
+  window.addEventListener("popstate", function () { requestAnimationFrame(refresh); });
+  if (document.readyState !== "loading") requestAnimationFrame(refresh);
 })();
