@@ -47,8 +47,8 @@
   transform: translateY(0) scale(1) !important;
   transition-delay: 0s !important;
 }
-.algolassi-toolmenu-menu { min-width: 230px !important; }
-.algolassi-toolmenu-menu > a { display: block !important; width: 100% !important; box-sizing: border-box !important; padding: 9px 11px !important; color: #475467 !important; background: transparent !important; text-decoration: none !important; white-space: normal !important; }
+.algolassi-toolmenu-menu { min-width: 230px !important; overflow-x: hidden !important; }
+.algolassi-toolmenu-menu > a { display: block !important; width: 100% !important; box-sizing: border-box !important; padding: 9px 11px !important; color: #475467 !important; background: transparent !important; text-decoration: none !important; white-space: normal !important; overflow-x: hidden !important; }
 .algolassi-toolmenu-menu > a:hover { background: #f4f8ff !important; color: #1769e0 !important; }
 
 @media (max-width: 700px) {
@@ -58,7 +58,8 @@
   .breadcrumb-child-menu { left: 0 !important; overflow-x: hidden !important; }
   .breadcrumb-child-item:hover > .breadcrumb-child-menu, .breadcrumb-child-item:focus-within > .breadcrumb-child-menu, .breadcrumb-child-menu.open { transform: translateY(0) scale(1) !important; }
   .breadcrumb-child-menu > a { font-size: 14px !important; }
-  .algolassi-toolmenu-menu { min-width: 210px !important; }
+  .algolassi-toolmenu-menu { min-width: 210px !important; overflow-x: hidden !important; }
+  .algolassi-toolmenu-menu > a { overflow-x: hidden !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
