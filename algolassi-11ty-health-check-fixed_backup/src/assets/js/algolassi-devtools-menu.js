@@ -216,18 +216,6 @@
     item.addEventListener("focusout", function (event) {
       if (!item.contains(event.relatedTarget)) hideMenu(menu);
     });
-
-    // Match the Tutorials breadcrumb interaction on touch devices:
-    // open the popup on pointer-up and do not navigate the parent item.
-    item.addEventListener("pointerup", function (event) {
-      var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-      if (!isMobile) return;
-      if (event.target && event.target.closest && event.target.closest(".algolassi-toolmenu-menu")) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-      showMenu(item, menu);
-    }, true);
   }
 
   function makeCurrentMenuItemNonInteractiveOnMobile() {
