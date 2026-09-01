@@ -1,10 +1,13 @@
-/* Algolassi Image Tools - click-to-select transparent background color. */
+/* Algolassi Image Tools - click-to-select transparent background region. */
 (function () {
   "use strict";
 
   var picking = false;
   var hasSelection = false;
   var busy = false;
+  var selectedRegion = null;
+  var originalGetImageData = null;
+  var originalPutImageData = null;
 
   function q(id) { return document.getElementById(id); }
 
@@ -39,27 +42,133 @@
     };
   }
 
-  function samplePixel(img, point) {
+  function readImageData(img) {
     var canvas = document.createElement("canvas");
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
     var ctx = canvas.getContext("2d", { willReadFrequently: true });
     ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
-    var pixel = ctx.getImageData(point.x, point.y, 1, 1).data;
-    return { r: pixel[0], g: pixel[1], b: pixel[2] };
+    return {
+      width: canvas.width,
+      height: canvas.height,
+      data: ctx.getImageData(0, 0, canvas.width, canvas.height)
+    };
   }
 
-  function toHex(rgb) {
-    function h(v) { return v.toString(16).padStart(2, "0"); }
-    return "#" + h(rgb.r) + h(rgb.g) + h(rgb.b);
+  function buildConnectedMask(imageData, point, tolerance) {
+    var width = imageData.width;
+    var height = imageData.height;
+    var pixels = imageData.data.data;
+    var seedIndex = (point.y * width + point.x) * 4;
+    var sr = pixels[seedIndex];
+    var sg = pixels[seedIndex + 1];
+    var sb = pixels[seedIndex + 2];
+    var mask = new Uint8Array(width * height);
+    var visited = new Uint8Array(width * height);
+    var stack = new Int32Array(width * height);
+    var top = 0;
+    stack[top++] = point.y * width + point.x;
+
+    function matches(index) {
+      var p = index * 4;
+      return Math.abs(pixels[p] - sr) <= tolerance &&
+             Math.abs(pixels[p + 1] - sg) <= tolerance &&
+             Math.abs(pixels[p + 2] - sb) <= tolerance;
+    }
+
+    while (top > 0) {
+      var index = stack[--top];
+      if (visited[index]) continue;
+      visited[index] = 1;
+      if (!matches(index)) continue;
+      mask[index] = 1;
+      var x = index % width;
+      var y = (index / width) | 0;
+      if (x > 0) stack[top++] = index - 1;
+      if (x + 1 < width) stack[top++] = index + 1;
+      if (y > 0) stack[top++] = index - width;
+      if (y + 1 < height) stack[top++] = index + width;
+    }
+
+    return {
+      width: width,
+      height: height,
+      mask: mask,
+      rgb: { r: sr, g: sg, b: sb },
+      count: mask.reduce(function (sum, value) { return sum + value; }, 0)
+    };
   }
 
-  function ensureStyles() {
-    if (document.getElementById("algolassi-transparent-click-styles")) return;
-    var style = document.createElement("style");
-    style.id = "algolassi-transparent-click-styles";
-    style.textContent = ".algolassi-transparent-picking #image-preview-img{cursor:crosshair!important}.algolassi-transparent-picking{cursor:crosshair}.image-transparent-pick-note{font-size:.88em;opacity:.78;margin-top:6px}";
-    document.head.appendChild(style);
+  function protectProcessorForSelectedRegion(region, tolerance) {
+    if (!region || !window.CanvasRenderingContext2D || !CanvasRenderingContext2D.prototype) return;
+
+    originalGetImageData = CanvasRenderingContext2D.prototype.getImageData;
+    originalPutImageData = CanvasRenderingContext2D.prototype.putImageData;
+
+    CanvasRenderingContext2D.prototype.getImageData = function (sx, sy, sw, sh) {
+      var data = originalGetImageData.apply(this, arguments);
+      if (!region || sw !== region.width || sh !== region.height || sx !== 0 || sy !== 0) return data;
+
+      var original = new Uint8ClampedArray(data.data);
+      var px = data.data;
+      var seed = region.rgb;
+
+      // The existing Image Tools processor removes every pixel matching the
+      // selected color. Make only non-selected/disconnected matching pixels
+      // temporarily differ from the seed color. putImageData() below restores
+      // their original RGB values so no unrelated pixels are changed.
+      for (var i = 0; i < region.mask.length; i++) {
+        if (region.mask[i]) continue;
+        var p = i * 4;
+        if (Math.abs(original[p] - seed.r) <= tolerance &&
+            Math.abs(original[p + 1] - seed.g) <= tolerance &&
+            Math.abs(original[p + 2] - seed.b) <= tolerance) {
+          var delta = Math.max(2, tolerance + 1);
+          px[p] = Math.min(255, seed.r + delta);
+          px[p + 1] = Math.max(0, seed.g - delta);
+          px[p + 2] = Math.min(255, seed.b + delta);
+        }
+      }
+
+      data.__algolassiOriginal = original;
+      return data;
+    };
+
+    CanvasRenderingContext2D.prototype.putImageData = function (data) {
+      var original = data && data.__algolassiOriginal;
+      if (!original || !region) return originalPutImageData.apply(this, arguments);
+
+      var px = data.data;
+      for (var i = 0; i < region.mask.length; i++) {
+        var p = i * 4;
+        if (!region.mask[i]) {
+          px[p] = original[p];
+          px[p + 1] = original[p + 1];
+          px[p + 2] = original[p + 2];
+          px[p + 3] = original[p + 3];
+        } else {
+          px[p] = original[p];
+          px[p + 1] = original[p + 1];
+          px[p + 2] = original[p + 2];
+        }
+      }
+
+      try {
+        delete data.__algolassiOriginal;
+      } catch (e) {
+        data.__algolassiOriginal = null;
+      }
+      restoreCanvasApi();
+      return originalPutImageData.apply(this, arguments);
+    };
+  }
+
+  function restoreCanvasApi() {
+    if (!window.CanvasRenderingContext2D || !CanvasRenderingContext2D.prototype) return;
+    if (originalGetImageData) CanvasRenderingContext2D.prototype.getImageData = originalGetImageData;
+    if (originalPutImageData) CanvasRenderingContext2D.prototype.putImageData = originalPutImageData;
+    originalGetImageData = null;
+    originalPutImageData = null;
   }
 
   function chooseFromImage(event) {
@@ -73,16 +182,27 @@
 
     busy = true;
     try {
-      var rgb = samplePixel(img, point);
-      var hex = toHex(rgb);
+      var imageData = readImageData(img);
+      var toleranceInput = q("transparent-tolerance");
+      var tolerance = Math.max(0, parseInt(toleranceInput && toleranceInput.value, 10) || 0);
+      selectedRegion = buildConnectedMask(imageData, point, tolerance);
+      if (!selectedRegion.count) {
+        selectedRegion = null;
+        status("Could not select a background region at that point.", false);
+        return;
+      }
+      var hex = "#" + [selectedRegion.rgb.r, selectedRegion.rgb.g, selectedRegion.rgb.b].map(function (v) {
+        return v.toString(16).padStart(2, "0");
+      }).join("");
       var input = q("transparent-color");
       if (input) input.value = hex;
       hasSelection = true;
       setPicking(false);
-      status("Selected background " + hex.toUpperCase() + ". Click Transparent Background to apply it.", true);
+      status("Selected connected region " + hex.toUpperCase() + ". Click Transparent Background to make only that region transparent.", true);
     } catch (error) {
       console.error("Algolassi transparent background pick:", error);
-      status("Could not read that image pixel.", false);
+      selectedRegion = null;
+      status("Could not read that image region.", false);
     } finally {
       busy = false;
     }
@@ -95,11 +215,17 @@
       var button = event.target && event.target.closest ? event.target.closest("#image-transparent-button") : null;
       if (!button) return;
 
-      // After a background color has been selected by clicking the image,
-      // allow the original Image Tools handler to perform the existing
-      // transparent-color processing and add the result to history.
-      if (hasSelection) {
+      // Let the original Image Tools processor run, but protect it so only the
+      // connected region selected by the user is allowed to match the color.
+      if (hasSelection && selectedRegion) {
         hasSelection = false;
+        var toleranceInput = q("transparent-tolerance");
+        var tolerance = Math.max(0, parseInt(toleranceInput && toleranceInput.value, 10) || 0);
+        protectProcessorForSelectedRegion(selectedRegion, tolerance);
+        window.setTimeout(function () {
+          restoreCanvasApi();
+        }, 5000);
+        selectedRegion = null;
         return;
       }
 
@@ -112,7 +238,7 @@
           return;
         }
         setPicking(true);
-        status("Click the background area in the image to select it.", true);
+        status("Click the background area in the image to select its connected region.", true);
       }
     }, true);
 
@@ -127,8 +253,18 @@
     window.addEventListener("algolassi:spa-navigation", function () {
       picking = false;
       hasSelection = false;
+      selectedRegion = null;
+      restoreCanvasApi();
       setPicking(false);
     });
+  }
+
+  function ensureStyles() {
+    if (document.getElementById("algolassi-transparent-click-styles")) return;
+    var style = document.createElement("style");
+    style.id = "algolassi-transparent-click-styles";
+    style.textContent = ".algolassi-transparent-picking #image-preview-img{cursor:crosshair!important}.algolassi-transparent-picking{cursor:crosshair}.image-transparent-pick-note{font-size:.88em;opacity:.78;margin-top:6px}";
+    document.head.appendChild(style);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind, { once: true });
