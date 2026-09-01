@@ -1,47 +1,55 @@
-/* Developer Tools category / tool breadcrumb hierarchy. */
+/* Developer Tools-only breadcrumb hierarchy.
+ * Tutorial and other site breadcrumbs are left untouched.
+ *
+ * Developer Tools:
+ *   Home → Category → Current Tool
+ *                    ↳ category-specific tool menu on hover
+ */
 (function () {
   "use strict";
+
+  var ROOT = "/developer-tools/";
 
   var CATEGORIES = [
     {
       title: "🖼️ Image Tools",
-      url: "/developer-tools/image-tools/",
+      url: ROOT + "image-tools/",
       key: "image-tools",
       tools: []
     },
     {
       title: "🔄 Format Converters",
-      url: "/developer-tools/format-converters/",
+      url: ROOT + "format-converters/",
       key: "format-converters",
       tools: [
-        { title: "64 Base64 Encoder / Decoder", url: "/developer-tools/base64-encoder-decoder/" },
-        { title: "URL Encoder / Decoder", url: "/developer-tools/url-encoder-decoder/" },
-        { title: "<> HTML Encoder / Decoder", url: "/developer-tools/html-encoder-decoder/" }
+        { title: "64 Base64 Encoder / Decoder", url: ROOT + "base64-encoder-decoder/" },
+        { title: "URL Encoder / Decoder", url: ROOT + "url-encoder-decoder/" },
+        { title: "<> HTML Encoder / Decoder", url: ROOT + "html-encoder-decoder/" }
       ]
     },
     {
       title: "{} Data & Validation",
-      url: "/developer-tools/data-validation/",
+      url: ROOT + "data-validation/",
       key: "data-validation",
       tools: [
-        { title: "{} JSON Formatter & Validator", url: "/developer-tools/json-formatter/" },
-        { title: "JWT Inspector", url: "/developer-tools/jwt-decoder/" },
-        { title: ".* Regex Tester", url: "/developer-tools/regex-tester/" }
+        { title: "{} JSON Formatter & Validator", url: ROOT + "json-formatter/" },
+        { title: "JWT Inspector", url: ROOT + "jwt-decoder/" },
+        { title: ".* Regex Tester", url: ROOT + "regex-tester/" }
       ]
     },
     {
       title: "🧰 Developer Utilities",
-      url: "/developer-tools/developer-utilities/",
+      url: ROOT + "developer-utilities/",
       key: "developer-utilities",
       tools: [
-        { title: "ID GUID / UUID Generator", url: "/developer-tools/guid-generator/" },
-        { title: "TS Unix Timestamp Converter", url: "/developer-tools/unix-timestamp-converter/" },
-        { title: "= Code Equals Sign Aligner", url: "/developer-tools/code-equals-aligner/" }
+        { title: "ID GUID / UUID Generator", url: ROOT + "guid-generator/" },
+        { title: "TS Unix Timestamp Converter", url: ROOT + "unix-timestamp-converter/" },
+        { title: "= Code Equals Sign Aligner", url: ROOT + "code-equals-aligner/" }
       ]
     }
   ];
 
-  var TOOL_TO_CATEGORY = {};
+  var TOOL_TO_CATEGORY = Object.create(null);
   CATEGORIES.forEach(function (category) {
     category.tools.forEach(function (tool) {
       TOOL_TO_CATEGORY[tool.url] = category;
@@ -54,135 +62,148 @@
     return value;
   }
 
-  function directChild(parent, selector) {
-    if (!parent) return null;
-    for (var i = 0; i < parent.children.length; i++) {
-      if (parent.children[i].matches && parent.children[i].matches(selector)) return parent.children[i];
+  function currentCategory(path) {
+    var normalized = normalize(path);
+    for (var i = 0; i < CATEGORIES.length; i++) {
+      if (CATEGORIES[i].url === normalized) return CATEGORIES[i];
     }
-    return null;
+    return TOOL_TO_CATEGORY[normalized] || null;
   }
 
-  function buildLink(item, currentPath) {
-    var link = document.createElement("a");
-    link.href = item.url;
-    link.textContent = item.title;
-    if (normalize(currentPath) === normalize(item.url)) link.className = "breadcrumb-dropdown-current";
-    return link;
+  function createElement(tag, className, text) {
+    var element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text != null) element.textContent = text;
+    return element;
   }
 
-  function rebuildDeveloperMenu(devItem, currentPath) {
-    var menu = directChild(devItem, ".breadcrumb-menu");
-    if (!menu) return;
+  function createHomeItem() {
+    var item = createElement("div", "breadcrumb-item");
+    var link = createElement("a", "breadcrumb-trigger crumb-trigger");
+    link.href = "/";
+    link.textContent = "🏠 Home";
+    var arrow = createElement("span", "breadcrumb-arrow", "▼");
+    link.appendChild(arrow);
 
-    menu.classList.remove("breadcrumb-child-menu-source-hidden");
-    menu.removeAttribute("style");
-    menu.innerHTML = "";
+    // Preserve the familiar Home dropdown contents without making it part of
+    // the Developer Tools hierarchy used for the second/third levels.
+    var menu = createElement("div", "breadcrumb-menu");
+    menu.setAttribute("data-menu", "home");
+    var tutorials = createElement("a", "", "📚 Tutorials");
+    tutorials.href = "/tutorials/";
+    var about = createElement("a", "", "ℹ️ About");
+    about.href = "/about-algolassi/";
+    menu.appendChild(tutorials);
+    menu.appendChild(about);
 
-    CATEGORIES.forEach(function (category) {
-      menu.appendChild(buildLink(category, currentPath));
-    });
-  }
-
-  function removeGeneratedCategory(breadcrumbs) {
-    breadcrumbs.querySelectorAll(".algolassi-toolmenu-category-separator, .algolassi-toolmenu-category").forEach(function (node) {
-      node.remove();
-    });
-  }
-
-  function clearGeneratedChildMenus(devItem, current) {
-    if (devItem) {
-      Array.prototype.slice.call(devItem.children).forEach(function (child) {
-        if (child.matches && child.matches(".breadcrumb-child-menu")) child.remove();
-      });
-    }
-    if (current) {
-      Array.prototype.slice.call(current.children).forEach(function (child) {
-        if (child.matches && child.matches(".breadcrumb-child-menu")) child.remove();
-      });
-    }
-  }
-
-  function addCategoryLevel(breadcrumbs, current, category, currentPath) {
-    if (!current || !category) return;
-
-    var item = document.createElement("div");
-    item.className = "breadcrumb-item breadcrumb-child-item algolassi-toolmenu-category";
-    item.setAttribute("data-tool-category", category.key);
-
-    var trigger = document.createElement("a");
-    trigger.href = category.url;
-    trigger.className = "breadcrumb-trigger crumb-trigger";
-    trigger.setAttribute("data-menu", "devtools-" + category.key);
-    trigger.textContent = category.title + " ";
-
-    var arrow = document.createElement("span");
-    arrow.className = "breadcrumb-arrow";
-    arrow.textContent = "▼";
-    trigger.appendChild(arrow);
-    item.appendChild(trigger);
-
-    var menu = document.createElement("div");
-    menu.className = "breadcrumb-child-menu";
-    menu.setAttribute("data-tool-category-menu", category.key);
-
-    if (category.tools.length) {
-      category.tools.forEach(function (tool) {
-        menu.appendChild(buildLink(tool, currentPath));
-      });
-    } else {
-      var empty = document.createElement("span");
-      empty.className = "breadcrumb-toolmenu-empty";
-      empty.textContent = "More tools coming soon";
-      menu.appendChild(empty);
-    }
-
+    item.appendChild(link);
     item.appendChild(menu);
-
-    var separator = document.createElement("span");
-    separator.className = "breadcrumb-separator algolassi-toolmenu-category-separator";
-    separator.textContent = "/";
-
-    current.parentNode.insertBefore(item, current);
-    current.parentNode.insertBefore(separator, current);
+    return item;
   }
 
-  function update() {
+  function createSeparator() {
+    return createElement("span", "breadcrumb-separator", "/");
+  }
+
+  function createCategoryItem(category, currentPath) {
+    var item = createElement("div", "breadcrumb-item");
+    var link = createElement("a", "breadcrumb-trigger crumb-trigger");
+    link.href = category.url;
+    link.setAttribute("data-menu", "devtools-" + category.key);
+    link.textContent = category.title;
+    link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
+
+    var menu = createElement("div", "breadcrumb-menu");
+    menu.setAttribute("data-menu", "devtools-" + category.key);
+
+    category.tools.forEach(function (tool) {
+      var toolLink = createElement("a", "", tool.title);
+      toolLink.href = tool.url;
+      if (normalize(tool.url) === normalize(currentPath)) {
+        toolLink.classList.add("breadcrumb-dropdown-current");
+      }
+      menu.appendChild(toolLink);
+    });
+
+    if (!category.tools.length) {
+      menu.appendChild(createElement("span", "breadcrumb-toolmenu-empty", "More tools coming soon"));
+    }
+
+    item.appendChild(link);
+    item.appendChild(menu);
+    return item;
+  }
+
+  function createCurrentItem(title, category, currentPath) {
+    var item = createElement("span", "breadcrumb-current", "📄 " + title);
+
+    // When this is a tool page, the existing child-menu enhancer will clone
+    // the category's .breadcrumb-menu onto this current breadcrumb item.
+    item.setAttribute("data-tool-current", category.key);
+
+    return item;
+  }
+
+  function pageTitle() {
+    var heading = document.querySelector(".site-main h1");
+    if (heading && heading.textContent.trim()) return heading.textContent.trim();
+    var title = document.title.replace(/\s*\|\s*Algolassi\s*$/i, "").trim();
+    return title || "Developer Tool";
+  }
+
+  function rebuild() {
+    var path = normalize(location.pathname);
+    if (path.indexOf(ROOT) !== 0) return false;
+
     var breadcrumbs = document.querySelector(".site-main > .breadcrumbs");
-    if (!breadcrumbs) return;
+    if (!breadcrumbs) return false;
 
-    var devLink = breadcrumbs.querySelector('a[href="/developer-tools/"]');
-    if (!devLink) return;
+    var category = currentCategory(path);
+    var isRoot = path === ROOT;
+    if (!category && !isRoot) return false;
 
-    var devItem = devLink.closest(".breadcrumb-item");
-    var current = breadcrumbs.querySelector(":scope > .breadcrumb-current");
-    if (!devItem || !current) return;
+    // Do not touch tutorial or unrelated breadcrumbs.
+    breadcrumbs.innerHTML = "";
+    breadcrumbs.appendChild(createHomeItem());
+    breadcrumbs.appendChild(createSeparator());
 
-    var currentPath = normalize(location.pathname);
-    var category = currentPath === "/developer-tools/" ? null :
-      CATEGORIES.reduce(function (found, candidate) {
-        return found || (normalize(candidate.url) === currentPath ? candidate : null);
-      }, null) || TOOL_TO_CATEGORY[currentPath];
+    if (isRoot) {
+      var rootItem = createElement("span", "breadcrumb-current", "🛠️ Developer Tools");
+      breadcrumbs.appendChild(rootItem);
+      return true;
+    }
 
-    removeGeneratedCategory(breadcrumbs);
-    clearGeneratedChildMenus(devItem, current);
-    rebuildDeveloperMenu(devItem, currentPath);
+    if (normalize(category.url) === path) {
+      var categoryCurrent = createElement("span", "breadcrumb-current", category.title);
+      breadcrumbs.appendChild(categoryCurrent);
+      return true;
+    }
 
-    if (category) addCategoryLevel(breadcrumbs, current, category, currentPath);
-
-    // Let the existing mobile breadcrumb logic re-evaluate the newly inserted level.
-    try {
-      window.dispatchEvent(new Event("resize"));
-    } catch (e) {}
+    breadcrumbs.appendChild(createCategoryItem(category, path));
+    breadcrumbs.appendChild(createSeparator());
+    breadcrumbs.appendChild(createCurrentItem(pageTitle(), category, path));
+    return true;
   }
 
-  document.addEventListener("DOMContentLoaded", update, { once: true });
-  window.addEventListener("load", update);
+  function refresh() {
+    var changed = rebuild();
+    if (!changed) return;
+
+    // The child-menu system owns the hover/touch behavior and will clone the
+    // category's menu onto the current tool item after this DOM is rebuilt.
+    window.requestAnimationFrame(function () {
+      try { window.dispatchEvent(new Event("resize")); } catch (e) {}
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", refresh, { once: true });
+  window.addEventListener("load", refresh);
   window.addEventListener("algolassi:spa-navigation", function () {
-    window.requestAnimationFrame(update);
+    window.requestAnimationFrame(refresh);
   });
   window.addEventListener("popstate", function () {
-    window.requestAnimationFrame(update);
+    window.requestAnimationFrame(refresh);
   });
 
-  if (document.readyState !== "loading") window.requestAnimationFrame(update);
+  if (document.readyState !== "loading") window.requestAnimationFrame(refresh);
 })();
