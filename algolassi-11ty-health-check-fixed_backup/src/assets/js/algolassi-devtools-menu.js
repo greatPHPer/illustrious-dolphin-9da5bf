@@ -60,7 +60,6 @@
     return item;
   }
 
-  // Level-2 Developer Tools category switcher.
   function buildCategoryMenu(currentPath) {
     var menu = createElement("div", "breadcrumb-menu algolassi-toolmenu-menu");
     menu.setAttribute("data-menu", "developer-tools-categories");
@@ -68,16 +67,13 @@
     CATEGORIES.forEach(function (category) {
       var link = createElement("a", "", category.title);
       link.href = category.url;
-      if (normalize(category.url) === normalize(currentPath)) {
-        link.className = "breadcrumb-dropdown-current";
-      }
+      if (normalize(category.url) === normalize(currentPath)) link.className = "breadcrumb-dropdown-current";
       menu.appendChild(link);
     });
 
     return menu;
   }
 
-  // Level-3 current-tool switcher.
   function buildToolMenu(category, currentPath) {
     var menu = createElement("div", "breadcrumb-menu algolassi-toolmenu-menu");
     menu.setAttribute("data-tool-category-menu", category.key);
@@ -85,16 +81,11 @@
     category.tools.forEach(function (tool) {
       var link = createElement("a", "", tool.title);
       link.href = tool.url;
-      if (normalize(tool.url) === normalize(currentPath)) {
-        link.className = "breadcrumb-dropdown-current";
-      }
+      if (normalize(tool.url) === normalize(currentPath)) link.className = "breadcrumb-dropdown-current";
       menu.appendChild(link);
     });
 
-    if (!category.tools.length) {
-      menu.appendChild(createElement("span", "breadcrumb-toolmenu-empty", "More tools coming soon"));
-    }
-
+    if (!category.tools.length) menu.appendChild(createElement("span", "breadcrumb-toolmenu-empty", "More tools coming soon"));
     return menu;
   }
 
@@ -122,9 +113,7 @@
   }
 
   // Level 3 is always present once a Developer Tools category is known.
-  // On a category landing page it defaults to that category's name; on a
-  // tool page it becomes the current tool title. In both cases it owns the
-  // category's actual tool submenu.
+  // It owns the category's actual tool submenu, including selected-item alignment.
   function createCurrentItem(category, currentPath) {
     var heading = document.querySelector(".site-main h1");
     var text = heading && heading.textContent.trim()
@@ -141,7 +130,68 @@
     return item;
   }
 
-  function showMenu(menu) {
+  function alignToolMenu(item, menu) {
+    if (!item || !menu) return;
+
+    var selected = menu.querySelector("a.breadcrumb-dropdown-current");
+    if (!selected) {
+      menu.style.removeProperty("max-height");
+      menu.style.removeProperty("overflow-y");
+      menu.style.removeProperty("top");
+      return;
+    }
+
+    // Make the menu measurable without displaying a flash.
+    menu.style.setProperty("visibility", "visible", "important");
+    menu.style.setProperty("opacity", "0", "important");
+    menu.style.setProperty("pointer-events", "none", "important");
+    menu.style.setProperty("transform", "none", "important");
+    menu.style.setProperty("transition", "none", "important");
+    menu.style.setProperty("max-height", "none", "important");
+    menu.style.setProperty("overflow-y", "visible", "important");
+    menu.style.setProperty("top", "0px", "important");
+
+    void menu.offsetWidth;
+
+    var itemRect = item.getBoundingClientRect();
+    var selectedRect = selected.getBoundingClientRect();
+    var menuRect = menu.getBoundingClientRect();
+    var triggerCenter = itemRect.top + itemRect.height / 2;
+    var selectedCenterRelative = (selectedRect.top - menuRect.top) + selectedRect.height / 2;
+    var idealViewportTop = triggerCenter - selectedCenterRelative;
+
+    var minTopSpace = 16;
+    var maxBottomSpace = window.innerHeight - 16;
+    var naturalHeight = menuRect.height;
+    var expectedViewportTop = Math.max(idealViewportTop, minTopSpace);
+    var requiredScrollTop = Math.max(0, expectedViewportTop - idealViewportTop);
+    var maxHeightToPermitScroll = Math.max(1, naturalHeight - requiredScrollTop);
+    var maxHeightToFitViewport = Math.max(1, maxBottomSpace - expectedViewportTop);
+    var finalMaxHeight = Math.min(naturalHeight, maxHeightToPermitScroll, maxHeightToFitViewport);
+    finalMaxHeight = Math.max(1, finalMaxHeight);
+
+    var targetTop = expectedViewportTop - menuRect.top;
+    menu.style.setProperty("top", targetTop + "px", "important");
+
+    if (finalMaxHeight < naturalHeight || requiredScrollTop > 0) {
+      menu.style.setProperty("max-height", Math.floor(finalMaxHeight) + "px", "important");
+      menu.style.setProperty("overflow-y", "auto", "important");
+    } else {
+      menu.style.setProperty("max-height", "none", "important");
+      menu.style.setProperty("overflow-y", "hidden", "important");
+    }
+
+    menu.scrollTop = Math.min(requiredScrollTop, Math.max(0, menu.scrollHeight - menu.clientHeight));
+
+    menu.style.removeProperty("visibility");
+    menu.style.removeProperty("opacity");
+    menu.style.removeProperty("pointer-events");
+    menu.style.removeProperty("transform");
+    menu.style.removeProperty("transition");
+  }
+
+  function showMenu(item, menu) {
+    alignToolMenu(item, menu);
     menu.classList.add("open");
     menu.style.setProperty("visibility", "visible", "important");
     menu.style.setProperty("opacity", "1", "important");
@@ -164,9 +214,9 @@
     var menu = item.querySelector(":scope > .algolassi-toolmenu-menu");
     if (!menu) return;
 
-    item.addEventListener("mouseenter", function () { showMenu(menu); });
+    item.addEventListener("mouseenter", function () { showMenu(item, menu); });
     item.addEventListener("mouseleave", function () { hideMenu(menu); });
-    item.addEventListener("focusin", function () { showMenu(menu); });
+    item.addEventListener("focusin", function () { showMenu(item, menu); });
     item.addEventListener("focusout", function (event) {
       if (!item.contains(event.relatedTarget)) hideMenu(menu);
     });
@@ -183,7 +233,6 @@
     var isRoot = path === ROOT;
     if (!isRoot && !category) return false;
 
-    // Developer Tools owns its entire breadcrumb while inside /developer-tools/.
     breadcrumbs.innerHTML = "";
     breadcrumbs.appendChild(createHomeItem());
     breadcrumbs.appendChild(createSeparator());
@@ -195,13 +244,10 @@
       return true;
     }
 
-    var isCategoryPage = normalize(category.url) === path;
     var categoryItem = createCategoryItem(category, path);
     breadcrumbs.appendChild(categoryItem);
     attachHover(categoryItem);
 
-    // Keep a third breadcrumb level on category landing pages as well as
-    // individual tool pages. This is the default owner of the actual tool list.
     breadcrumbs.appendChild(createSeparator());
     var currentItem = createCurrentItem(category, path);
     breadcrumbs.appendChild(currentItem);
