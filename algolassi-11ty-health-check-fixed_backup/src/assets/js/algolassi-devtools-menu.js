@@ -216,6 +216,35 @@
     item.addEventListener("focusout", function (event) {
       if (!item.contains(event.relatedTarget)) hideMenu(menu);
     });
+
+    // Match the Tutorials breadcrumb interaction on touch devices:
+    // open the popup on pointer-up and do not navigate the parent item.
+    item.addEventListener("pointerup", function (event) {
+      var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+      if (!isMobile) return;
+      if (event.target && event.target.closest && event.target.closest(".algolassi-toolmenu-menu")) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      showMenu(item, menu);
+    }, true);
+  }
+
+  function makeCurrentMenuItemNonInteractiveOnMobile() {
+    var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    document.querySelectorAll(".algolassi-toolmenu-menu a.breadcrumb-dropdown-current").forEach(function (link) {
+      if (isMobile) {
+        link.style.setProperty("pointer-events", "none", "important");
+        link.setAttribute("aria-current", "page");
+        link.setAttribute("aria-disabled", "true");
+        link.setAttribute("tabindex", "-1");
+      } else {
+        link.style.removeProperty("pointer-events");
+        link.removeAttribute("aria-current");
+        link.removeAttribute("aria-disabled");
+        link.removeAttribute("tabindex");
+      }
+    });
   }
 
   function rebuild() {
@@ -237,6 +266,7 @@
       var rootItem = createDeveloperRootItem(null);
       breadcrumbs.appendChild(rootItem);
       attachHover(rootItem);
+      makeCurrentMenuItemNonInteractiveOnMobile();
       return true;
     }
 
@@ -248,6 +278,7 @@
     var currentItem = createCurrentItem(category, path);
     breadcrumbs.appendChild(currentItem);
     attachHover(currentItem);
+    makeCurrentMenuItemNonInteractiveOnMobile();
 
     return true;
   }
@@ -262,5 +293,6 @@
   window.addEventListener("load", rebuild);
   window.addEventListener("algolassi:spa-navigation", refreshAfterSpa);
   window.addEventListener("popstate", refreshAfterSpa);
+  window.addEventListener("resize", makeCurrentMenuItemNonInteractiveOnMobile, { passive: true });
   if (document.readyState !== "loading") window.requestAnimationFrame(rebuild);
 })();
