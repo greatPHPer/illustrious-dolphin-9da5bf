@@ -21,22 +21,4 @@
   }
 
   wrapOnce("AlgolassiChatPresenceInit");
-
-  /* Developer Tools SPA navigation imports .page-content and re-creates
-     embedded scripts with Node.replaceChild(). Do not replay global
-     community/auth/navigation scripts already owned by the base layout. */
-  if (!window.__algolassiSpaScriptReplayGuard) {
-    window.__algolassiSpaScriptReplayGuard = true;
-    var originalReplaceChild = Node.prototype.replaceChild;
-    var globalScriptRe = /(?:^|\/)(?:algolassi-(comments|chat-presence|chat-reputation|chat-toggle|floating-stack|user-profile|google-auth|theme|search|search-jump|newsletter|get-link|assistant|assistant-country-fix|assistant-phase5|radio|breadcrumb-hover|devtools-menu|navigation-loading|tool-history|tool-history-scroll-fix|stepper-scroll-sync|spa-router)\.js)(?:\?|$)/i;
-    Node.prototype.replaceChild = function (newChild, oldChild) {
-      try {
-        if (newChild && newChild.nodeType === 1 && String(newChild.tagName).toLowerCase() === "script") {
-          var src = newChild.getAttribute("src") || "";
-          if (src && globalScriptRe.test(src)) return oldChild;
-        }
-      } catch (e) {}
-      return originalReplaceChild.call(this, newChild, oldChild);
-    };
-  }
 })();
