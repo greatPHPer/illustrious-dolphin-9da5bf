@@ -136,6 +136,7 @@
   function attachHover(item) {
     if (!item || item.dataset.toolmenuHoverAttached === "1") return;
     item.dataset.toolmenuHoverAttached = "1";
+
     var menu = item.querySelector(":scope > .algolassi-toolmenu-menu");
     if (!menu) return;
 
@@ -158,24 +159,18 @@
     var isRoot = path === ROOT;
     if (!isRoot && !category) return false;
 
-    breadcrumbs.querySelectorAll(".algolassi-toolmenu-managed, .algolassi-toolmenu-separator").forEach(function (node) {
-      node.remove();
-    });
-
-    if (isRoot) {
-      var existingCurrent = breadcrumbs.querySelector(":scope > .breadcrumb-current");
-      if (existingCurrent) existingCurrent.remove();
-      breadcrumbs.appendChild(createSeparator());
-      var rootItem = createDeveloperRootItem();
-      breadcrumbs.appendChild(rootItem);
-      attachHover(rootItem);
-      return true;
-    }
-
+    // Developer Tools owns its entire breadcrumb while inside /developer-tools/.
+    // This is essential for SPA navigation because the router injects the next
+    // page's old breadcrumb markup into .site-main before firing its event.
+    breadcrumbs.innerHTML = "";
+    breadcrumbs.appendChild(createHomeItem());
     breadcrumbs.appendChild(createSeparator());
+
     var devItem = createDeveloperRootItem();
     breadcrumbs.appendChild(devItem);
     attachHover(devItem);
+
+    if (isRoot) return true;
 
     breadcrumbs.appendChild(createSeparator());
     var categoryItem = createCategoryItem(category, path);
