@@ -57,7 +57,57 @@
   function upload(file){if(!file||!file.type||file.type.indexOf("image/")!==0)return setStatus("Please choose an image file.",false);clearHistory();loadImage(file).then(function(img){addHistory(file,file.name,"Original",img.naturalWidth||img.width,img.naturalHeight||img.height);setStatus("Image loaded. Choose an operation to create the next stage.",true);}).catch(function(){setStatus("Could not read that image.",false);});}
   function clearHistory(){state.items.forEach(revokeItem);state.items=[];state.current=-1;resetCropSelection();hideScalePreview();renderHistory();showCurrent();setStatus("");}
   function cropCurrent(){var item=currentItem(),x=parseInt(q("crop-x").value,10),y=parseInt(q("crop-y").value,10),w=parseInt(q("crop-width").value,10),h=parseInt(q("crop-height").value,10);if(!item||[x,y,w,h].some(function(v){return !Number.isFinite(v);})||w<1||h<1||x<0||y<0||x+w>item.width||y+h>item.height)return setStatus("Enter a crop rectangle inside the image.",false);processCurrent("Cropped "+w+"×"+h,function(it){return canvasFromItem(it).then(function(c){var out=document.createElement("canvas");out.width=w;out.height=h;out.getContext("2d").drawImage(c,x,y,w,h,0,0,w,h);return canvasBlob(out,"image/png").then(function(blob){return{blob:blob,name:normalizeBase(it.name)+"-cropped.png",width:w,height:h};});});});}
-  function transparentCurrent(){var item=currentItem(),hex=(q("transparent-color").value||"#ffffff").replace("#",""),r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16),tol=parseInt(q("transparent-tolerance").value,10)||0;if([r,g,b].some(function(v){return Number.isNaN(v);}))return setStatus("Choose a valid background color.",false);processCurrent("Transparent background",function(it){return canvasFromItem(it).then(function(c){var ctx=c.getContext("2d",{willReadFrequently:true}),data=ctx.getImageData(0,0,c.width,c.height),px=data.data;for(var i=0;i<px.length;i+=4){if(Math.abs(px[i]-r)<=tol&&Math.abs(px[i+1]-g)<=tol&&Math.abs(px[i+2]-b)<=tol)px[i+3]=0;}ctx.putImageData(data,0,0);return canvasBlob(c,"image/png").then(function(blob){return{blob:blob,name:normalizeBase(it.name)+"-transparent.png",width:it.width,height:it.height};});});});}
+  function transparentCurrent(){
+    var item=currentItem();
+    if(!item)return;
+
+    var pick=window.__algolassiTransparentPick;
+    var colorInput=q("transparent-color");
+    var hex=((colorInput&&colorInput.value)||"#ffffff").replace("#","");
+    var r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16);
+    var tol=parseInt(q("transparent-tolerance").value,10)||0;
+    var seedX=pick&&Number.isFinite(Number(pick.x))?Math.floor(Number(pick.x)):null;
+    var seedY=pick&&Number.isFinite(Number(pick.y))?Math.floor(Number(pick.y)):null;
+
+    if((seedX===null)!==(seedY===null)){
+      window.__algolassiTransparentPick=null;
+      return setStatus("Select a background region by clicking the image.",false);
+    }
+    if(seedX===null&&[r,g,b].some(function(v){return Number.isNaN(v);}))return setStatus("Choose a valid background color.",false);
+
+    processCurrent(seedX!==null?"Transparent background region":"Transparent background",function(it){
+      return canvasFromItem(it).then(function(c){
+        var ctx=c.getContext("2d",{willReadFrequently:true});
+        var data=ctx.getImageData(0,0,c.width,c.height),px=data.data;
+
+        if(seedX!==null){
+          seedX=Math.max(0,Math.min(c.width-1,seedX));
+          seedY=Math.max(0,Math.min(c.height-1,seedY));
+          var seedIndex=(seedY*c.width+seedX)*4;
+          var sr=px[seedIndex],sg=px[seedIndex+1],sb=px[seedIndex+2];
+          var visited=new Uint8Array(c.width*c.height);
+          var stack=[seedY*c.width+seedX];
+          visited[seedY*c.width+seedX]=1;
+          while(stack.length){
+            var pos=stack.pop(),py=Math.floor(pos/c.width),pxIndex=pos-py*c.width,di=pos*4;
+            if(px[di+3]===0)continue;
+            if(Math.abs(px[di]-sr)>tol||Math.abs(px[di+1]-sg)>tol||Math.abs(px[di+2]-sb)>tol)continue;
+            px[di+3]=0;
+            if(pxIndex>0){var left=pos-1;if(!visited[left]){visited[left]=1;stack.push(left);}}
+            if(pxIndex<c.width-1){var right=pos+1;if(!visited[right]){visited[right]=1;stack.push(right);}}
+            if(py>0){var up=pos-c.width;if(!visited[up]){visited[up]=1;stack.push(up);}}
+            if(py<c.height-1){var down=pos+c.width;if(!visited[down]){visited[down]=1;stack.push(down);}}
+          }
+          window.__algolassiTransparentPick=null;
+        }else{
+          for(var i=0;i<px.length;i+=4){if(Math.abs(px[i]-r)<=tol&&Math.abs(px[i+1]-g)<=tol&&Math.abs(px[i+2]-b)<=tol)px[i+3]=0;}
+        }
+
+        ctx.putImageData(data,0,0);
+        return canvasBlob(c,"image/png").then(function(blob){return{blob:blob,name:normalizeBase(it.name)+"-transparent.png",width:it.width,height:it.height};});
+      });
+    });
+  }
   if(!window[GLOBAL_KEY])window[GLOBAL_KEY]={initialized:true};
   function init(){bindWorkspace();bindHistory();}
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
