@@ -60,30 +60,41 @@
     return item;
   }
 
+  // Level-2 Developer Tools category switcher.
   function buildCategoryMenu(currentPath) {
     var menu = createElement("div", "breadcrumb-menu algolassi-toolmenu-menu");
     menu.setAttribute("data-menu", "developer-tools-categories");
+
     CATEGORIES.forEach(function (category) {
       var link = createElement("a", "", category.title);
       link.href = category.url;
-      if (normalize(category.url) === normalize(currentPath)) link.className = "breadcrumb-dropdown-current";
+      if (normalize(category.url) === normalize(currentPath)) {
+        link.className = "breadcrumb-dropdown-current";
+      }
       menu.appendChild(link);
     });
+
     return menu;
   }
 
+  // Level-3 current-tool switcher.
   function buildToolMenu(category, currentPath) {
     var menu = createElement("div", "breadcrumb-menu algolassi-toolmenu-menu");
     menu.setAttribute("data-tool-category-menu", category.key);
+
     category.tools.forEach(function (tool) {
       var link = createElement("a", "", tool.title);
       link.href = tool.url;
-      if (normalize(tool.url) === normalize(currentPath)) link.className = "breadcrumb-dropdown-current";
+      if (normalize(tool.url) === normalize(currentPath)) {
+        link.className = "breadcrumb-dropdown-current";
+      }
       menu.appendChild(link);
     });
+
     if (!category.tools.length) {
       menu.appendChild(createElement("span", "breadcrumb-toolmenu-empty", "More tools coming soon"));
     }
+
     return menu;
   }
 
@@ -98,17 +109,19 @@
     return item;
   }
 
-  function createCategoryItem(category, currentPath, isCategoryPage) {
+  // Level 2 is always the current category. Its submenu is the category switcher.
+  function createCategoryItem(category, currentPath) {
     var item = createElement("div", "breadcrumb-item breadcrumb-child-item algolassi-toolmenu-managed algolassi-toolmenu-category");
     var link = createElement("a", "breadcrumb-trigger crumb-trigger", category.title);
     link.href = category.url;
     link.setAttribute("data-menu", "devtools-" + category.key);
-    if (isCategoryPage) link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
+    link.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
     item.appendChild(link);
-    if (isCategoryPage) item.appendChild(buildToolMenu(category, currentPath));
+    item.appendChild(buildCategoryMenu(currentPath));
     return item;
   }
 
+  // Level 3 is the current tool, and ONLY this level owns the category's tool list.
   function createCurrentItem(category, currentPath) {
     var heading = document.querySelector(".site-main h1");
     var text = heading && heading.textContent.trim()
@@ -140,8 +153,10 @@
   function attachHover(item) {
     if (!item || item.dataset.toolmenuHoverAttached === "1") return;
     item.dataset.toolmenuHoverAttached = "1";
+
     var menu = item.querySelector(":scope > .algolassi-toolmenu-menu");
     if (!menu) return;
+
     item.addEventListener("mouseenter", function () { showMenu(menu); });
     item.addEventListener("mouseleave", function () { hideMenu(menu); });
     item.addEventListener("focusin", function () { showMenu(menu); });
@@ -161,6 +176,7 @@
     var isRoot = path === ROOT;
     if (!isRoot && !category) return false;
 
+    // Developer Tools owns its entire breadcrumb while inside /developer-tools/.
     breadcrumbs.innerHTML = "";
     breadcrumbs.appendChild(createHomeItem());
     breadcrumbs.appendChild(createSeparator());
@@ -173,11 +189,11 @@
     }
 
     var isCategoryPage = normalize(category.url) === path;
-    var categoryItem = createCategoryItem(category, path, isCategoryPage);
+    var categoryItem = createCategoryItem(category, path);
     breadcrumbs.appendChild(categoryItem);
+    attachHover(categoryItem);
 
     if (isCategoryPage) {
-      attachHover(categoryItem);
       return true;
     }
 
