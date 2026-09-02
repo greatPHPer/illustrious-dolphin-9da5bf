@@ -48,6 +48,16 @@
   stroke-linejoin: round !important;
 }
 
+/* Generic breadcrumb SVGs must not also render inside DevTools.
+   DevTools uses the dedicated brown icon system above. */
+.algolassi-toolmenu-home .algolassi-icon-inline,
+.algolassi-toolmenu-devtools .algolassi-icon-inline,
+.algolassi-toolmenu-category .algolassi-icon-inline,
+.algolassi-toolmenu-current .algolassi-icon-inline,
+.algolassi-toolmenu-managed .algolassi-icon-inline {
+  display: none !important;
+}
+
 /* Generated DevTools menu text stays brown, including tool entries. */
 .algolassi-toolmenu-managed > .algolassi-toolmenu-menu > a,
 .algolassi-toolmenu-home > .algolassi-toolmenu-menu > a,
