@@ -65,6 +65,47 @@
     }
   }
 
+  function activateImageToolScripts(main) {
+    if (!main || !main.querySelector(".image-workspace")) return;
+
+    Array.prototype.slice.call(main.querySelectorAll("script[src]")).forEach(function (source) {
+      var src = source.getAttribute("src") || "";
+      if (src.indexOf("/assets/js/algolassi-image-tools.js") === -1 &&
+          src.indexOf("/assets/js/algolassi-image-tools-stability.js") === -1) {
+        return;
+      }
+
+      var script = document.createElement("script");
+      script.src = src;
+      script.async = false;
+      document.body.appendChild(script);
+    });
+  }
+
+  function activateDeveloperToolInlineScripts(main, url) {
+    if (!main || !url || url.pathname.indexOf("/developer-tools/") !== 0) return;
+
+    Array.prototype.slice.call(main.querySelectorAll("script:not([src])")).forEach(function (source) {
+      var type = (source.getAttribute("type") || "").toLowerCase();
+      if (type && type !== "text/javascript" &&
+          type !== "application/javascript" &&
+          type !== "text/ecmascript" &&
+          type !== "application/ecmascript") {
+        return;
+      }
+
+      var code = source.textContent || "";
+      if (!code.trim()) return;
+
+      var script = document.createElement("script");
+      script.textContent = code;
+      var nonce = source.getAttribute("nonce");
+      if (nonce) script.setAttribute("nonce", nonce);
+      document.body.appendChild(script);
+      script.remove();
+    });
+  }
+
   function initPage() {
     var initializers = [
       "AlgolassiCommentsInit",
@@ -107,6 +148,8 @@
         if (!currentMain || !nextMain) throw new Error("site-main not found");
 
         currentMain.innerHTML = nextMain.innerHTML;
+        activateImageToolScripts(currentMain);
+        activateDeveloperToolInlineScripts(currentMain, url);
         updateMeta(doc);
 
         if (push) {

@@ -2,17 +2,40 @@
 (function () {
   "use strict";
   var ticking = false;
-  var developerToolTitles = {
-    "/developer-tools/": "Developer Tools",
-    "/developer-tools/json-formatter/": "JSON Formatter & Validator",
-    "/developer-tools/base64-encoder-decoder/": "Base64 Encoder & Decoder",
-    "/developer-tools/guid-generator/": "GUID / UUID Generator",
-    "/developer-tools/jwt-decoder/": "JWT Decoder / Inspector",
-    "/developer-tools/regex-tester/": "Regular Expression Tester",
-    "/developer-tools/unix-timestamp-converter/": "Unix Timestamp Converter",
-    "/developer-tools/url-encoder-decoder/": "URL Encoder & Decoder",
-    "/developer-tools/html-encoder-decoder/": "HTML Encoder & Decoder",
-    "/developer-tools/code-equals-aligner/": "Code Equals Sign Aligner"
+
+  var developerTools = {
+    image: {
+      title: "🖼️ Image Tools",
+      url: "/developer-tools/image-tools/",
+      tools: []
+    },
+    format: {
+      title: "🔄 Format Converters",
+      url: "/developer-tools/format-converters/",
+      tools: [
+        { title: "Base64 Encoder / Decoder", url: "/developer-tools/base64-encoder-decoder/", icon: "64" },
+        { title: "URL Encoder / Decoder", url: "/developer-tools/url-encoder-decoder/", icon: "URL" },
+        { title: "HTML Encoder / Decoder", url: "/developer-tools/html-encoder-decoder/", icon: "<>" }
+      ]
+    },
+    data: {
+      title: "🧪 Data & Validation",
+      url: "/developer-tools/data-validation/",
+      tools: [
+        { title: "JSON Formatter & Validator", url: "/developer-tools/json-formatter/", icon: "{}" },
+        { title: "JWT Inspector", url: "/developer-tools/jwt-decoder/", icon: "JWT" },
+        { title: "Regular Expression Tester", url: "/developer-tools/regex-tester/", icon: ".*" }
+      ]
+    },
+    utility: {
+      title: "🧰 Developer Utilities",
+      url: "/developer-tools/developer-utilities/",
+      tools: [
+        { title: "GUID / UUID Generator", url: "/developer-tools/guid-generator/", icon: "ID" },
+        { title: "Unix Timestamp Converter", url: "/developer-tools/unix-timestamp-converter/", icon: "TS" },
+        { title: "Code Equals Sign Aligner", url: "/developer-tools/code-equals-aligner/", icon: "=" }
+      ]
+    }
   };
 
   function update(flow) {
@@ -39,23 +62,73 @@
     document.querySelectorAll(".maui-flow,.algolassi-auto-stepper").forEach(update);
   }
 
-  function syncDeveloperToolsBreadcrumb() {
-    var path = location.pathname || "/";
-    if (path.charAt(path.length - 1) !== "/") path += "/";
-    var title = developerToolTitles[path];
-    if (!title) return;
-    var current = document.querySelector(".breadcrumbs > .breadcrumb-current");
-    if (!current) current = document.querySelector(".site-main .breadcrumbs .breadcrumb-current");
-    if (!current) return;
-    var menu = null;
-    Array.prototype.slice.call(current.children || []).forEach(function (child) {
-      if (child.classList && child.classList.contains("breadcrumb-child-menu")) menu = child;
+  function normalize(path) {
+    var p = path || "/";
+    if (p.length > 1 && p.charAt(p.length - 1) !== "/") p += "/";
+    return p;
+  }
+
+  function toolCategory(path) {
+    var keys = Object.keys(developerTools);
+    for (var i = 0; i < keys.length; i++) {
+      var category = developerTools[keys[i]];
+      for (var j = 0; j < category.tools.length; j++) {
+        if (category.tools[j].url === path) return { key: keys[i], category: category, tool: category.tools[j] };
+      }
+      if (category.url === path) return { key: keys[i], category: category, tool: null };
+    }
+    return null;
+  }
+
+  function allCategoryLinks() {
+    return Object.keys(developerTools).map(function (key) {
+      var category = developerTools[key];
+      return { title: category.title, url: category.url };
     });
-    Array.prototype.slice.call(current.childNodes).forEach(function (node) {
-      if (node.nodeType === 3) node.parentNode.removeChild(node);
+  }
+
+  function renderDeveloperToolsBreadcrumb() {
+    var path = normalize(location.pathname || "/");
+    var container = document.querySelector(".site-main > .breadcrumbs");
+    if (!container) container = document.querySelector(".breadcrumbs");
+    if (!container) return;
+
+    var info = toolCategory(path);
+    var isDeveloperLanding = path === "/developer-tools/";
+    if (!info && !isDeveloperLanding) return;
+
+    var categories = allCategoryLinks();
+    var html = '<div class="breadcrumb-item">' +
+      '<a href="/" class="breadcrumb-trigger crumb-trigger" data-menu="home">🏠 Home <span class="breadcrumb-arrow">▼</span></a>' +
+      '<div class="breadcrumb-menu" data-menu="home">' +
+      '<a href="/developer-tools/">🛠️ Developer Tools</a>';
+
+    categories.forEach(function (item) {
+      html += '<a href="' + item.url + '">' + item.title + '</a>';
     });
-    var text = document.createTextNode(" " + title + " ");
-    if (menu) current.insertBefore(text, menu); else current.appendChild(text);
+    html += '</div></div><span class="breadcrumb-separator">/</span>';
+
+    if (isDeveloperLanding) {
+      html += '<span class="breadcrumb-current">🛠️ Developer Tools</span>';
+      container.innerHTML = html;
+      return;
+    }
+
+    var category = info.category;
+    html += '<div class="breadcrumb-item">' +
+      '<a href="' + category.url + '" class="breadcrumb-trigger crumb-trigger" data-menu="developer-category">' +
+      category.title + ' <span class="breadcrumb-arrow">▼</span></a>' +
+      '<div class="breadcrumb-menu" data-menu="developer-category">';
+
+    category.tools.forEach(function (tool) {
+      html += '<a href="' + tool.url + '"' +
+        (tool.url === path ? ' class="breadcrumb-dropdown-current"' : '') + '>' +
+        tool.title + '</a>';
+    });
+
+    html += '</div></div><span class="breadcrumb-separator">/</span>';
+    html += '<span class="breadcrumb-current">' + (info.tool ? info.tool.title : category.title) + '</span>';
+    container.innerHTML = html;
   }
 
   function attach(flow) {
@@ -86,30 +159,19 @@
   }
 
   function init() {
+    renderDeveloperToolsBreadcrumb();
     document.querySelectorAll(".maui-flow,.algolassi-auto-stepper").forEach(attach);
-    syncDeveloperToolsBreadcrumb();
+    updateAllFlows();
   }
 
   document.addEventListener("DOMContentLoaded", init);
   if (document.readyState !== "loading") init();
 
   window.addEventListener("algolassi:spa-navigation", function () {
-    window.requestAnimationFrame(function () {
-      init();
-      window.setTimeout(function () {
-        init();
-        updateAllFlows();
-      }, 50);
-    });
+    init();
   });
 
   window.addEventListener("popstate", function () {
-    window.requestAnimationFrame(function () {
-      init();
-      window.setTimeout(function () {
-        init();
-        updateAllFlows();
-      }, 50);
-    });
+    init();
   });
 })();

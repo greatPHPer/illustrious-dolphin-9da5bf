@@ -1,0 +1,165 @@
+---
+title: "Image Tools"
+layout: layouts/base.njk
+permalink: "/developer-tools/image-tools/"
+contentType: "page"
+description: "Browser-based image utilities for upload, background removal, cropping, scaling, rotation, and format conversion."
+---
+<link rel="stylesheet" href="/assets/css/algolassi-image-tools.css?v=20260902-image-tools-menu-3">
+
+<div class="devtools-page image-workspace">
+  <h1>Image Tools</h1>
+  <p>Upload an image once, create processing stages, and download any version in your preferred format.</p>
+
+  <section class="image-upload-panel" aria-labelledby="image-upload-heading">
+    <h2 id="image-upload-heading">Image Tools</h2>
+    <div class="image-menu-bar" role="menubar" aria-label="Image Tools menu">
+      <div class="image-menu-group">
+        <button id="image-file-menu-button" class="image-menu-trigger" type="button" aria-expanded="false" aria-controls="image-file-menu">File ▾</button>
+        <div id="image-file-menu" class="image-menu-dropdown image-hidden" role="menu">
+          <button type="button" class="image-menu-item" data-image-command="upload" role="menuitem">Upload</button>
+          <button type="button" class="image-menu-item" data-image-command="save" role="menuitem">Save</button>
+          <button type="button" class="image-menu-item" data-image-command="save-as" role="menuitem">Save As</button>
+          <div class="image-menu-divider" aria-hidden="true"></div>
+          <button id="image-vector-svg-button" type="button" class="image-menu-item" role="menuitem">Vector SVG</button>
+          <button id="image-vector-eps-button" type="button" class="image-menu-item" role="menuitem">Vector EPS</button>
+        </div>
+      </div>
+      <div class="image-menu-group">
+        <button id="image-edit-menu-button" class="image-menu-trigger" type="button" aria-expanded="false" aria-controls="image-edit-menu">Edit ▾</button>
+        <div id="image-edit-menu" class="image-menu-dropdown image-hidden" role="menu">
+          <button type="button" class="image-menu-item" data-image-command="transparent" role="menuitem">Background Transparent</button>
+          <button type="button" class="image-menu-item" data-image-command="crop" role="menuitem">Crop</button>
+          <button type="button" class="image-menu-item" data-image-command="scale" role="menuitem">Scale</button>
+          <button type="button" class="image-menu-item" data-image-command="rotate" role="menuitem">Rotate</button>
+        </div>
+      </div>
+      <span id="image-menu-status" class="image-menu-status">Select File or Edit</span>
+      <button id="image-clear-button" class="image-menu-clear" type="button">Clear History</button>
+    </div>
+    <input id="image-file" class="image-file-input" type="file" accept="image/*,.ico,.tif,.tiff,.svg,.eps">
+    <div id="image-drop" class="image-upload-drop">Drop an image here, or use File → Upload.</div>
+    <div id="image-status" class="image-status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="image-editor" aria-label="Image editor">
+    <div class="image-preview-card">
+      <div id="image-preview-stage" class="image-preview-stage">
+        <div id="image-preview-empty" class="image-preview-empty">Upload an image to begin.</div>
+        <img id="image-preview-img" class="image-hidden" alt="Current image preview">
+        <div id="image-crop-overlay" class="image-crop-overlay image-hidden" aria-hidden="true">
+          <div id="image-crop-rectangle" class="image-crop-rectangle"><span></span></div>
+        </div>
+        <div id="image-scale-preview" class="image-scale-preview image-hidden" aria-hidden="true">
+          <div class="image-scale-preview-label">Scale preview</div>
+          <img id="image-scale-preview-img" alt="Scaled image preview">
+        </div>
+      </div>
+      <div class="image-toolbar">
+        <strong id="image-dimensions">No image selected</strong>
+        <span id="image-preview-mode" class="image-preview-mode">Current</span>
+      </div>
+
+      <section class="image-history-section image-history-section-inline" aria-labelledby="image-history-heading">
+        <div class="image-history-heading">
+          <h2 id="image-history-heading">Processing History</h2>
+          <span class="image-upload-help">Latest first</span>
+        </div>
+        <div id="image-history-empty" class="image-history-empty">Your original image and every processed version will appear here.</div>
+        <div id="image-history" class="image-history" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <aside class="image-controls-card image-tool-panel" aria-label="Selected image tool">
+      <div id="image-tool-panel-empty" class="image-tool-panel-view">
+        <div class="image-tool-panel-title">Image Tools</div>
+        <p class="image-tool-panel-help">Choose a command from File or Edit. The selected tool opens here.</p>
+      </div>
+
+      <div id="image-file-save-as-panel" class="image-tool-panel-view image-hidden" data-panel="save-as">
+        <h2>Save As</h2>
+        <p class="image-control-help">Save the selected history image in another format.</p>
+        <div class="image-control">
+          <label for="image-save-as-format">Format</label>
+          <select id="image-save-as-format">
+            <option value="image/png">PNG</option>
+            <option value="image/jpeg">JPG</option>
+            <option value="image/x-icon">ICO</option>
+            <option value="image/webp">WebP</option>
+            <option value="image/avif">AVIF</option>
+            <option value="image/tiff">TIFF</option>
+            <option value="image/svg+xml">SVG</option>
+            <option value="application/postscript">EPS</option>
+          </select>
+        </div>
+        <div class="image-actions">
+          <button id="image-save-as-button" class="image-action-button" type="button">Save As</button>
+        </div>
+      </div>
+
+      <div id="image-transparent-panel" class="image-tool-panel-view image-hidden" data-panel="transparent">
+        <h2>Background Transparent</h2>
+        <p class="image-control-help">Choose the tolerance, click Pick Background Region, then click the region in the image.</p>
+        <div class="image-control">
+          <label for="transparent-color">Reference color</label>
+          <input id="transparent-color" type="color" value="#ffffff">
+        </div>
+        <div class="image-control">
+          <label for="transparent-tolerance">Color tolerance</label>
+          <input id="transparent-tolerance" type="number" min="0" max="255" value="20">
+        </div>
+        <div class="image-actions">
+          <button id="image-transparent-button" class="image-action-button" type="button">Pick Background Region</button>
+        </div>
+      </div>
+
+      <div id="image-crop-panel" class="image-tool-panel-view image-hidden" data-panel="crop">
+        <h2>Crop</h2>
+        <p class="image-control-help">Drag on the image to draw a crop rectangle, or edit X, Y, width, and height below.</p>
+        <div class="image-control image-crop-control">
+          <label>Crop rectangle <span id="crop-live-size" class="image-live-size"></span></label>
+          <div class="image-control-inline image-control-inline-four">
+            <input id="crop-x" type="number" min="0" placeholder="X">
+            <input id="crop-y" type="number" min="0" placeholder="Y">
+            <input id="crop-width" type="number" min="1" placeholder="Width">
+            <input id="crop-height" type="number" min="1" placeholder="Height">
+          </div>
+        </div>
+        <div class="image-actions">
+          <button id="image-crop-button" class="image-action-button" type="button">Create Cropped Version</button>
+        </div>
+      </div>
+
+      <div id="image-scale-panel" class="image-tool-panel-view image-hidden" data-panel="scale">
+        <h2>Scale</h2>
+        <div class="image-control image-scale-control">
+          <label>Dimensions <span id="scale-live-size" class="image-live-size"></span></label>
+          <div class="image-control-inline">
+            <input id="scale-width" type="number" min="1" placeholder="Width">
+            <input id="scale-height" type="number" min="1" placeholder="Height">
+          </div>
+          <label class="image-checkbox-label"><input id="scale-lock-ratio" type="checkbox" checked> Keep aspect ratio</label>
+        </div>
+        <div class="image-actions">
+          <button id="image-scale-preview-button" class="image-action-button secondary" type="button">Preview Scale</button>
+          <button id="image-scale-button" class="image-action-button" type="button">Create Scaled Version</button>
+        </div>
+      </div>
+
+      <div id="image-rotate-panel" class="image-tool-panel-view image-hidden" data-panel="rotate">
+        <h2>Rotate</h2>
+        <p class="image-control-help">Create a new rotated version of the selected history image.</p>
+        <div class="image-actions">
+          <button id="image-rotate-90-button" class="image-action-button" type="button">90° Clockwise</button>
+          <button id="image-rotate-180-button" class="image-action-button" type="button">180°</button>
+          <button id="image-rotate-270-button" class="image-action-button" type="button">270° Clockwise</button>
+        </div>
+      </div>
+    </aside>
+  </section>
+</div>
+
+<script src="/assets/js/algolassi-image-tools.js?v=20260902-image-tools-rotate-1" defer></script>
+<script src="/assets/js/algolassi-image-tools-stability.js?v=20260901-image-tools-stability-1" defer></script>
+<script src="/assets/js/algolassi-image-transparent-click.js?v=20260902-transparent-click-2" defer></script>
+<script src="/assets/js/algolassi-image-vector.js?v=20260902-vector-1" defer></script>

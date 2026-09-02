@@ -1,0 +1,258 @@
+/* Algolassi Image Tools - click-to-select connected transparent region. */
+(function () {
+  "use strict";
+
+  var picking = false;
+  var busy = false;
+  var historyObserver = null;
+  var reorderingHistory = false;
+
+  function q(id) {
+    return document.getElementById(id);
+  }
+
+  function status(text, good) {
+    var el = q("image-status");
+    if (!el) return;
+    el.textContent = text || "";
+    el.classList.toggle("image-status-good", !!good);
+  }
+
+  function setPicking(active) {
+    picking = !!active;
+    var stage = q("image-preview-stage");
+    var button = q("image-transparent-button");
+
+    if (stage) stage.classList.toggle("algolassi-transparent-picking", picking);
+    if (button) {
+      button.classList.toggle("active", picking);
+      button.setAttribute("aria-pressed", picking ? "true" : "false");
+    }
+  }
+
+  function imagePoint(event, img) {
+    if (!img || !img.naturalWidth || !img.naturalHeight) return null;
+    var rect = img.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+
+    var x = event.clientX - rect.left;
+    var y = event.clientY - rect.top;
+    var renderedW = rect.width;
+    var renderedH = rect.height;
+    var offsetX = 0;
+    var offsetY = 0;
+    var naturalRatio = img.naturalWidth / img.naturalHeight;
+    var boxRatio = rect.width / rect.height;
+    var fit = getComputedStyle(img).objectFit;
+
+    if (fit === "contain" || fit === "scale-down") {
+      if (naturalRatio > boxRatio) {
+        renderedW = rect.width;
+        renderedH = rect.width / naturalRatio;
+        offsetY = (rect.height - renderedH) / 2;
+      } else {
+        renderedH = rect.height;
+        renderedW = rect.height * naturalRatio;
+        offsetX = (rect.width - renderedW) / 2;
+      }
+    }
+
+    x -= offsetX;
+    y -= offsetY;
+    if (x < 0 || y < 0 || x > renderedW || y > renderedH) return null;
+
+    return {
+      x: Math.max(0, Math.min(img.naturalWidth - 1, Math.floor(x * img.naturalWidth / renderedW))),
+      y: Math.max(0, Math.min(img.naturalHeight - 1, Math.floor(y * img.naturalHeight / renderedH)))
+    };
+  }
+
+  function resolvePreviewImage(event) {
+    var target = event && event.target;
+    var img = target && target.closest
+      ? target.closest("#image-preview-img")
+      : null;
+
+    if (img) return img;
+
+    var stage = target && target.closest
+      ? target.closest("#image-preview-stage")
+      : null;
+
+    if (!stage) stage = q("image-preview-stage");
+    if (!stage) return null;
+
+    return stage.querySelector("#image-preview-img") || stage.querySelector("img");
+  }
+
+  function reverseHistory() {
+    var history = q("image-history");
+    if (!history || reorderingHistory) return;
+
+    var cards = Array.prototype.slice.call(history.children).filter(function (el) {
+      return el.classList && el.classList.contains("image-history-card");
+    });
+    if (cards.length < 2) return;
+
+    cards.sort(function (a, b) {
+      return (parseInt(b.dataset.index, 10) || 0) - (parseInt(a.dataset.index, 10) || 0);
+    });
+
+    var connectors = Array.prototype.slice.call(history.children).filter(function (el) {
+      return el.classList && el.classList.contains("image-history-connector");
+    });
+
+    reorderingHistory = true;
+    if (historyObserver) historyObserver.disconnect();
+
+    while (history.firstChild) history.removeChild(history.firstChild);
+
+    cards.forEach(function (card, index) {
+      if (index) {
+        var connector = connectors[index - 1] || document.createElement("div");
+        connector.className = "image-history-connector";
+        connector.setAttribute("aria-hidden", "true");
+        history.appendChild(connector);
+      }
+      history.appendChild(card);
+    });
+
+    if (historyObserver) historyObserver.observe(history, { childList: true });
+    reorderingHistory = false;
+  }
+
+  function watchHistory() {
+    var history = q("image-history");
+    if (!history || historyObserver) return;
+
+    historyObserver = new MutationObserver(function () {
+      if (!reorderingHistory) reverseHistory();
+    });
+    historyObserver.observe(history, { childList: true });
+    reverseHistory();
+  }
+
+  function bind() {
+    if (q("algolassi-transparent-click-bound")) return;
+
+    var marker = document.createElement("span");
+    marker.id = "algolassi-transparent-click-bound";
+    marker.style.display = "none";
+    document.body.appendChild(marker);
+
+    document.addEventListener("click", function (event) {
+      var target = event.target;
+      var button = target && target.closest
+        ? target.closest("#image-transparent-button")
+        : null;
+
+      if (button) {
+        /* First button click arms region selection. The image click applies it
+           immediately; no second button click is needed. */
+        if (!picking && !window.__algolassiTransparentPick) {
+          var img = q("image-preview-img");
+          if (!img || img.classList.contains("image-hidden") || !img.naturalWidth) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            status("Upload an image first, then select a background region.", false);
+            return;
+          }
+
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          setPicking(true);
+          status("Click the background region in the image.", true);
+          return;
+        }
+        return;
+      }
+
+      /* Keep the history Edit menu usable even when the older image-tools
+         handler is already present. CSS opens this panel with .open. */
+      var menuButton = target && target.closest
+        ? target.closest(".image-menu-button")
+        : null;
+      if (!menuButton) return;
+
+      var menu = menuButton.closest(".image-card-menu");
+      var history = menuButton.closest("#image-history");
+      if (!menu || !history) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      var opening = !menu.classList.contains("open");
+      Array.prototype.forEach.call(history.querySelectorAll(".image-card-menu.open"), function (other) {
+        if (other !== menu) other.classList.remove("open");
+      });
+      menu.classList.toggle("open", opening);
+    }, true);
+
+    document.addEventListener("pointerup", function (event) {
+      if (!picking || busy) return;
+      if (event.button !== 0 && event.pointerType !== "touch") return;
+
+      var img = resolvePreviewImage(event);
+      if (!img || img.classList.contains("image-hidden") || !img.naturalWidth) return;
+
+      var point = imagePoint(event, img);
+      if (!point) return;
+
+      busy = true;
+      try {
+        window.__algolassiTransparentPick = {
+          x: point.x,
+          y: point.y
+        };
+        setPicking(false);
+
+        /* Apply the selected connected region immediately. The main Image
+           Tools handler remains the single processor for the actual edit. */
+        var button = q("image-transparent-button");
+        if (button) {
+          button.click();
+        } else {
+          window.__algolassiTransparentPick = null;
+          status("Transparent Background is unavailable.", false);
+          return;
+        }
+      } catch (error) {
+        window.__algolassiTransparentPick = null;
+        console.error("Algolassi transparent background pick:", error);
+        status("Could not select that image region.", false);
+      } finally {
+        busy = false;
+      }
+    }, true);
+
+    window.addEventListener("algolassi:spa-navigation", function () {
+      picking = false;
+      busy = false;
+      window.__algolassiTransparentPick = null;
+      setPicking(false);
+      watchHistory();
+    });
+
+    watchHistory();
+  }
+
+  function ensureStyles() {
+    if (q("algolassi-transparent-click-styles")) return;
+    var style = document.createElement("style");
+    style.id = "algolassi-transparent-click-styles";
+    style.textContent = ".algolassi-transparent-picking #image-preview-img{cursor:crosshair!important}.algolassi-transparent-picking{cursor:crosshair}";
+    document.head.appendChild(style);
+  }
+
+  function start() {
+    ensureStyles();
+    bind();
+    watchHistory();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start, { once: true });
+  } else {
+    start();
+  }
+})();
