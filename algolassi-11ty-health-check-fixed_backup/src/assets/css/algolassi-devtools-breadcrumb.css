@@ -1,0 +1,86 @@
+/* =========================================================
+   ALGOLASSI DEVELOPER TOOLS BREADCRUMB
+   Separate visual system for Developer Tools breadcrumbs.
+   All DevTools icons use the same monochrome brown stroke.
+   ========================================================= */
+
+.algolassi-toolmenu-home,
+.algolassi-toolmenu-devtools,
+.algolassi-toolmenu-category,
+.algolassi-toolmenu-current,
+.algolassi-toolmenu-managed {
+  --algolassi-devtools-brown: #8b5a2b;
+}
+
+/* DevTools breadcrumb labels and arrows */
+.algolassi-toolmenu-home > .breadcrumb-trigger,
+.algolassi-toolmenu-devtools > .breadcrumb-trigger,
+.algolassi-toolmenu-category > .breadcrumb-trigger,
+.algolassi-toolmenu-current,
+.algolassi-toolmenu-managed .breadcrumb-arrow {
+  color: var(--algolassi-devtools-brown) !important;
+}
+
+/* Brown monochrome SVG icons — including the Home icon. */
+.algolassi-toolmenu-home .algolassi-devtools-brown-icon,
+.algolassi-toolmenu-managed .algolassi-devtools-brown-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 1em !important;
+  height: 1em !important;
+  min-width: 1em !important;
+  margin-right: .3em !important;
+  vertical-align: -.14em !important;
+  color: var(--algolassi-devtools-brown) !important;
+  flex: 0 0 auto !important;
+}
+
+.algolassi-toolmenu-home .algolassi-devtools-brown-icon svg,
+.algolassi-toolmenu-managed .algolassi-devtools-brown-icon svg {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+/* Generated DevTools menu text stays brown, including tool entries. */
+.algolassi-toolmenu-managed > .algolassi-toolmenu-menu > a,
+.algolassi-toolmenu-home > .algolassi-toolmenu-menu > a,
+.algolassi-toolmenu-managed > .algolassi-toolmenu-menu > a.breadcrumb-dropdown-current {
+  color: #6f4b2a !important;
+}
+
+.algolassi-toolmenu-managed > .algolassi-toolmenu-menu > a:hover,
+.algolassi-toolmenu-home > .algolassi-toolmenu-menu > a:hover {
+  color: var(--algolassi-devtools-brown) !important;
+  background: #faf4ee !important;
+}
+
+/* Never allow the native color emoji presentation to return inside DevTools. */
+.algolassi-toolmenu-home,
+.algolassi-toolmenu-devtools,
+.algolassi-toolmenu-category,
+.algolassi-toolmenu-current,
+.algolassi-toolmenu-menu {
+  font-variant-emoji: text !important;
+}
+
+@media (max-width: 700px) {
+  .algolassi-toolmenu-home .algolassi-devtools-brown-icon,
+  .algolassi-toolmenu-managed .algolassi-devtools-brown-icon {
+    width: 1em !important;
+    height: 1em !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .algolassi-toolmenu-home,
+  .algolassi-toolmenu-managed {
+    transition: none !important;
+  }
+}
