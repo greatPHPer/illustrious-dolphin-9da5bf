@@ -6,6 +6,7 @@
   var timer = null;
   var listenerBound = false;
   var historyListenerBound = false;
+  var menuListenerBound = false;
 
   function q(id) { return document.getElementById(id); }
   function workspace() { return document.querySelector(".image-workspace"); }
@@ -72,11 +73,74 @@
     });
   }
 
+  /* Desktop application-menu behaviour:
+     once a menu is open, moving between File/Edit switches the open menu
+     immediately without requiring another click. Menus remain open until
+     a menu item is selected or the user clicks outside the menu bar. */
+  function closeImageMenus() {
+    ["image-file-menu", "image-edit-menu"].forEach(function (id) {
+      var menu = q(id);
+      if (menu) menu.classList.add("image-hidden");
+    });
+    [
+      ["image-file-menu-button", "image-file-menu"],
+      ["image-edit-menu-button", "image-edit-menu"]
+    ].forEach(function (pair) {
+      var button = q(pair[0]);
+      if (button) button.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function openImageMenu(menuId, buttonId) {
+    var menu = q(menuId);
+    var button = q(buttonId);
+    if (!menu || !button) return;
+    closeImageMenus();
+    menu.classList.remove("image-hidden");
+    button.setAttribute("aria-expanded", "true");
+  }
+
+  function bindImageMenuHoverBehaviour() {
+    if (menuListenerBound) return;
+    menuListenerBound = true;
+
+    document.addEventListener("pointerover", function (event) {
+      var trigger = event.target && event.target.closest
+        ? event.target.closest(".image-menu-trigger")
+        : null;
+      if (!trigger || !trigger.closest(".image-workspace")) return;
+
+      var canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+      if (!canHover) return;
+
+      var related = event.relatedTarget;
+      if (related && trigger.contains(related)) return;
+
+      if (trigger.id === "image-file-menu-button") {
+        openImageMenu("image-file-menu", "image-file-menu-button");
+      } else if (trigger.id === "image-edit-menu-button") {
+        openImageMenu("image-edit-menu", "image-edit-menu-button");
+      }
+    }, true);
+
+    document.addEventListener("click", function (event) {
+      var target = event.target;
+      if (!target || !target.closest) return;
+      if (!target.closest(".image-menu-bar")) return;
+
+      var keepOpen = target.closest(
+        ".image-menu-trigger, .image-menu-dropdown, .image-menu-item, .image-menu-clear"
+      );
+      if (!keepOpen) closeImageMenus();
+    }, true);
+  }
+
   function patch() {
     if (!workspace()) return;
     patchScaleInput("scale-width", "width");
     patchScaleInput("scale-height", "height");
     bindImageHistory();
+    bindImageMenuHoverBehaviour();
   }
 
   function onSpaNavigation() {
