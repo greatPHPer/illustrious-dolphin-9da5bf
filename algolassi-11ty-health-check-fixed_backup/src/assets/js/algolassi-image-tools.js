@@ -20,7 +20,7 @@
   ];}
   function revokeItem(item){if(item&&item.objectUrl)URL.revokeObjectURL(item.objectUrl);}
   function downloadBlob(blob,name){var url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1500);}
-  function setStatus(text,good){var el=q("image-status");if(!el)return;el.textContent=text||"";el.classList.toggle("image-status-good",!!good);}
+  function setStatus(text,good){var el=q("image-status");if(!el)return;el.textContent=text||"";el.classList.toggle("image-status-good",!!good);var menuStatus=q("image-menu-status");if(menuStatus&&text)menuStatus.textContent=text;}
   function loadImage(file){return new Promise(function(resolve,reject){var url=URL.createObjectURL(file),img=new Image();img.onload=function(){URL.revokeObjectURL(url);resolve(img);};img.onerror=function(){URL.revokeObjectURL(url);reject(new Error("Image could not be read"));};img.src=url;});}
   function loadImageFromUrl(url){return new Promise(function(resolve,reject){var img=new Image();img.onload=function(){resolve(img);};img.onerror=reject;img.src=url;});}
   function canvasBlob(canvas,type,quality){return new Promise(function(resolve,reject){canvas.toBlob(function(blob){blob?resolve(blob):reject(new Error("Unsupported output format"));},type,quality);});}
@@ -69,9 +69,73 @@
     return canvasBlob(canvas,type,.92);
   }
   function exportItem(item,type){
+    if(!item)return;
     if(type===item.type){downloadBlob(item.blob,normalizeBase(item.name)+"."+fileExt(type));return;}
     canvasFromItem(item).then(function(canvas){return exportCanvasBlob(canvas,type);}).then(function(blob){downloadBlob(blob,normalizeBase(item.name)+"."+fileExt(type));}).catch(function(){setStatus("That output format is not supported by this browser.",false);});
   }
+
+  function closeMenus(){
+    ["image-file-menu","image-edit-menu"].forEach(function(id){var menu=q(id);if(menu)menu.classList.add("image-hidden");});
+    [["image-file-menu-button","image-file-menu"],["image-edit-menu-button","image-edit-menu"]].forEach(function(pair){var btn=q(pair[0]);if(btn)btn.setAttribute("aria-expanded","false");});
+  }
+  function toggleMenu(id,buttonId){
+    var menu=q(id),button=q(buttonId);if(!menu||!button)return;
+    var open=menu.classList.contains("image-hidden");closeMenus();
+    if(open){menu.classList.remove("image-hidden");button.setAttribute("aria-expanded","true");}
+  }
+  function showToolPanel(panelId,label){
+    var panels=document.querySelectorAll(".image-tool-panel-view");
+    for(var i=0;i<panels.length;i++)panels[i].classList.add("image-hidden");
+    var panel=q(panelId)||q("image-tool-panel-empty");
+    if(panel)panel.classList.remove("image-hidden");
+    var menuStatus=q("image-menu-status");
+    if(menuStatus)menuStatus.textContent=label||"Image Tools";
+    if(panelId==="image-file-save-as-panel"){
+      var item=currentItem(),select=q("image-save-as-format");
+      if(item&&select)select.value=item.type;
+    }
+    if(panelId==="image-scale-panel"){
+      var item=currentItem(),w=q("scale-width"),h=q("scale-height");
+      if(item&&w&&h&&(!w.value||!h.value)){w.value=item.width;h.value=item.height;}
+    }
+  }
+  function saveCurrent(){
+    var item=currentItem();
+    if(!item)return setStatus("Select an image from Processing History first.",false);
+    exportItem(item,item.type);
+    setStatus("Saved selected history image.",true);
+  }
+  function saveAsCurrent(){
+    var item=currentItem(),select=q("image-save-as-format");
+    if(!item)return setStatus("Select an image from Processing History first.",false);
+    exportItem(item,select?select.value:item.type);
+    setStatus("Saved selected image as "+(select?select.options[select.selectedIndex].text:fileExt(item.type).toUpperCase())+".",true);
+  }
+  function handleImageCommand(command){
+    switch(command){
+      case "upload": closeMenus(); q("image-file")&&q("image-file").click(); break;
+      case "save": closeMenus(); saveCurrent(); break;
+      case "save-as": closeMenus(); showToolPanel("image-file-save-as-panel","File • Save As"); break;
+      case "transparent": closeMenus(); showToolPanel("image-transparent-panel","Edit • Background Transparent"); break;
+      case "crop": closeMenus(); showToolPanel("image-crop-panel","Edit • Crop"); break;
+      case "scale": closeMenus(); showToolPanel("image-scale-panel","Edit • Scale"); break;
+    }
+  }
+  function bindMenus(){
+    var bar=document.querySelector(".image-menu-bar");
+    if(!bar||bar.dataset.imageMenusBound==="1")return;
+    bar.dataset.imageMenusBound="1";
+    q("image-file-menu-button").addEventListener("click",function(e){e.stopPropagation();toggleMenu("image-file-menu","image-file-menu-button");});
+    q("image-edit-menu-button").addEventListener("click",function(e){e.stopPropagation();toggleMenu("image-edit-menu","image-edit-menu-button");});
+    bar.addEventListener("click",function(e){
+      var item=e.target&&e.target.closest?e.target.closest("[data-image-command]"):null;
+      if(item&&bar.contains(item)){e.preventDefault();e.stopPropagation();handleImageCommand(item.getAttribute("data-image-command"));return;}
+    });
+    document.addEventListener("click",function(e){if(!e.target.closest||!e.target.closest(".image-menu-bar"))closeMenus();});
+    document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenus();});
+    var saveAs=q("image-save-as-button");if(saveAs)saveAs.addEventListener("click",saveAsCurrent);
+  }
+
   function renderHistory(){var history=q("image-history"),empty=q("image-history-empty");if(!history)return;history.innerHTML="";if(!state.items.length){if(empty)empty.classList.remove("image-hidden");return;}if(empty)empty.classList.add("image-hidden");state.items.forEach(function(item,index){if(index){var connector=document.createElement("div");connector.className="image-history-connector";connector.setAttribute("aria-hidden","true");history.appendChild(connector);}var card=document.createElement("article");card.className="image-history-card"+(index===state.current?" current":"");card.dataset.index=index;var button=document.createElement("button");button.type="button";button.className="image-history-link";button.setAttribute("aria-label","View stage "+(index+1)+": "+item.operation);var thumb=document.createElement("span");thumb.className="image-history-thumb";var img=document.createElement("img");img.src=item.objectUrl;img.alt=item.name;thumb.appendChild(img);button.appendChild(thumb);var title=document.createElement("span");title.className="image-history-title";title.textContent=(index+1)+". "+item.operation;button.appendChild(title);var meta=document.createElement("span");meta.className="image-history-meta";meta.textContent=item.width+"×"+item.height+" • "+fileExt(item.type).toUpperCase();button.appendChild(meta);card.appendChild(button);var actions=document.createElement("div");actions.className="image-history-actions";var format=document.createElement("select");format.setAttribute("aria-label","Download format for stage "+(index+1));formatOptions(item).forEach(function(opt){var o=document.createElement("option");o.value=opt.type;o.textContent=opt.label;o.selected=opt.selected;format.appendChild(o);});var dl=document.createElement("button");dl.type="button";dl.className="image-download-button";dl.textContent="Download";actions.appendChild(format);actions.appendChild(dl);card.appendChild(actions);history.appendChild(card);});}
   function showCurrent(){var item=currentItem(),img=q("image-preview-img"),empty=q("image-preview-empty"),dims=q("image-dimensions");if(!img)return;if(!item){img.removeAttribute("src");img.classList.add("image-hidden");if(empty)empty.classList.remove("image-hidden");if(dims)dims.textContent="No image selected";return;}img.src=item.objectUrl;img.classList.remove("image-hidden");if(empty)empty.classList.add("image-hidden");if(dims)dims.textContent=item.width+" × "+item.height+" • "+fileExt(item.type).toUpperCase();}
   function processCurrent(operation,fn){var item=currentItem();if(!item)return;setStatus("Processing…");fn(item).then(function(r){addHistory(r.blob,r.name,operation,r.width,r.height);setStatus(operation+" completed.",true);}).catch(function(err){console.error(err);setStatus("Could not process the image.",false);});}
@@ -101,20 +165,19 @@
   function resetCropSelection(){var overlay=q("image-crop-overlay"),box=q("image-crop-rectangle");if(overlay)overlay.classList.add("image-hidden");if(box){box.style.cssText="";box.innerHTML="";}["crop-x","crop-y","crop-width","crop-height"].forEach(function(id){if(q(id))q(id).value="";});if(q("crop-live-size"))q("crop-live-size").textContent="";state.cropStart=null;state.cropDrag=false;state.cropMode=null;state.cropRect=null;state.cropOrigin=null;}
   function resizeCrop(rect,dir,p,start,r){var min=12,x=rect.x,y=rect.y,w=rect.w,h=rect.h,dx=p.x-start.x,dy=p.y-start.y,right=x+w,bottom=y+h;if(dir.indexOf("n")!==-1){var newY=Math.max(0,Math.min(bottom-min,y+dy));y=newY;h=bottom-y;}if(dir.indexOf("s")!==-1){h=Math.max(min,Math.min(r.height-y,h+dy));}if(dir.indexOf("w")!==-1){var newX=Math.max(0,Math.min(right-min,x+dx));x=newX;w=right-x;}if(dir.indexOf("e")!==-1){w=Math.max(min,Math.min(r.width-x,w+dx));}return{x:x,y:y,w:w,h:h};}
   function bindCrop(stage){if(!stage||stage.dataset.imageCropBound==="1")return;stage.dataset.imageCropBound="1";stage.addEventListener("pointerdown",function(e){var item=currentItem();if(!item||e.target.closest&&e.target.closest("#image-scale-preview"))return;var r=imageDisplayRect();var p=pointerInImage(e);if(!r||!p)return;var handle=e.target.closest&&e.target.closest("[data-crop-handle]");var box=e.target.closest&&e.target.closest("#image-crop-rectangle");if(handle&&box&&state.cropRect){state.cropMode="resize";state.cropStart=p;state.cropOrigin={rect:{x:state.cropRect.x,y:state.cropRect.y,w:state.cropRect.w,h:state.cropRect.h},dir:handle.getAttribute("data-crop-handle")};}else if(box&&state.cropRect){state.cropMode="move";state.cropStart=p;state.cropOrigin={rect:{x:state.cropRect.x,y:state.cropRect.y,w:state.cropRect.w,h:state.cropRect.h}};}else{state.cropMode="draw";state.cropStart={x:p.x,y:p.y};state.cropOrigin=null;state.cropRect=null;}state.cropDrag=true;try{stage.setPointerCapture&&stage.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});stage.addEventListener("pointermove",function(e){if(!state.cropDrag)return;var r=imageDisplayRect(),p=pointerInImage(e);if(!r||!p)return;if(state.cropMode==="draw"){drawCrop(state.cropStart,p);}else if(state.cropMode==="move"&&state.cropOrigin){var o=state.cropOrigin.rect,dx=p.x-state.cropStart.x,dy=p.y-state.cropStart.y;renderCropRect({x:Math.max(0,Math.min(r.width-o.w,o.x+dx)),y:Math.max(0,Math.min(r.height-o.h,o.y+dy)),w:o.w,h:o.h},r);}else if(state.cropMode==="resize"&&state.cropOrigin){renderCropRect(resizeCrop(state.cropOrigin.rect,state.cropOrigin.dir,p,state.cropStart,r),r);}});stage.addEventListener("pointerup",function(e){if(!state.cropDrag)return;var r=imageDisplayRect();state.cropDrag=false;var rect=state.cropRect;state.cropMode=null;state.cropOrigin=null;if(rect&&r)commitCropRect(rect,r);try{stage.releasePointerCapture&&stage.releasePointerCapture(e.pointerId);}catch(_){} });stage.addEventListener("pointercancel",function(e){state.cropDrag=false;state.cropMode=null;state.cropOrigin=null;try{stage.releasePointerCapture&&stage.releasePointerCapture(e.pointerId);}catch(_){} });}
-  function bindWorkspace(){var ws=document.querySelector(".image-workspace");if(!ws)return false;if(ws.dataset.imageToolsBound==="1")return true;
+  function bindWorkspace(){var ws=document.querySelector(".image-workspace");if(!ws)return false;if(ws.dataset.imageToolsBound==="1")return true;ws.dataset.imageToolsBound="1";
     q("image-file").addEventListener("change",function(){upload(this.files&&this.files[0]);});
-    q("image-upload-button").addEventListener("click",function(){q("image-file").click();});q("image-scale-button").addEventListener("click",scaleCurrent);q("image-scale-preview-button").addEventListener("click",updateScalePreview);q("image-crop-button").addEventListener("click",cropCurrent);q("image-transparent-button").addEventListener("click",transparentCurrent);q("image-clear-button").addEventListener("click",clearHistory);
-    q("scale-width").addEventListener("input",function(){syncScaleRatio("width");});q("scale-height").addEventListener("input",function(){syncScaleRatio("height");});bindCrop(q("image-preview-stage"));
+    q("image-scale-button").addEventListener("click",scaleCurrent);q("image-scale-preview-button").addEventListener("click",updateScalePreview);q("image-crop-button").addEventListener("click",cropCurrent);q("image-transparent-button").addEventListener("click",transparentCurrent);q("image-clear-button").addEventListener("click",clearHistory);
+    q("scale-width").addEventListener("input",function(){syncScaleRatio("width");});q("scale-height").addEventListener("input",function(){syncScaleRatio("height");});bindCrop(q("image-preview-stage"));bindMenus();
     var drop=q("image-drop");["dragenter","dragover"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add("dragover");});});["dragleave","drop"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove("dragover");});});drop.addEventListener("drop",function(e){upload(e.dataTransfer.files&&e.dataTransfer.files[0]);});
     renderHistory();showCurrent();return true;}
-  function bindHistory(){var history=q("image-history");if(!history||history.dataset.imageHistoryBound==="1")return;history.dataset.imageHistoryBound="1";history.addEventListener("click",function(e){var target=e.target&&e.target.closest?e.target.closest("button"):null;var card=e.target&&e.target.closest?e.target.closest(".image-history-card"):null;if(!card||!history.contains(card))return;var index=parseInt(card.dataset.index,10);if(!Number.isFinite(index)||!state.items[index])return;if(target&&target.matches(".image-history-link")){e.preventDefault();state.current=index;renderHistory();showCurrent();resetCropSelection();hideScalePreview();return;}if(target&&target.matches(".image-download-button")){e.preventDefault();var format=card.querySelector(".image-history-actions select");exportItem(state.items[index],format?format.value:state.items[index].type);return;}});history.addEventListener("change",function(e){var target=e.target;if(!target||!target.matches(".image-history-actions select"))return;var card=target.closest(".image-history-card");if(!card)return;var index=parseInt(card.dataset.index,10);if(Number.isFinite(index)&&state.items[index])exportItem(state.items[index],target.value);});}
-  function upload(file){if(!file||!file.type||file.type.indexOf("image/")!==0)return setStatus("Please choose an image file.",false);clearHistory();loadImage(file).then(function(img){addHistory(file,file.name,"Original",img.naturalWidth||img.width,img.naturalHeight||img.height);setStatus("Image loaded. Choose an operation to create the next stage.",true);}).catch(function(){setStatus("Could not read that image.",false);});}
-  function clearHistory(){state.items.forEach(revokeItem);state.items=[];state.current=-1;resetCropSelection();hideScalePreview();renderHistory();showCurrent();setStatus("");}
+  function bindHistory(){var history=q("image-history");if(!history||history.dataset.imageHistoryBound==="1")return;history.dataset.imageHistoryBound="1";history.addEventListener("click",function(e){var target=e.target&&e.target.closest?e.target.closest("button"):null;var card=e.target&&e.target.closest?e.target.closest(".image-history-card"):null;if(!card||!history.contains(card))return;var index=parseInt(card.dataset.index,10);if(!Number.isFinite(index)||!state.items[index])return;if(target&&target.matches(".image-history-link")){e.preventDefault();state.current=index;renderHistory();showCurrent();resetCropSelection();hideScalePreview();var selected=state.items[index],menuStatus=q("image-menu-status");if(menuStatus)menuStatus.textContent="Selected: "+(index+1)+". "+selected.operation;return;}if(target&&target.matches(".image-download-button")){e.preventDefault();var format=card.querySelector(".image-history-actions select");exportItem(state.items[index],format?format.value:state.items[index].type);return;}});history.addEventListener("change",function(e){var target=e.target;if(!target||!target.matches(".image-history-actions select"))return;var card=target.closest(".image-history-card");if(!card)return;var index=parseInt(card.dataset.index,10);if(Number.isFinite(index)&&state.items[index])exportItem(state.items[index],target.value);});}
+  function upload(file){if(!file||!file.type||file.type.indexOf("image/")!==0)return setStatus("Please choose an image file.",false);clearHistory();loadImage(file).then(function(img){addHistory(file,file.name,"Original",img.naturalWidth||img.width,img.naturalHeight||img.height);setStatus("Image loaded. Select a File or Edit command.",true);}).catch(function(){setStatus("Could not read that image.",false);});}
+  function clearHistory(){state.items.forEach(revokeItem);state.items=[];state.current=-1;resetCropSelection();hideScalePreview();renderHistory();showCurrent();showToolPanel("image-tool-panel-empty","Select File or Edit");setStatus("");}
   function cropCurrent(){var item=currentItem(),x=parseInt(q("crop-x").value,10),y=parseInt(q("crop-y").value,10),w=parseInt(q("crop-width").value,10),h=parseInt(q("crop-height").value,10);if(!item||[x,y,w,h].some(function(v){return !Number.isFinite(v);})||w<1||h<1||x<0||y<0||x+w>item.width||y+h>item.height)return setStatus("Enter a crop rectangle inside the image.",false);processCurrent("Cropped "+w+"×"+h,function(it){return canvasFromItem(it).then(function(c){var out=document.createElement("canvas");out.width=w;out.height=h;out.getContext("2d").drawImage(c,x,y,w,h,0,0,w,h);return canvasBlob(out,"image/png").then(function(blob){return{blob:blob,name:normalizeBase(it.name)+"-cropped.png",width:w,height:h};});});});}
   function transparentCurrent(){
     var item=currentItem();
     if(!item)return;
-
     var pick=window.__algolassiTransparentPick;
     var colorInput=q("transparent-color");
     var hex=((colorInput&&colorInput.value)||"#ffffff").replace("#","");
@@ -122,26 +185,16 @@
     var tol=parseInt(q("transparent-tolerance").value,10)||0;
     var seedX=pick&&Number.isFinite(Number(pick.x))?Math.floor(Number(pick.x)):null;
     var seedY=pick&&Number.isFinite(Number(pick.y))?Math.floor(Number(pick.y)):null;
-
-    if((seedX===null)!==(seedY===null)){
-      window.__algolassiTransparentPick=null;
-      return setStatus("Select a background region by clicking the image.",false);
-    }
+    if((seedX===null)!==(seedY===null)){window.__algolassiTransparentPick=null;return setStatus("Select a background region by clicking the image.",false);}
     if(seedX===null&&[r,g,b].some(function(v){return Number.isNaN(v);}))return setStatus("Choose a valid background color.",false);
-
     processCurrent(seedX!==null?"Transparent background region":"Transparent background",function(it){
       return canvasFromItem(it).then(function(c){
         var ctx=c.getContext("2d",{willReadFrequently:true});
         var data=ctx.getImageData(0,0,c.width,c.height),px=data.data;
-
         if(seedX!==null){
-          seedX=Math.max(0,Math.min(c.width-1,seedX));
-          seedY=Math.max(0,Math.min(c.height-1,seedY));
-          var seedIndex=(seedY*c.width+seedX)*4;
-          var sr=px[seedIndex],sg=px[seedIndex+1],sb=px[seedIndex+2];
-          var visited=new Uint8Array(c.width*c.height);
-          var stack=[seedY*c.width+seedX];
-          visited[seedY*c.width+seedX]=1;
+          seedX=Math.max(0,Math.min(c.width-1,seedX));seedY=Math.max(0,Math.min(c.height-1,seedY));
+          var seedIndex=(seedY*c.width+seedX)*4,sr=px[seedIndex],sg=px[seedIndex+1],sb=px[seedIndex+2];
+          var visited=new Uint8Array(c.width*c.height),stack=[seedY*c.width+seedX];visited[seedY*c.width+seedX]=1;
           while(stack.length){
             var pos=stack.pop(),py=Math.floor(pos/c.width),pxIndex=pos-py*c.width,di=pos*4;
             if(px[di+3]===0)continue;
@@ -156,7 +209,6 @@
         }else{
           for(var i=0;i<px.length;i+=4){if(Math.abs(px[i]-r)<=tol&&Math.abs(px[i+1]-g)<=tol&&Math.abs(px[i+2]-b)<=tol)px[i+3]=0;}
         }
-
         ctx.putImageData(data,0,0);
         return canvasBlob(c,"image/png").then(function(blob){return{blob:blob,name:normalizeBase(it.name)+"-transparent.png",width:it.width,height:it.height};});
       });
