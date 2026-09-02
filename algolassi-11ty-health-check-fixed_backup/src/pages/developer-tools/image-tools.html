@@ -39,6 +39,15 @@ description: "Browser-based image utilities for upload, background removal, crop
         <strong id="image-dimensions">No image selected</strong>
         <span id="image-preview-mode" class="image-preview-mode">Current</span>
       </div>
+
+      <section class="image-history-section image-history-section-inline" aria-labelledby="image-history-heading">
+        <div class="image-history-heading">
+          <h2 id="image-history-heading">Processing History</h2>
+          <span class="image-upload-help">Latest first</span>
+        </div>
+        <div id="image-history-empty" class="image-history-empty">Your original image and every processed version will appear here.</div>
+        <div id="image-history" class="image-history" aria-live="polite"></div>
+      </section>
     </div>
 
     <aside class="image-controls-card" aria-label="Image operations">
@@ -87,15 +96,6 @@ description: "Browser-based image utilities for upload, background removal, crop
         <button id="image-crop-button" class="image-action-button" type="button">Create Cropped Version</button>
       </div>
     </aside>
-  </section>
-
-  <section class="image-history-section" aria-labelledby="image-history-heading">
-    <div class="image-history-heading">
-      <h2 id="image-history-heading">Processing History</h2>
-      <span class="image-upload-help">Every stage remains downloadable.</span>
-    </div>
-    <div id="image-history-empty" class="image-history-empty">Your original image and every processed version will appear here.</div>
-    <div id="image-history" class="image-history" aria-live="polite"></div>
   </section>
 </div>
 
