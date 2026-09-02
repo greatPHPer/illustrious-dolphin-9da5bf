@@ -32,21 +32,33 @@
         "position:sticky!important;" +
         "top:calc(var(--algolassi-header-height, 0px) + 6px)!important;" +
         "z-index:2147483000!important;" +
+        "isolation:isolate!important;" +
         "background:var(--bg,#fff)!important;" +
         "border-bottom:1px solid rgba(229,231,235,.85)!important;" +
         "box-shadow:0 4px 14px rgba(16,24,40,.06)!important;" +
         "padding-top:8px!important;" +
         "padding-bottom:8px!important;" +
       "}" +
-      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-menu," +
-      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-child-menu," +
-      ".breadcrumbs.algolassi-breadcrumb-sticky .algolassi-toolmenu-menu{" +
-        "z-index:2147483646!important;" +
-      "}" +
       ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-item," +
       ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-child-item," +
       ".breadcrumbs.algolassi-breadcrumb-sticky .algolassi-toolmenu-managed{" +
-        "z-index:2147483645!important;" +
+        "position:relative!important;" +
+        "z-index:1!important;" +
+      "}" +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-item:hover," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-item:focus-within," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-child-item:hover," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-child-item:focus-within," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-child-item.menu-open," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .algolassi-toolmenu-managed:hover," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .algolassi-toolmenu-managed:focus-within," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .algolassi-toolmenu-managed.menu-open{" +
+        "z-index:99999!important;" +
+      "}" +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-menu," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-child-menu," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .algolassi-toolmenu-menu{" +
+        "z-index:100000!important;" +
       "}" +
       "@media(max-width:700px){" +
         ".breadcrumbs.algolassi-breadcrumb-sticky{" +
