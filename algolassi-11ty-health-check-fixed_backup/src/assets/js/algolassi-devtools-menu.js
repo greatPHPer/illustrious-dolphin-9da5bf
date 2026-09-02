@@ -53,9 +53,10 @@
   }
 
   function createHomeItem() {
-    var item = createElement("div", "breadcrumb-item");
+    var item = createElement("div", "breadcrumb-item breadcrumb-child-item algolassi-toolmenu-managed algolassi-toolmenu-category algolassi-toolmenu-home");
     var link = createElement("a", "breadcrumb-trigger crumb-trigger", "🏠 Home");
     link.href = "/";
+    link.setAttribute("data-menu", "developer-tools-home");
     item.appendChild(link);
     return item;
   }
@@ -94,7 +95,7 @@
   }
 
   function createDeveloperRootItem(activeCategory) {
-    var item = createElement("div", "breadcrumb-item breadcrumb-child-item algolassi-toolmenu-managed algolassi-toolmenu-devtools");
+    var item = createElement("div", "breadcrumb-item breadcrumb-child-item algolassi-toolmenu-managed algolassi-toolmenu-devtools algolassi-toolmenu-category");
     var link = createElement("a", "breadcrumb-trigger crumb-trigger", "🛠️ Developer Tools");
     link.href = ROOT;
     link.setAttribute("data-menu", "developer-tools");
@@ -125,7 +126,7 @@
       text = category.title.replace(/^[^A-Za-z0-9]+/, "").trim();
     }
 
-    var item = createElement("span", "breadcrumb-current breadcrumb-child-item algolassi-toolmenu-current", "📄 " + (text || "Developer Tool") + " ");
+    var item = createElement("span", "breadcrumb-current breadcrumb-child-item algolassi-toolmenu-current algolassi-toolmenu-managed", "📄 " + (text || "Developer Tool") + " ");
     item.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
     item.appendChild(buildToolMenu(category, currentPath));
     return item;
@@ -272,9 +273,7 @@
   }
 
   function refreshAfterSpa() {
-    rebuild();
-    window.setTimeout(rebuild, 50);
-    window.setTimeout(rebuild, 200);
+    window.requestAnimationFrame(rebuild);
   }
 
   document.addEventListener("DOMContentLoaded", rebuild, { once: true });

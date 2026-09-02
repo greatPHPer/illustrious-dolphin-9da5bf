@@ -6,58 +6,50 @@ contentType: "page"
 description: "Learn practical async and await patterns in C#, including common mistakes involving blocking, cancellation and exception handling."
 ---
 
-# C# async and await: Common Mistakes and Best Practices
+<h1>C# async and await: Common Mistakes and Best Practices</h1>
 
-`async` and `await` make asynchronous C# code easier to read, but they do not make every operation asynchronous automatically. Good async code depends on understanding what the awaited operation actually does.
+<p><code>async</code> and <code>await</code> make asynchronous C# code easier to read, but they do not make every operation asynchronous automatically. Good async code depends on understanding what the awaited operation actually does.</p>
 
-## Prefer async all the way
+<h2>Prefer async all the way</h2>
 
-If an API is asynchronous, keep the calling path asynchronous instead of blocking it with `.Result` or `.Wait()`.
+<p>If an API is asynchronous, keep the calling path asynchronous instead of blocking it with <code>.Result</code> or <code>.Wait()</code>.</p>
 
-```csharp
-var result = await service.GetDataAsync();
-```
+<pre><code class="language-csharp">var result = await service.GetDataAsync();</code></pre>
 
-Blocking an asynchronous operation can waste threads and, in some environments, contribute to deadlocks.
+<p>Blocking an asynchronous operation can waste threads and, in some environments, contribute to deadlocks.</p>
 
-## Do not use async void for ordinary methods
+<h2>Do not use async void for ordinary methods</h2>
 
-Except for event handlers, prefer `Task` or `Task<T>` so callers can await completion and observe exceptions.
+<p>Except for event handlers, prefer <code>Task</code> or <code>Task&lt;T&gt;</code> so callers can await completion and observe exceptions.</p>
 
-```csharp
-public async Task SaveAsync()
+<pre><code class="language-csharp">public async Task SaveAsync()
 {
     await repository.SaveAsync();
-}
-```
+}</code></pre>
 
-## Handle cancellation
+<h2>Handle cancellation</h2>
 
-Long-running operations should often accept a `CancellationToken` so the caller can stop work that is no longer needed.
+<p>Long-running operations should often accept a <code>CancellationToken</code> so the caller can stop work that is no longer needed.</p>
 
-```csharp
-await service.ProcessAsync(cancellationToken);
-```
+<pre><code class="language-csharp">await service.ProcessAsync(cancellationToken);</code></pre>
 
-## Exceptions
+<h2>Exceptions</h2>
 
-Exceptions from an awaited task can be caught normally with `try`/`catch` around the await.
+<p>Exceptions from an awaited task can be caught normally with <code>try</code>/<code>catch</code> around the await.</p>
 
-Avoid creating broad catch blocks that silently discard failures.
+<p>Avoid creating broad catch blocks that silently discard failures.</p>
 
-## Parallel work
+<h2>Parallel work</h2>
 
-When operations are independent, tasks can sometimes be started first and awaited together:
+<p>When operations are independent, tasks can sometimes be started first and awaited together:</p>
 
-```csharp
-var firstTask = GetFirstAsync();
+<pre><code class="language-csharp">var firstTask = GetFirstAsync();
 var secondTask = GetSecondAsync();
 
-await Task.WhenAll(firstTask, secondTask);
-```
+await Task.WhenAll(firstTask, secondTask);</code></pre>
 
-Use this only when the operations are genuinely independent and the added concurrency is appropriate for the downstream system.
+<p>Use this only when the operations are genuinely independent and the added concurrency is appropriate for the downstream system.</p>
 
-## Summary
+<h2>Summary</h2>
 
-Use asynchronous APIs without unnecessary blocking, return `Task` from asynchronous methods, support cancellation where appropriate, handle exceptions intentionally, and use concurrency only when the workload benefits from it.
+<p>Use asynchronous APIs without unnecessary blocking, return <code>Task</code> from asynchronous methods, support cancellation where appropriate, handle exceptions intentionally, and use concurrency only when the workload benefits from it.</p>
