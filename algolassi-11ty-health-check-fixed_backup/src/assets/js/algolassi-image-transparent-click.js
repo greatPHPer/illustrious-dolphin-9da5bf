@@ -65,6 +65,24 @@
     };
   }
 
+  function resolvePreviewImage(event) {
+    var target = event && event.target;
+    var img = target && target.closest
+      ? target.closest("#image-preview-img")
+      : null;
+
+    if (img) return img;
+
+    var stage = target && target.closest
+      ? target.closest("#image-preview-stage")
+      : null;
+
+    if (!stage) stage = q("image-preview-stage");
+    if (!stage) return null;
+
+    return stage.querySelector("#image-preview-img") || stage.querySelector("img");
+  }
+
   function bind() {
     if (q("algolassi-transparent-click-bound")) return;
 
@@ -101,10 +119,8 @@
       if (!picking || busy) return;
       if (event.button !== 0 && event.pointerType !== "touch") return;
 
-      var img = event.target && event.target.closest
-        ? event.target.closest("#image-preview-img")
-        : null;
-      if (!img) return;
+      var img = resolvePreviewImage(event);
+      if (!img || img.classList.contains("image-hidden") || !img.naturalWidth) return;
 
       var point = imagePoint(event, img);
       if (!point) return;
