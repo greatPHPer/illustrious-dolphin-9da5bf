@@ -273,9 +273,7 @@
   }
 
   function refreshAfterSpa() {
-    rebuild();
-    window.setTimeout(rebuild, 50);
-    window.setTimeout(rebuild, 200);
+    window.requestAnimationFrame(rebuild);
   }
 
   document.addEventListener("DOMContentLoaded", rebuild, { once: true });
