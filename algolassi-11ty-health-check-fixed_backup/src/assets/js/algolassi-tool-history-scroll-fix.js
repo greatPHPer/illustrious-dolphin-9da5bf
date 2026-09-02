@@ -66,7 +66,7 @@
   function resetImageHistoryHorizontalScroll() {
     var history = document.getElementById("image-history");
     if (!history) return;
-    history.scrollLeft = 0;
+    history.scrollLeft = Number.MIN_SAFE_INTEGER;
   }
 
   function bindImageHistoryScrollReset() {
