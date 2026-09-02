@@ -17,6 +17,8 @@
   };
 
   var BROWN = "#8b5a2b";
+  var observedRoot = null;
+  var refreshTimer = 0;
 
   function makeIcon(markup) {
     var span = document.createElement("span");
@@ -71,45 +73,62 @@
     var style = document.createElement("style");
     style.id = "algolassi-devtools-brown-icon-style";
     style.textContent =
-      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon," +
-      ".algolassi-toolmenu-home .algolassi-devtools-brown-icon{" +
+      ".algolassi-toolmenu-home .algolassi-devtools-brown-icon," +
+      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon{" +
         "display:inline-flex!important;align-items:center!important;justify-content:center!important;" +
         "width:1em!important;height:1em!important;min-width:1em!important;" +
         "margin-right:.3em!important;vertical-align:-.14em!important;" +
-        "color:#8b5a2b!important;" +
+        "color:#8b5a2b!important;flex:0 0 auto!important;" +
       "}" +
-      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon svg," +
-      ".algolassi-toolmenu-home .algolassi-devtools-brown-icon svg{" +
+      ".algolassi-toolmenu-home .algolassi-devtools-brown-icon svg," +
+      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon svg{" +
         "width:100%!important;height:100%!important;display:block!important;" +
         "fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;" +
         "stroke-linecap:round!important;stroke-linejoin:round!important;" +
-      "}" +
-      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon + .breadcrumb-arrow," +
-      ".algolassi-toolmenu-home .algolassi-devtools-brown-icon + .breadcrumb-arrow{" +
-        "margin-left:2px!important;" +
-      "}" +
-      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon + span:not(.breadcrumb-arrow)," +
-      ".algolassi-toolmenu-home .algolassi-devtools-brown-icon + span:not(.breadcrumb-arrow){" +
-        "color:#8b5a2b!important;" +
       "}";
     document.head.appendChild(style);
   }
 
-  function init() {
+  function scan() {
     addStyles();
     document.querySelectorAll(".algolassi-toolmenu-managed, .algolassi-toolmenu-home").forEach(replaceSymbols);
   }
 
+  function scheduleScan() {
+    if (refreshTimer) return;
+    refreshTimer = window.setTimeout(function () {
+      refreshTimer = 0;
+      scan();
+    }, 0);
+  }
+
+  function observe() {
+    var breadcrumbs = document.querySelector(".breadcrumbs");
+    if (!breadcrumbs || observedRoot === breadcrumbs || !("MutationObserver" in window)) return;
+
+    observedRoot = breadcrumbs;
+    var observer = new MutationObserver(function () {
+      scheduleScan();
+    });
+    observer.observe(breadcrumbs, { childList: true, subtree: true, characterData: true });
+  }
+
+  function init() {
+    scan();
+    observe();
+  }
+
   window.addEventListener("load", init);
   window.addEventListener("algolassi:spa-navigation", function () {
-    requestAnimationFrame(function () {
-      requestAnimationFrame(init);
+    window.requestAnimationFrame(function () {
+      init();
+      window.requestAnimationFrame(scan);
     });
   });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init, { once: true });
   } else {
-    requestAnimationFrame(init);
+    window.requestAnimationFrame(init);
   }
 })();
