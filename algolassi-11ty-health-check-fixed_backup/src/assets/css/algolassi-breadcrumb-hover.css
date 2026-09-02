@@ -19,21 +19,26 @@
 .breadcrumb-current.breadcrumb-child-item:hover, .breadcrumb-current.breadcrumb-child-item:focus-within { background: #f5f9ff !important; border-color: #e3ecfb !important; }
 .breadcrumb-menu.breadcrumb-child-menu-source-hidden { display: none !important; }
 
-/* Keep the 3rd breadcrumb level's child menu wide enough for longer items. */
 .breadcrumbs > .breadcrumb-item:nth-of-type(3) > .breadcrumb-child-menu,
 .breadcrumbs > .breadcrumb-current.breadcrumb-child-item > .breadcrumb-child-menu { min-width: 250px !important; }
 
-/* Keep Tutorials breadcrumb glyphs in the existing monochrome icon system. */
+/* Tutorials breadcrumb glyphs stay in the existing monochrome icon system. */
 .breadcrumb-current,
 .breadcrumb-child-menu > a,
 .breadcrumb-child-menu > a.breadcrumb-dropdown-current { font-variant-emoji: text !important; }
 
-/* Developer Tools gets its own native full-color emoji treatment so it is
-   visually distinct from the Tutorial breadcrumb icon system. */
+/* Developer Tools: single-color brown accent for a deliberately distinct but even look. */
 .algolassi-toolmenu-devtools .breadcrumb-trigger,
+.algolassi-toolmenu-devtools .breadcrumb-arrow,
 .algolassi-toolmenu-category .breadcrumb-trigger,
+.algolassi-toolmenu-category .breadcrumb-arrow,
 .algolassi-toolmenu-current,
-.algolassi-toolmenu-menu > a { font-variant-emoji: emoji !important; }
+.algolassi-toolmenu-current .breadcrumb-arrow { color: #8b5e34 !important; }
+.algolassi-toolmenu-managed .algolassi-toolmenu-menu,
+.algolassi-toolmenu-managed .algolassi-toolmenu-menu > a,
+.algolassi-toolmenu-managed .algolassi-toolmenu-menu > a.breadcrumb-dropdown-current { font-variant-emoji: text !important; }
+.algolassi-toolmenu-managed .algolassi-toolmenu-menu > a { color: #6f4b2a !important; }
+.algolassi-toolmenu-managed .algolassi-toolmenu-menu > a:hover { color: #8b5e34 !important; background: #faf4ee !important; }
 
 /* JavaScript owns submenu width, top and max-height. */
 .breadcrumb-child-menu { display: block !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; position: absolute !important; left: 0 !important; z-index: 10000 !important; box-sizing: border-box !important; overflow-y: auto !important; overflow-x: hidden !important; overscroll-behavior: contain !important; scrollbar-gutter: stable !important; padding: 7px 0 !important; border: 1px solid #e6eaf0 !important; border-radius: 6px !important; background: #fff !important; box-shadow: 0 12px 28px rgba(16, 24, 40, .14), 0 2px 6px rgba(16, 24, 40, .06) !important; transform: translateY(-4px) scale(.985) !important; transform-origin: top left !important; transition: opacity .14s ease, transform .18s cubic-bezier(.22, 1, .36, 1), visibility 0s linear .18s !important; }
@@ -44,8 +49,7 @@
 .breadcrumb-child-menu > a.breadcrumb-dropdown-current:hover { background: #e9f2ff !important; border: 0 !important; }
 .breadcrumb-item > .breadcrumb-menu:not(.breadcrumb-child-menu-source-hidden) { visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }
 
-/* Developer Tools menus are generated after the shared breadcrumb script on SPA navigation.
-   Keep their hover behavior independent of script initialization order. */
+/* Developer Tools menus are generated after the shared breadcrumb script on SPA navigation. */
 .algolassi-toolmenu-managed:hover > .algolassi-toolmenu-menu,
 .algolassi-toolmenu-managed:focus-within > .algolassi-toolmenu-menu {
   visibility: visible !important;
@@ -55,8 +59,8 @@
   transition-delay: 0s !important;
 }
 .algolassi-toolmenu-menu { min-width: 230px !important; overflow-x: hidden !important; }
-.algolassi-toolmenu-menu > a { display: block !important; width: 100% !important; box-sizing: border-box !important; margin: 0 !important; padding: 9px 11px !important; color: #475467 !important; background: transparent !important; text-decoration: none !important; white-space: normal !important; overflow-x: hidden !important; }
-.algolassi-toolmenu-menu > a:hover { margin: 0 !important; background: #f4f8ff !important; color: #1769e0 !important; }
+.algolassi-toolmenu-menu > a { display: block !important; width: 100% !important; box-sizing: border-box !important; margin: 0 !important; padding: 9px 11px !important; color: #6f4b2a !important; background: transparent !important; text-decoration: none !important; white-space: normal !important; overflow-x: hidden !important; }
+.algolassi-toolmenu-menu > a:hover { margin: 0 !important; background: #faf4ee !important; color: #8b5e34 !important; }
 
 @media (max-width: 700px) {
   .breadcrumbs { width: 100% !important; max-width: 100% !important; padding: 6px 0 !important; font-size: 14px !important; }
