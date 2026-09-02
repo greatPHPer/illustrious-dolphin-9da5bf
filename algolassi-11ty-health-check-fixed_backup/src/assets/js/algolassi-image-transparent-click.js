@@ -92,27 +92,51 @@
     document.body.appendChild(marker);
 
     document.addEventListener("click", function (event) {
-      var button = event.target && event.target.closest
-        ? event.target.closest("#image-transparent-button")
+      var target = event.target;
+      var button = target && target.closest
+        ? target.closest("#image-transparent-button")
         : null;
-      if (!button) return;
 
-      /* First button click arms region selection. After a region has been
-         selected, the normal Image Tools handler is allowed to process it. */
-      if (!picking && !window.__algolassiTransparentPick) {
-        var img = q("image-preview-img");
-        if (!img || img.classList.contains("image-hidden") || !img.naturalWidth) {
+      if (button) {
+        /* First button click arms region selection. The image click applies it
+           immediately; no second button click is needed. */
+        if (!picking && !window.__algolassiTransparentPick) {
+          var img = q("image-preview-img");
+          if (!img || img.classList.contains("image-hidden") || !img.naturalWidth) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            status("Upload an image first, then select a background region.", false);
+            return;
+          }
+
           event.preventDefault();
           event.stopImmediatePropagation();
-          status("Upload an image first, then select a background region.", false);
+          setPicking(true);
+          status("Click the background region in the image.", true);
           return;
         }
-
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        setPicking(true);
-        status("Click the background region in the image.", true);
+        return;
       }
+
+      /* Keep the history Edit menu usable even when the older image-tools
+         handler is already present. CSS opens this panel with .open. */
+      var menuButton = target && target.closest
+        ? target.closest(".image-menu-button")
+        : null;
+      if (!menuButton) return;
+
+      var menu = menuButton.closest(".image-card-menu");
+      var history = menuButton.closest("#image-history");
+      if (!menu || !history) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      var opening = !menu.classList.contains("open");
+      Array.prototype.forEach.call(history.querySelectorAll(".image-card-menu.open"), function (other) {
+        if (other !== menu) other.classList.remove("open");
+      });
+      menu.classList.toggle("open", opening);
     }, true);
 
     document.addEventListener("pointerup", function (event) {
@@ -133,19 +157,20 @@
         };
         setPicking(false);
 
-        /* Reuse the normal Image Tools processor immediately. Because the
-           selected point is already stored, its connected-region flood-fill
-           runs on this click; no second button click is required. */
+        /* Apply the selected connected region immediately. The main Image
+           Tools handler remains the single processor for the actual edit. */
         var button = q("image-transparent-button");
         if (button) {
           button.click();
         } else {
-          throw new Error("Transparent Background button is unavailable");
+          window.__algolassiTransparentPick = null;
+          status("Transparent Background is unavailable.", false);
+          return;
         }
       } catch (error) {
         window.__algolassiTransparentPick = null;
         console.error("Algolassi transparent background pick:", error);
-        status("Could not remove that image region.", false);
+        status("Could not select that image region.", false);
       } finally {
         busy = false;
       }
