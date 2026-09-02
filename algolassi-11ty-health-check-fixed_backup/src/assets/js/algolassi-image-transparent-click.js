@@ -4,6 +4,8 @@
 
   var picking = false;
   var busy = false;
+  var historyObserver = null;
+  var reorderingHistory = false;
 
   function q(id) {
     return document.getElementById(id);
@@ -81,6 +83,53 @@
     if (!stage) return null;
 
     return stage.querySelector("#image-preview-img") || stage.querySelector("img");
+  }
+
+  function reverseHistory() {
+    var history = q("image-history");
+    if (!history || reorderingHistory) return;
+
+    var cards = Array.prototype.slice.call(history.children).filter(function (el) {
+      return el.classList && el.classList.contains("image-history-card");
+    });
+    if (cards.length < 2) return;
+
+    cards.sort(function (a, b) {
+      return (parseInt(b.dataset.index, 10) || 0) - (parseInt(a.dataset.index, 10) || 0);
+    });
+
+    var connectors = Array.prototype.slice.call(history.children).filter(function (el) {
+      return el.classList && el.classList.contains("image-history-connector");
+    });
+
+    reorderingHistory = true;
+    if (historyObserver) historyObserver.disconnect();
+
+    while (history.firstChild) history.removeChild(history.firstChild);
+
+    cards.forEach(function (card, index) {
+      if (index) {
+        var connector = connectors[index - 1] || document.createElement("div");
+        connector.className = "image-history-connector";
+        connector.setAttribute("aria-hidden", "true");
+        history.appendChild(connector);
+      }
+      history.appendChild(card);
+    });
+
+    if (historyObserver) historyObserver.observe(history, { childList: true });
+    reorderingHistory = false;
+  }
+
+  function watchHistory() {
+    var history = q("image-history");
+    if (!history || historyObserver) return;
+
+    historyObserver = new MutationObserver(function () {
+      if (!reorderingHistory) reverseHistory();
+    });
+    historyObserver.observe(history, { childList: true });
+    reverseHistory();
   }
 
   function bind() {
@@ -181,7 +230,10 @@
       busy = false;
       window.__algolassiTransparentPick = null;
       setPicking(false);
+      watchHistory();
     });
+
+    watchHistory();
   }
 
   function ensureStyles() {
@@ -195,6 +247,7 @@
   function start() {
     ensureStyles();
     bind();
+    watchHistory();
   }
 
   if (document.readyState === "loading") {
