@@ -90,7 +90,6 @@
       menu.appendChild(link);
     });
 
-    if (!category.tools.length) menu.appendChild(createElement("span", "breadcrumb-toolmenu-empty", "More tools coming soon"));
     return menu;
   }
 
@@ -127,8 +126,12 @@
     }
 
     var item = createElement("span", "breadcrumb-current breadcrumb-child-item algolassi-toolmenu-current algolassi-toolmenu-managed", "📄 " + (text || "Developer Tool") + " ");
-    item.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
-    item.appendChild(buildToolMenu(category, currentPath));
+
+    if (category.tools.length) {
+      item.appendChild(createElement("span", "breadcrumb-arrow", "▼"));
+      item.appendChild(buildToolMenu(category, currentPath));
+    }
+
     return item;
   }
 
