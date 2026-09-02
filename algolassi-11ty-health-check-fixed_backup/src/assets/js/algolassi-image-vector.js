@@ -4,6 +4,7 @@
 
   var tracerUrl = "https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/imagetracer_v1.2.6.js";
   var tracerPromise = null;
+  var selectedHistoryUrl = null;
 
   function q(id) { return document.getElementById(id); }
 
@@ -33,12 +34,39 @@
     return tracerPromise;
   }
 
-  function loadSelectedImage() {
+  function syncSelectedHistory() {
     var selected = document.querySelector("#image-history .image-history-card.current .image-history-thumb img");
-    var preview = q("image-preview-img");
-    var source = selected && selected.src ? selected : preview;
+    selectedHistoryUrl = selected && selected.src ? selected.src : null;
+  }
 
-    if (!source || source.classList.contains("image-hidden") || !source.src) {
+  function bindHistorySelection() {
+    var history = q("image-history");
+    if (!history || history.dataset.vectorSelectionBound === "1") {
+      syncSelectedHistory();
+      return;
+    }
+
+    history.dataset.vectorSelectionBound = "1";
+    history.addEventListener("click", function (event) {
+      var link = event.target && event.target.closest ? event.target.closest(".image-history-link") : null;
+      if (!link || !history.contains(link)) return;
+      var card = link.closest(".image-history-card");
+      var image = card && card.querySelector(".image-history-thumb img");
+      if (image && image.src) selectedHistoryUrl = image.src;
+    });
+
+    syncSelectedHistory();
+  }
+
+  function loadSelectedImage() {
+    bindHistorySelection();
+
+    var selected = selectedHistoryUrl;
+    var current = document.querySelector("#image-history .image-history-card.current .image-history-thumb img");
+    var preview = q("image-preview-img");
+    var sourceUrl = selected || (current && current.src) || (preview && preview.src);
+
+    if (!sourceUrl || (preview && preview.classList.contains("image-hidden") && !selected)) {
       return Promise.reject(new Error("Select or upload an image first."));
     }
 
@@ -46,7 +74,7 @@
       var image = new Image();
       image.onload = function () { resolve(image); };
       image.onerror = function () { reject(new Error("Could not read the selected history image.")); };
-      image.src = source.src;
+      image.src = sourceUrl;
     });
   }
 
@@ -217,6 +245,8 @@
   }
 
   function bind() {
+    bindHistorySelection();
+
     var svgButton = q("image-vector-svg-button");
     var epsButton = q("image-vector-eps-button");
     if (svgButton && svgButton.dataset.vectorBound !== "1") {
