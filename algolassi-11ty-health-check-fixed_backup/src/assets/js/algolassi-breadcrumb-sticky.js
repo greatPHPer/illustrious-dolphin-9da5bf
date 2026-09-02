@@ -7,6 +7,7 @@
   "use strict";
 
   var STYLE_ID = "algolassi-breadcrumb-sticky-style";
+  var BROWN_ICON_SCRIPT_ID = "algolassi-devtools-brown-icons-script";
   var attached = false;
 
   function getHeader() {
@@ -20,6 +21,16 @@
       "--algolassi-header-height",
       Math.ceil(height) + "px"
     );
+  }
+
+  function loadBrownDeveloperIcons() {
+    if (document.getElementById(BROWN_ICON_SCRIPT_ID)) return;
+
+    var script = document.createElement("script");
+    script.id = BROWN_ICON_SCRIPT_ID;
+    script.src = "/assets/js/algolassi-devtools-brown-icons.js?v=20260902-brown-icons-1";
+    script.defer = true;
+    document.body.appendChild(script);
   }
 
   function installStyle() {
@@ -86,6 +97,7 @@
     installStyle();
     breadcrumbs.classList.add("algolassi-breadcrumb-sticky");
     updateHeaderHeight();
+    loadBrownDeveloperIcons();
 
     if (!attached) {
       attached = true;
