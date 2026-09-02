@@ -71,21 +71,25 @@
     var style = document.createElement("style");
     style.id = "algolassi-devtools-brown-icon-style";
     style.textContent =
-      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon{" +
+      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon," +
+      ".algolassi-toolmenu-home .algolassi-devtools-brown-icon{" +
         "display:inline-flex!important;align-items:center!important;justify-content:center!important;" +
         "width:1em!important;height:1em!important;min-width:1em!important;" +
         "margin-right:.3em!important;vertical-align:-.14em!important;" +
         "color:#8b5a2b!important;" +
       "}" +
-      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon svg{" +
+      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon svg," +
+      ".algolassi-toolmenu-home .algolassi-devtools-brown-icon svg{" +
         "width:100%!important;height:100%!important;display:block!important;" +
         "fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;" +
         "stroke-linecap:round!important;stroke-linejoin:round!important;" +
       "}" +
-      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon + .breadcrumb-arrow{" +
+      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon + .breadcrumb-arrow," +
+      ".algolassi-toolmenu-home .algolassi-devtools-brown-icon + .breadcrumb-arrow{" +
         "margin-left:2px!important;" +
       "}" +
-      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon + span:not(.breadcrumb-arrow){" +
+      ".algolassi-toolmenu-managed .algolassi-devtools-brown-icon + span:not(.breadcrumb-arrow)," +
+      ".algolassi-toolmenu-home .algolassi-devtools-brown-icon + span:not(.breadcrumb-arrow){" +
         "color:#8b5a2b!important;" +
       "}";
     document.head.appendChild(style);
@@ -93,7 +97,7 @@
 
   function init() {
     addStyles();
-    document.querySelectorAll(".algolassi-toolmenu-managed").forEach(replaceSymbols);
+    document.querySelectorAll(".algolassi-toolmenu-managed, .algolassi-toolmenu-home").forEach(replaceSymbols);
   }
 
   window.addEventListener("load", init);
