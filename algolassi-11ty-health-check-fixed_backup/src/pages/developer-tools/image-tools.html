@@ -95,9 +95,21 @@ description: "Browser-based image utilities for upload, background removal, crop
       <div class="image-actions">
         <button id="image-crop-button" class="image-action-button" type="button">Create Cropped Version</button>
       </div>
+
+      <hr>
+
+      <div class="image-control image-vector-control">
+        <label>Vectorize</label>
+        <p class="image-control-help">Trace the current image into editable vector paths.</p>
+      </div>
+      <div class="image-actions image-vector-actions">
+        <button id="image-vector-svg-button" class="image-action-button secondary" type="button">Vector SVG</button>
+        <button id="image-vector-eps-button" class="image-action-button" type="button">Vector EPS</button>
+      </div>
     </aside>
   </section>
 </div>
 
 <script src="/assets/js/algolassi-image-tools.js?v=20260901-image-tools-2" defer></script>
 <script src="/assets/js/algolassi-image-tools-stability.js?v=20260901-image-tools-stability-1" defer></script>
+<script src="/assets/js/algolassi-image-vector.js?v=20260902-vector-1" defer></script>
