@@ -7,6 +7,8 @@
 
   var loading = false;
   var hideTimer = null;
+  var shownAt = 0;
+  var MIN_VISIBLE_MS = 800;
 
   function ensure() {
     var host = document.getElementById("algolassi-centered-loading");
@@ -23,20 +25,40 @@
     var host = ensure();
     if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
     loading = true;
+    shownAt = Date.now();
     host.setAttribute("aria-hidden", "false");
     host.classList.remove("is-hidden");
     host.classList.add("is-loading");
   }
 
-  function hide() {
-    var host = document.getElementById("algolassi-centered-loading");
+  function finishHide(host) {
     if (!host) return;
     loading = false;
     host.classList.remove("is-loading");
     host.setAttribute("aria-hidden", "true");
     hideTimer = setTimeout(function () {
       host.classList.add("is-hidden");
+      hideTimer = null;
     }, 220);
+  }
+
+  function hide() {
+    var host = document.getElementById("algolassi-centered-loading");
+    if (!host) return;
+
+    var elapsed = shownAt ? Date.now() - shownAt : MIN_VISIBLE_MS;
+    var remaining = Math.max(0, MIN_VISIBLE_MS - elapsed);
+
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+
+    if (loading && remaining > 0) {
+      hideTimer = setTimeout(function () {
+        finishHide(host);
+      }, remaining);
+      return;
+    }
+
+    finishHide(host);
   }
 
   function shouldShow(link, event) {
