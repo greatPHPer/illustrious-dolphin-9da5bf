@@ -33,21 +33,25 @@
     return tracerPromise;
   }
 
-  function loadCurrentImage() {
-    var img = q("image-preview-img");
-    if (!img || img.classList.contains("image-hidden") || !img.src) {
-      return Promise.reject(new Error("Upload an image first."));
+  function loadSelectedImage() {
+    var selected = document.querySelector("#image-history .image-history-card.current .image-history-thumb img");
+    var preview = q("image-preview-img");
+    var source = selected && selected.src ? selected : preview;
+
+    if (!source || source.classList.contains("image-hidden") || !source.src) {
+      return Promise.reject(new Error("Select or upload an image first."));
     }
+
     return new Promise(function (resolve, reject) {
       var image = new Image();
       image.onload = function () { resolve(image); };
-      image.onerror = function () { reject(new Error("Could not read the current image.")); };
-      image.src = img.src;
+      image.onerror = function () { reject(new Error("Could not read the selected history image.")); };
+      image.src = source.src;
     });
   }
 
   function traceCurrent() {
-    return Promise.all([loadTracer(), loadCurrentImage()]).then(function (parts) {
+    return Promise.all([loadTracer(), loadSelectedImage()]).then(function (parts) {
       var tracer = parts[0];
       var image = parts[1];
       var canvas = document.createElement("canvas");
@@ -97,7 +101,7 @@
       if (lower === "m" || lower === "l") {
         var nx = num(), ny = num();
         if (relative) { nx += x; ny += y; }
-        out.push(nx + " " + (/* EPS Y is flipped by the caller's scale transform */ ny) + " " + (lower === "m" ? "moveto" : "lineto"));
+        out.push(nx + " " + ny + " " + (lower === "m" ? "moveto" : "lineto"));
         x = nx; y = ny;
         if (lower === "m") { startX = x; startY = y; cmd = relative ? "l" : "L"; }
       } else if (lower === "h") {
@@ -196,7 +200,7 @@
   }
 
   function vectorExport(kind) {
-    status("Vectorizing image…");
+    status("Vectorizing selected image…");
     traceCurrent().then(function (svg) {
       if (kind === "svg") {
         downloadText(svg, "algolassi-vector.svg", "image/svg+xml");
