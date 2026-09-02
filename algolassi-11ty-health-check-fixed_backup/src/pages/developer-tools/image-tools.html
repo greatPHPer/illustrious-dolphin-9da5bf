@@ -3,9 +3,9 @@ title: "Image Tools"
 layout: layouts/base.njk
 permalink: "/developer-tools/image-tools/"
 contentType: "page"
-description: "Browser-based image utilities for upload, background removal, cropping, scaling, and format conversion."
+description: "Browser-based image utilities for upload, background removal, cropping, scaling, rotation, and format conversion."
 ---
-<link rel="stylesheet" href="/assets/css/algolassi-image-tools.css?v=20260902-image-tools-menu-2">
+<link rel="stylesheet" href="/assets/css/algolassi-image-tools.css?v=20260902-image-tools-menu-3">
 
 <div class="devtools-page image-workspace">
   <h1>Image Tools</h1>
@@ -31,6 +31,7 @@ description: "Browser-based image utilities for upload, background removal, crop
           <button type="button" class="image-menu-item" data-image-command="transparent" role="menuitem">Background Transparent</button>
           <button type="button" class="image-menu-item" data-image-command="crop" role="menuitem">Crop</button>
           <button type="button" class="image-menu-item" data-image-command="scale" role="menuitem">Scale</button>
+          <button type="button" class="image-menu-item" data-image-command="rotate" role="menuitem">Rotate</button>
         </div>
       </div>
       <span id="image-menu-status" class="image-menu-status">Select File or Edit</span>
@@ -144,11 +145,21 @@ description: "Browser-based image utilities for upload, background removal, crop
           <button id="image-scale-button" class="image-action-button" type="button">Create Scaled Version</button>
         </div>
       </div>
+
+      <div id="image-rotate-panel" class="image-tool-panel-view image-hidden" data-panel="rotate">
+        <h2>Rotate</h2>
+        <p class="image-control-help">Create a new rotated version of the selected history image.</p>
+        <div class="image-actions">
+          <button id="image-rotate-90-button" class="image-action-button" type="button">90° Clockwise</button>
+          <button id="image-rotate-180-button" class="image-action-button" type="button">180°</button>
+          <button id="image-rotate-270-button" class="image-action-button" type="button">270° Clockwise</button>
+        </div>
+      </div>
     </aside>
   </section>
 </div>
 
-<script src="/assets/js/algolassi-image-tools.js?v=20260902-image-tools-menu-2" defer></script>
+<script src="/assets/js/algolassi-image-tools.js?v=20260902-image-tools-rotate-1" defer></script>
 <script src="/assets/js/algolassi-image-tools-stability.js?v=20260901-image-tools-stability-1" defer></script>
 <script src="/assets/js/algolassi-image-transparent-click.js?v=20260902-transparent-click-2" defer></script>
 <script src="/assets/js/algolassi-image-vector.js?v=20260902-vector-1" defer></script>
