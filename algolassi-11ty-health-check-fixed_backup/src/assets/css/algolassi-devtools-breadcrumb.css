@@ -4,6 +4,8 @@
    All DevTools icons use the same monochrome brown stroke.
    ========================================================= */
 
+@import url("/assets/css/algolassi-developer-tools-stepper.css?v=20260902-stepper-layout-1");
+
 .algolassi-toolmenu-home,
 .algolassi-toolmenu-devtools,
 .algolassi-toolmenu-category,
@@ -71,6 +73,19 @@
   background: #faf4ee !important;
 }
 
+/* DevTools common shell and stepper use the same geometry as breadcrumbs. */
+#algolassi-devtools-common-shell,
+.algolassi-devtools-stepper {
+  width: min(900px, 100%) !important;
+  max-width: 900px !important;
+  box-sizing: border-box !important;
+  margin: 0 auto 24px !important;
+}
+
+.algolassi-devtools-stepper {
+  padding: 8px 0 !important;
+}
+
 /* Never allow the native color emoji presentation to return inside DevTools. */
 .algolassi-toolmenu-home,
 .algolassi-toolmenu-devtools,
@@ -85,6 +100,12 @@
   .algolassi-toolmenu-managed .algolassi-devtools-brown-icon {
     width: 1em !important;
     height: 1em !important;
+  }
+
+  #algolassi-devtools-common-shell,
+  .algolassi-devtools-stepper {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
 
