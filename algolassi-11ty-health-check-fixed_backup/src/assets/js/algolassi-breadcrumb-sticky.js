@@ -8,7 +8,6 @@
 
   var STYLE_ID = "algolassi-breadcrumb-sticky-style";
   var attached = false;
-  var resizeObserver = null;
 
   function getHeader() {
     return document.querySelector(".site-header");
@@ -32,15 +31,22 @@
       ".breadcrumbs.algolassi-breadcrumb-sticky{" +
         "position:sticky!important;" +
         "top:calc(var(--algolassi-header-height, 0px) + 6px)!important;" +
-        "z-index:900!important;" +
+        "z-index:2147483000!important;" +
         "background:var(--bg,#fff)!important;" +
         "border-bottom:1px solid rgba(229,231,235,.85)!important;" +
         "box-shadow:0 4px 14px rgba(16,24,40,.06)!important;" +
         "padding-top:8px!important;" +
         "padding-bottom:8px!important;" +
       "}" +
-      ".breadcrumbs.algolassi-breadcrumb-sticky:focus-within{" +
-        "z-index:950!important;" +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-menu," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-child-menu," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .algolassi-toolmenu-menu{" +
+        "z-index:2147483646!important;" +
+      "}" +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-item," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .breadcrumb-child-item," +
+      ".breadcrumbs.algolassi-breadcrumb-sticky .algolassi-toolmenu-managed{" +
+        "z-index:2147483645!important;" +
       "}" +
       "@media(max-width:700px){" +
         ".breadcrumbs.algolassi-breadcrumb-sticky{" +
@@ -72,10 +78,12 @@
     if (!attached) {
       attached = true;
       var header = getHeader();
+
       if (header && "ResizeObserver" in window) {
-        resizeObserver = new ResizeObserver(updateHeaderHeight);
+        var resizeObserver = new ResizeObserver(updateHeaderHeight);
         resizeObserver.observe(header);
       }
+
       window.addEventListener("resize", updateHeaderHeight, { passive: true });
     }
   }
