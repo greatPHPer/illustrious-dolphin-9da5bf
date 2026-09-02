@@ -132,11 +132,20 @@
           y: point.y
         };
         setPicking(false);
-        status("Region selected. Click Transparent Background again to remove only that connected region.", true);
+
+        /* Reuse the normal Image Tools processor immediately. Because the
+           selected point is already stored, its connected-region flood-fill
+           runs on this click; no second button click is required. */
+        var button = q("image-transparent-button");
+        if (button) {
+          button.click();
+        } else {
+          throw new Error("Transparent Background button is unavailable");
+        }
       } catch (error) {
         window.__algolassiTransparentPick = null;
         console.error("Algolassi transparent background pick:", error);
-        status("Could not select that image region.", false);
+        status("Could not remove that image region.", false);
       } finally {
         busy = false;
       }
