@@ -5,6 +5,7 @@
   var KEY = "__algolassiImageToolsStability_v1";
   var timer = null;
   var listenerBound = false;
+  var historyListenerBound = false;
 
   function q(id) { return document.getElementById(id); }
   function workspace() { return document.querySelector(".image-workspace"); }
@@ -44,10 +45,38 @@
     });
   }
 
+  function historyOperation(button) {
+    if (!button) return "";
+    var command = button.getAttribute("data-image-command");
+    if (command) return (button.textContent || command).trim();
+    var id = button.id || "";
+    if (/^image-(scale-preview|scale|crop|transparent|rotate-90|rotate-180|rotate-270|save-as)-button$/.test(id)) {
+      return (button.textContent || id).trim();
+    }
+    return "";
+  }
+
+  function bindImageHistory() {
+    if (historyListenerBound) return;
+    historyListenerBound = true;
+    document.addEventListener("click", function (event) {
+      var target = event.target && event.target.closest ? event.target.closest("button") : null;
+      if (!target || !target.closest(".image-workspace")) return;
+      var operation = historyOperation(target);
+      if (!operation) return;
+      window.setTimeout(function () {
+        if (window.AlgolassiToolHistory && typeof window.AlgolassiToolHistory.add === "function") {
+          window.AlgolassiToolHistory.add(operation);
+        }
+      }, 180);
+    });
+  }
+
   function patch() {
     if (!workspace()) return;
     patchScaleInput("scale-width", "width");
     patchScaleInput("scale-height", "height");
+    bindImageHistory();
   }
 
   function onSpaNavigation() {
