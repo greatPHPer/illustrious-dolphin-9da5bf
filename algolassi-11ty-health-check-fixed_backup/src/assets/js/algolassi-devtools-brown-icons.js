@@ -51,7 +51,14 @@
     }
     if(!document.getElementById("algolassi-tutorial-quiz-script"))loadScript("algolassi-tutorial-quiz-script","/assets/js/algolassi-tutorial-quiz.js?v=20260903-quiz-2");
   }
-  function init(){scan();load();}
+  function init(){
+    scan();
+    load();
+    if(!window.__algolassiDevToolsBrownIconObserver&&window.MutationObserver){
+      window.__algolassiDevToolsBrownIconObserver=new MutationObserver(function(){scan();});
+      window.__algolassiDevToolsBrownIconObserver.observe(document.body,{childList:true,subtree:true});
+    }
+  }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
   window.addEventListener("load",init);
   window.addEventListener("algolassi:spa-navigation",function(){requestAnimationFrame(init);});
