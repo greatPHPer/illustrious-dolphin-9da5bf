@@ -8,6 +8,6 @@
 
 /* Crop selection visuals stay inside the exact image coordinate surface. */
 .image-preview-stage.image-crop-active{padding:0!important}
-.image-crop-rectangle{box-sizing:border-box!important;margin:0!important;transform:none!important}
+.image-crop-rectangle{box-sizing:border-box!important;margin:0!important}
 
 @media(max-width:700px){.image-layer-actions .image-action-button,.image-layer-apply-actions .image-action-button{flex:1}.image-layer-list{max-height:190px}}
