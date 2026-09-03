@@ -3,9 +3,10 @@ title: "Image Tools"
 layout: layouts/base.njk
 permalink: "/developer-tools/image-tools/"
 contentType: "page"
-description: "Browser-based image utilities for upload, background removal, cropping, scaling, rotation, and format conversion."
+description: "Browser-based image utilities for upload, background removal, cropping, scaling, rotation, compression, and format conversion."
 ---
 <link rel="stylesheet" href="/assets/css/algolassi-image-tools.css?v=20260903-image-tools-upload-2">
+<link rel="stylesheet" href="/assets/css/algolassi-image-compress.css?v=20260903-image-compress-1">
 
 <div class="devtools-page image-workspace">
   <h1>Image Tools</h1>
@@ -23,81 +24,39 @@ description: "Browser-based image utilities for upload, background removal, crop
 
     <div class="image-toolbox" role="toolbar" aria-label="Image editing toolbox">
       <span class="image-toolbox-label">Toolbox</span>
-      <button type="button" class="image-toolbox-button" data-image-command="crop" title="Crop" aria-label="Crop">
-        <span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M6 3v12a3 3 0 0 0 3 3h12M3 6h12a3 3 0 0 1 3 3v12"/></svg></span>
-        <span class="image-toolbox-text">Crop</span>
-      </button>
-      <button type="button" class="image-toolbox-button" data-image-command="scale" title="Scale" aria-label="Scale">
-        <span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M4 4l7 7M13 13l7 7M20 4l-7 7M11 13l-7 7"/></svg></span>
-        <span class="image-toolbox-text">Scale</span>
-      </button>
-      <button type="button" class="image-toolbox-button" data-image-command="rotate" title="Rotate" aria-label="Rotate">
-        <span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M20 11a8 8 0 1 0-2.3 5.7L20 14M20 11V5h-6"/></svg></span>
-        <span class="image-toolbox-text">Rotate</span>
-      </button>
-      <button type="button" class="image-toolbox-button" data-image-command="transparent" title="Background Transparent" aria-label="Background Transparent">
-        <span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 6h16v12H4zM8 9h.01M12 9h.01M16 9h.01M8 13h.01M12 13h.01M16 13h.01"/><path d="m7 17 4-4 3 3 2-2 2 3"/></svg></span>
-        <span class="image-toolbox-text">Transparent</span>
-      </button>
+      <button type="button" class="image-toolbox-button" data-image-command="crop" title="Crop" aria-label="Crop"><span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M6 3v12a3 3 0 0 0 3 3h12M3 6h12a3 3 0 0 1 3 3v12"/></svg></span><span class="image-toolbox-text">Crop</span></button>
+      <button type="button" class="image-toolbox-button" data-image-command="scale" title="Scale" aria-label="Scale"><span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M4 4l7 7M13 13l7 7M20 4l-7 7M11 13l-7 7"/></svg></span><span class="image-toolbox-text">Scale</span></button>
+      <button type="button" class="image-toolbox-button" data-image-command="rotate" title="Rotate" aria-label="Rotate"><span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M20 11a8 8 0 1 0-2.3 5.7L20 14M20 11V5h-6"/></svg></span><span class="image-toolbox-text">Rotate</span></button>
+      <button type="button" class="image-toolbox-button" data-image-command="transparent" title="Background Transparent" aria-label="Background Transparent"><span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 6h16v12H4zM8 9h.01M12 9h.01M16 9h.01M8 13h.01M12 13h.01M16 13h.01"/><path d="m7 17 4-4 3 3 2-2 2 3"/></svg></span><span class="image-toolbox-text">Transparent</span></button>
+      <button type="button" class="image-toolbox-button" data-image-command="compress" title="Compress" aria-label="Compress"><span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M7 4h10v16H7z"/><path d="M9 8h6M9 12h4M9 16h6"/><path d="m4 9 3-3M20 9l-3-3M4 15l3 3M20 15l-3 3"/></svg></span><span class="image-toolbox-text">Compress</span></button>
     </div>
 
     <div class="image-menu-bar" role="menubar" aria-label="Image Tools menu">
       <div class="image-menu-group">
         <button id="image-file-menu-button" class="image-menu-trigger" type="button" aria-expanded="false" aria-controls="image-file-menu">File ▾</button>
         <div id="image-file-menu" class="image-menu-dropdown image-hidden" role="menu">
-          <button type="button" class="image-menu-item" data-image-command="upload" role="menuitem">Upload</button>
-          <button type="button" class="image-menu-item" data-image-command="save" role="menuitem">Save</button>
-          <button type="button" class="image-menu-item" data-image-command="save-as" role="menuitem">Save As</button>
-          <div class="image-menu-divider" aria-hidden="true"></div>
-          <button id="image-vector-svg-button" type="button" class="image-menu-item" role="menuitem">Vector SVG</button>
-          <button id="image-vector-eps-button" type="button" class="image-menu-item" role="menuitem">Vector EPS</button>
+          <button type="button" class="image-menu-item" data-image-command="upload" role="menuitem">Upload</button><button type="button" class="image-menu-item" data-image-command="save" role="menuitem">Save</button><button type="button" class="image-menu-item" data-image-command="save-as" role="menuitem">Save As</button><div class="image-menu-divider" aria-hidden="true"></div><button id="image-vector-svg-button" type="button" class="image-menu-item" role="menuitem">Vector SVG</button><button id="image-vector-eps-button" type="button" class="image-menu-item" role="menuitem">Vector EPS</button>
         </div>
       </div>
       <div class="image-menu-group">
         <button id="image-edit-menu-button" class="image-menu-trigger" type="button" aria-expanded="false" aria-controls="image-edit-menu">Edit ▾</button>
-        <div id="image-edit-menu" class="image-menu-dropdown image-hidden" role="menu">
-          <button type="button" class="image-menu-item" data-image-command="transparent" role="menuitem">Background Transparent</button>
-          <button type="button" class="image-menu-item" data-image-command="crop" role="menuitem">Crop</button>
-          <button type="button" class="image-menu-item" data-image-command="scale" role="menuitem">Scale</button>
-          <button type="button" class="image-menu-item" data-image-command="rotate" role="menuitem">Rotate</button>
-        </div>
+        <div id="image-edit-menu" class="image-menu-dropdown image-hidden" role="menu"><button type="button" class="image-menu-item" data-image-command="transparent" role="menuitem">Background Transparent</button><button type="button" class="image-menu-item" data-image-command="crop" role="menuitem">Crop</button><button type="button" class="image-menu-item" data-image-command="scale" role="menuitem">Scale</button><button type="button" class="image-menu-item" data-image-command="rotate" role="menuitem">Rotate</button><button type="button" class="image-menu-item" data-image-command="compress" role="menuitem">Compress</button></div>
       </div>
-      <span id="image-menu-status" class="image-menu-status">Select File or Edit</span>
-      <button id="image-clear-button" class="image-menu-clear" type="button">Clear History</button>
+      <span id="image-menu-status" class="image-menu-status">Select File or Edit</span><button id="image-clear-button" class="image-menu-clear" type="button">Clear History</button>
     </div>
     <div id="image-status" class="image-status" role="status" aria-live="polite"></div>
   </section>
 
   <section class="image-editor" aria-label="Image editor">
-    <div class="image-preview-card">
-      <div id="image-preview-stage" class="image-preview-stage">
-        <div id="image-preview-empty" class="image-preview-empty">Upload an image to begin.</div>
-        <img id="image-preview-img" class="image-hidden" alt="Current image preview">
-        <div id="image-crop-overlay" class="image-crop-overlay image-hidden" aria-hidden="true">
-          <div id="image-crop-rectangle" class="image-crop-rectangle"><span></span></div>
-        </div>
-        <div id="image-scale-preview" class="image-scale-preview image-hidden" aria-hidden="true">
-          <div class="image-scale-preview-label">Scale preview</div>
-          <img id="image-scale-preview-img" alt="Scaled image preview">
-        </div>
-      </div>
-      <div class="image-toolbar">
-        <strong id="image-dimensions">No image selected</strong>
-        <span id="image-preview-mode" class="image-preview-mode">Current</span>
-      </div>
-      <section class="image-history-section image-history-section-inline" aria-labelledby="image-history-heading">
-        <div class="image-history-heading"><h2 id="image-history-heading">Processing History</h2><span class="image-upload-help">Latest first</span></div>
-        <div id="image-history-empty" class="image-history-empty">Your original image and every processed version will appear here.</div>
-        <div id="image-history" class="image-history" aria-live="polite"></div>
-      </section>
-    </div>
+    <div class="image-preview-card"><div id="image-preview-stage" class="image-preview-stage"><div id="image-preview-empty" class="image-preview-empty">Upload an image to begin.</div><img id="image-preview-img" class="image-hidden" alt="Current image preview"><div id="image-crop-overlay" class="image-crop-overlay image-hidden" aria-hidden="true"><div id="image-crop-rectangle" class="image-crop-rectangle"><span></span></div></div><div id="image-scale-preview" class="image-scale-preview image-hidden" aria-hidden="true"><div class="image-scale-preview-label">Scale preview</div><img id="image-scale-preview-img" alt="Scaled image preview"></div></div><div class="image-toolbar"><strong id="image-dimensions">No image selected</strong><span id="image-preview-mode" class="image-preview-mode">Current</span></div><section class="image-history-section image-history-section-inline" aria-labelledby="image-history-heading"><div class="image-history-heading"><h2 id="image-history-heading">Processing History</h2><span class="image-upload-help">Latest first</span></div><div id="image-history-empty" class="image-history-empty">Your original image and every processed version will appear here.</div><div id="image-history" class="image-history" aria-live="polite"></div></section></div>
     <aside class="image-controls-card image-tool-panel" aria-label="Selected image tool">
-      <div id="image-tool-panel-empty" class="image-tool-panel-view"><div class="image-tool-panel-title">Image Tools</div><p class="image-tool-panel-help">Choose a command from File or Edit. The selected tool opens here.</p></div>
+      <div id="image-tool-panel-empty" class="image-tool-panel-view"><div class="image-tool-panel-title">Image Tools</div><p class="image-tool-panel-help">Choose a command from File, Edit, or the Toolbox. The selected tool opens here.</p></div>
       <div id="image-file-save-as-panel" class="image-tool-panel-view image-hidden" data-panel="save-as"><h2>Save As</h2><p class="image-control-help">Save the selected history image in another format.</p><div class="image-control"><label for="image-save-as-format">Format</label><select id="image-save-as-format"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/x-icon">ICO</option><option value="image/webp">WebP</option><option value="image/avif">AVIF</option><option value="image/tiff">TIFF</option><option value="image/svg+xml">SVG</option><option value="application/postscript">EPS</option></select></div><div class="image-actions"><button id="image-save-as-button" class="image-action-button" type="button">Save As</button></div></div>
       <div id="image-transparent-panel" class="image-tool-panel-view image-hidden" data-panel="transparent"><h2>Background Transparent</h2><p class="image-control-help">Choose the tolerance, click Pick Background Region, then click the region in the image.</p><div class="image-control"><label for="transparent-color">Reference color</label><input id="transparent-color" type="color" value="#ffffff"></div><div class="image-control"><label for="transparent-tolerance">Color tolerance</label><input id="transparent-tolerance" type="number" min="0" max="255" value="20"></div><div class="image-actions"><button id="image-transparent-button" class="image-action-button" type="button">Pick Background Region</button></div></div>
       <div id="image-crop-panel" class="image-tool-panel-view image-hidden" data-panel="crop"><h2>Crop</h2><p class="image-control-help">Drag on the image to draw a crop rectangle, or edit X, Y, width, and height below.</p><div class="image-control image-crop-control"><label>Crop rectangle <span id="crop-live-size" class="image-live-size"></span></label><div class="image-control-inline image-control-inline-four"><input id="crop-x" type="number" min="0" placeholder="X"><input id="crop-y" type="number" min="0" placeholder="Y"><input id="crop-width" type="number" min="1" placeholder="Width"><input id="crop-height" type="number" min="1" placeholder="Height"></div></div><div class="image-actions"><button id="image-crop-button" class="image-action-button" type="button">Create Cropped Version</button></div></div>
       <div id="image-scale-panel" class="image-tool-panel-view image-hidden" data-panel="scale"><h2>Scale</h2><div class="image-control image-scale-control"><label>Dimensions <span id="scale-live-size" class="image-live-size"></span></label><div class="image-control-inline"><input id="scale-width" type="number" min="1" placeholder="Width"><input id="scale-height" type="number" min="1" placeholder="Height"></div><label class="image-checkbox-label"><input id="scale-lock-ratio" type="checkbox" checked> Keep aspect ratio</label></div><div class="image-actions"><button id="image-scale-preview-button" class="image-action-button secondary" type="button">Preview Scale</button><button id="image-scale-button" class="image-action-button" type="button">Create Scaled Version</button></div></div>
       <div id="image-rotate-panel" class="image-tool-panel-view image-hidden" data-panel="rotate"><h2>Rotate</h2><p class="image-control-help">Create a new rotated version of the selected history image.</p><div class="image-actions"><button id="image-rotate-90-button" class="image-action-button" type="button">90° Clockwise</button><button id="image-rotate-180-button" class="image-action-button" type="button">180°</button><button id="image-rotate-270-button" class="image-action-button" type="button">270° Clockwise</button></div></div>
+      <div id="image-compress-panel" class="image-tool-panel-view image-hidden image-compress-panel" data-panel="compress"><h2>Compress Image</h2><p class="image-compress-note">Compress a copy of the currently selected image. The original stays unchanged.</p><div class="image-control"><label for="image-compress-format">Output format</label><select id="image-compress-format"><option value="image/webp">WebP — recommended</option><option value="image/jpeg">JPEG</option><option value="image/avif">AVIF</option></select></div><div class="image-control"><label for="image-compress-quality">Quality</label><div class="image-compress-range-row"><input id="image-compress-quality" class="image-compress-range" type="range" min="20" max="95" value="75"><output id="image-compress-quality-value">75%</output></div></div><div id="image-compress-result" class="image-hidden"><div class="image-compress-summary"><div class="image-compress-stat"><strong id="image-compress-original-size">—</strong><span>Original</span></div><div class="image-compress-stat"><strong id="image-compress-output-size">—</strong><span>Compressed</span></div><div class="image-compress-stat"><strong id="image-compress-saved">—</strong><span>Size change</span></div></div><div class="image-preview-stage" style="min-height:150px;margin-top:.5rem"><img id="image-compress-preview-img" alt="Compressed preview" style="max-height:180px"></div></div><div class="image-compress-actions"><button id="image-compress-button" class="image-action-button" type="button">Compress</button><button id="image-compress-download" class="image-action-button secondary" type="button">Download compressed image</button></div></div>
     </aside>
   </section>
 </div>
@@ -106,3 +65,4 @@ description: "Browser-based image utilities for upload, background removal, crop
 <script src="/assets/js/algolassi-image-tools-stability.js?v=20260901-image-tools-stability-1" defer></script>
 <script src="/assets/js/algolassi-image-transparent-click.js?v=20260902-transparent-click-2" defer></script>
 <script src="/assets/js/algolassi-image-vector.js?v=20260902-vector-1" defer></script>
+<script src="/assets/js/algolassi-image-compress.js?v=20260903-image-compress-1" defer></script>
