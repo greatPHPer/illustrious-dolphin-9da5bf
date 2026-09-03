@@ -92,9 +92,14 @@
         ny=y-1;if(ny>=0){np=p-lw;if(!seen[np]){seen[np]=1;queue[tail++]=np;}}
       }
     }
-    S.selection=mask;S.selectionCanvas=maskToCanvas(mask);S.active=false;drawSelection();
-    var count=0;for(var i=0;i<mask.length;i++)if(mask[i])count++;
-    status('Magic Wand selected '+count.toLocaleString()+' pixels. Magic Wand reset — click the button again for another selection.',true);
+    if(S.selection){
+      for(var si=0;si<mask.length;si++)if(mask[si])S.selection[si]=1;
+    }else{
+      S.selection=mask;
+    }
+    S.selectionCanvas=maskToCanvas(S.selection);S.active=true;drawSelection();
+    var count=0;for(var i=0;i<S.selection.length;i++)if(S.selection[i])count++;
+    status('Magic Wand selected '+count.toLocaleString()+' pixels. Click another color region to add it, or use Delete Selection / another tool to finish.',true);
   }
   function maskToCanvas(mask){var c=newCanvas(S.width,S.height),id=c.getContext('2d').createImageData(S.width,S.height),a=id.data,len=Math.min(mask.length,S.width*S.height);for(var i=0;i<len;i++)if(mask[i]){a[i*4]=255;a[i*4+1]=210;a[i*4+2]=70;a[i*4+3]=150;}c.getContext('2d').putImageData(id,0,0);return c;}
   function drawSelection(){var c=q('image-layers-selection');if(!c||!S.width)return;c.width=S.width;c.height=S.height;var ctx=c.getContext('2d');ctx.clearRect(0,0,S.width,S.height);if(!S.selection)return;var id=ctx.createImageData(S.width,S.height),a=id.data,now=Date.now()%1200>600;for(var i=0;i<S.selection.length;i++)if(S.selection[i]&&now){a[i*4]=255;a[i*4+1]=255;a[i*4+2]=255;a[i*4+3]=190;}ctx.putImageData(id,0,0);}
