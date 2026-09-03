@@ -45,7 +45,7 @@
     box.className='image-layers-subtoolbox image-hidden';
     box.setAttribute('role','toolbar');
     box.setAttribute('aria-label','Layers quick tools');
-    box.innerHTML='<span class="image-layers-subtoolbox-title">Layers</span><button type="button" data-layer-subtool="magic">Magic Wand</button><button type="button" data-layer-subtool="delete">Delete Selection</button><button type="button" data-layer-subtool="clear">Clear Selection</button><button type="button" data-layer-subtool="apply">Apply Layers to History</button><button type="button" data-layer-subtool="export">Export PNG</button>';
+    box.innerHTML='<span class="image-layers-subtoolbox-title">Layers</span><button type="button" data-layer-subtool="magic">Magic Wand</button><button type="button" data-layer-subtool="delete">Delete Selection</button><button type="button" data-layer-subtool="clear">Clear Selection</button><button type="button" data-layer-subtool="replace">Replace Color</button><button type="button" data-layer-subtool="apply">Apply Layers to History</button><button type="button" data-layer-subtool="export">Export PNG</button>';
     anchor.insertAdjacentElement('afterend',box);
     box.addEventListener('click',function(e){
       var b=e.target&&e.target.closest?e.target.closest('[data-layer-subtool]'):null;
@@ -58,6 +58,8 @@
         deleteSelection();
       }else if(action==='clear'){
         S.active=false;setMagicColorUIVisible(false);clearSelection();status('Selection cleared.',true);
+      }else if(action==='replace'){
+        ensureMagicColorUI();setMagicColorUIVisible(true);replaceSelectedColor();
       }else if(action==='apply'){
         applyHistory();
       }else if(action==='export'){
@@ -70,11 +72,8 @@
   }
   function setLayersSubtoolboxVisible(visible){var box=q('image-layers-subtoolbox');if(!box)return;box.classList.toggle('image-hidden',!visible);}
 
-  /* Leaving Layers without pressing "Apply Layers to History" intentionally
-     discards the temporary layer state. This keeps Processing History intact
-     and makes the next tool operate on the last saved history image. */
   function leaveLayers(){
-    if(!S.layers.length && !S.width)return;
+    if(!S.layers.length&&!S.width)return;
     var ws=workspace(),toolbox=ws&&ws.querySelector('.image-toolbox');if(toolbox)toolbox.classList.remove('image-layers-layout');
     setMagicColorUIVisible(false);setLayersSubtoolboxVisible(false);
     S.layers=[];S.current=-1;S.width=0;S.height=0;S.selection=null;S.selectionCanvas=null;S.active=false;
@@ -156,11 +155,8 @@
         ny=y-1;if(ny>=0){np=p-lw;if(!seen[np]){seen[np]=1;queue[tail++]=np;}}
       }
     }
-    if(S.selection){
-      for(var si=0;si<mask.length;si++)if(mask[si])S.selection[si]=1;
-    }else{
-      S.selection=mask;
-    }
+    if(S.selection){for(var si=0;si<mask.length;si++)if(mask[si])S.selection[si]=1;}
+    else{S.selection=mask;}
     S.selectionCanvas=maskToCanvas(S.selection);S.active=true;drawSelection();setMagicColorUIVisible(true);
     var count=0;for(var i=0;i<S.selection.length;i++)if(S.selection[i])count++;
     status('Magic Wand selected '+count.toLocaleString()+' pixels. Click another color region to add it, or use Delete Selection / another tool to finish.',true);
