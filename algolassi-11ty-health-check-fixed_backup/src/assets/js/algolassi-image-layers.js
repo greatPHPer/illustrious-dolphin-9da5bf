@@ -36,8 +36,9 @@
   function showPanel(){var p=q('image-layers-panel');if(!p)return;document.querySelectorAll('.image-tool-panel-view').forEach(function(x){x.classList.add('image-hidden');});p.classList.remove('image-hidden');var m=q('image-menu-status');if(m)m.textContent='Toolbox • Layers';}
 
   function ensureLayersSubtoolbox(){
+    var ws=workspace(),anchor=ws&&ws.querySelector('[data-image-command="layers"]'),toolbox=ws&&ws.querySelector('.image-toolbox');
+    if(toolbox)toolbox.classList.add('image-layers-layout');
     if(q('image-layers-subtoolbox'))return;
-    var ws=workspace(),anchor=ws&&ws.querySelector('[data-image-command="layers"]');
     if(!ws||!anchor)return;
     var box=document.createElement('div');
     box.id='image-layers-subtoolbox';
@@ -64,7 +65,7 @@
       }
     });
     if(!q('image-layers-subtoolbox-style')){
-      var style=document.createElement('style');style.id='image-layers-subtoolbox-style';style.textContent='.image-layers-subtoolbox{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;box-sizing:border-box;width:100%;flex-basis:100%;margin:.35rem 0 0;padding:.35rem .45rem;border:1px solid rgba(139,90,43,.22);border-radius:9px;background:rgba(139,90,43,.055);box-shadow:0 1px 3px rgba(16,24,40,.06)}.image-layers-subtoolbox-title{font-size:.76rem;font-weight:800;opacity:.72;padding:0 .2rem}.image-layers-subtoolbox button{border:1px solid rgba(139,90,43,.22);background:transparent;border-radius:7px;padding:.3rem .55rem;font:inherit;font-size:.76rem;line-height:1.2;cursor:pointer;white-space:nowrap}.image-layers-subtoolbox button:hover{background:rgba(139,90,43,.1)}@media(max-width:700px){.image-layers-subtoolbox{width:100%;flex-basis:100%;margin:.35rem 0 0;padding:.35rem}.image-layers-subtoolbox-title{width:100%}.image-layers-subtoolbox button{flex:1;min-width:0}}';document.head.appendChild(style);
+      var style=document.createElement('style');style.id='image-layers-subtoolbox-style';style.textContent='.image-toolbox.image-layers-layout{flex-wrap:wrap!important;overflow-x:visible!important}.image-layers-subtoolbox{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;box-sizing:border-box;width:100%;flex:0 0 100%;min-width:100%;max-width:100%;margin:.35rem 0 0;padding:.35rem .45rem;border:1px solid rgba(139,90,43,.22);border-radius:9px;background:rgba(139,90,43,.055);box-shadow:0 1px 3px rgba(16,24,40,.06)}.image-layers-subtoolbox-title{font-size:.76rem;font-weight:800;opacity:.72;padding:0 .2rem}.image-layers-subtoolbox button{border:1px solid rgba(139,90,43,.22);background:transparent;border-radius:7px;padding:.3rem .55rem;font:inherit;font-size:.76rem;line-height:1.2;cursor:pointer;white-space:nowrap}.image-layers-subtoolbox button:hover{background:rgba(139,90,43,.1)}@media(max-width:700px){.image-toolbox.image-layers-layout{overflow-x:visible!important}.image-layers-subtoolbox{width:100%;min-width:100%;max-width:100%;flex-basis:100%;margin:.35rem 0 0;padding:.35rem}.image-layers-subtoolbox-title{width:100%}.image-layers-subtoolbox button{flex:1;min-width:0}}';document.head.appendChild(style);
     }
   }
   function setLayersSubtoolboxVisible(visible){var box=q('image-layers-subtoolbox');if(!box)return;box.classList.toggle('image-hidden',!visible);}
@@ -74,6 +75,7 @@
      and makes the next tool operate on the last saved history image. */
   function leaveLayers(){
     if(!S.layers.length && !S.width)return;
+    var ws=workspace(),toolbox=ws&&ws.querySelector('.image-toolbox');if(toolbox)toolbox.classList.remove('image-layers-layout');
     setMagicColorUIVisible(false);setLayersSubtoolboxVisible(false);
     S.layers=[];S.current=-1;S.width=0;S.height=0;S.selection=null;S.selectionCanvas=null;S.active=false;
     var stage=q('image-preview-stage');if(stage)stage.classList.remove('image-layers-active');
@@ -176,7 +178,9 @@
   function copySelection(){var l=selected();if(!l||!S.selection)return status('Use Magic Wand to select a region first.',false);var src=l.canvas.getContext('2d').getImageData(0,0,l.canvas.width,l.canvas.height),out=newCanvas(l.canvas.width,l.canvas.height),od=out.getContext('2d').createImageData(l.canvas.width,l.canvas.height),a=od.data;for(var i=0;i<S.selection.length;i++)if(S.selection[i]){a[i*4]=src.data[i*4];a[i*4+1]=src.data[i*4+1];a[i*4+2]=src.data[i*4+2];a[i*4+3]=src.data[i*4+3];}out.getContext('2d').putImageData(od,0,0);S.layers.splice(S.current+1,0,{name:'Magic Wand Copy',visible:true,opacity:1,canvas:out});S.current++;S.active=false;setMagicColorUIVisible(false);clearSelection();render();draw();status('Selected region copied to a new layer.',true);}
   function deleteSelection(){var l=selected();if(!l||!S.selection)return status('Use Magic Wand to select a region first.',false);var ctx=l.canvas.getContext('2d'),id=ctx.getImageData(0,0,l.canvas.width,l.canvas.height),a=id.data;for(var i=0;i<S.selection.length;i++)if(S.selection[i])a[i*4+3]=0;ctx.putImageData(id,0,0);S.active=false;setMagicColorUIVisible(false);clearSelection();draw();syncLayerTransformFields();status('Selected region removed from the active layer.',true);}
   function canvasBlob(c){return new Promise(function(resolve,reject){c.toBlob(function(b){b?resolve(b):reject(new Error('PNG export failed'));},'image/png');});}
-  function resetLayerState(){setMagicColorUIVisible(false);setLayersSubtoolboxVisible(false);S.layers=[];S.current=-1;S.width=0;S.height=0;S.selection=null;S.selectionCanvas=null;S.active=false;var stage=q('image-preview-stage');if(stage)stage.classList.remove('image-layers-active');var c=q('image-layers-canvas'),sel=q('image-layers-selection');if(c)c.classList.add('image-hidden');if(sel)sel.classList.add('image-hidden');}
+  function resetLayerState(){
+    var ws=workspace(),toolbox=ws&&ws.querySelector('.image-toolbox');if(toolbox)toolbox.classList.remove('image-layers-layout');
+    setMagicColorUIVisible(false);setLayersSubtoolboxVisible(false);S.layers=[];S.current=-1;S.width=0;S.height=0;S.selection=null;S.selectionCanvas=null;S.active=false;var stage=q('image-preview-stage');if(stage)stage.classList.remove('image-layers-active');var c=q('image-layers-canvas'),sel=q('image-layers-selection');if(c)c.classList.add('image-hidden');if(sel)sel.classList.add('image-hidden');}
   function applyHistory(){canvasBlob(composite()).then(function(blob){var file=new File([blob],'layers-composite.png',{type:'image/png'}),input=q('image-file');if(!input)throw new Error('Image uploader unavailable.');window.__algolassiImageToolsAppendHistory=true;var dt=new DataTransfer();dt.items.add(file);input.files=dt.files;input.dispatchEvent(new Event('change',{bubbles:true}));resetLayerState();status('All visible layers added as a new Processing History stage.',true);}).catch(function(){window.__algolassiImageToolsAppendHistory=false;status('Could not add the layered image to history.',false);});}
   function exportPng(){canvasBlob(composite()).then(function(blob){var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='algolassi-layers.png';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1500);status('Layered PNG exported.',true);});}
   function rotateLayerButton(id,deg){var b=q(id);if(!b||b.dataset.layerRotateBound==='1')return;b.dataset.layerRotateBound='1';b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();rotateLayer(deg);},true);}
