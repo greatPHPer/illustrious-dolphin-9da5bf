@@ -8,7 +8,7 @@
   function load(){
     if(document.querySelector(".image-workspace")){
       loadScript("algolassi-image-tools-actions-script","/assets/js/algolassi-image-tools-actions-v5.js?v=20260903-actions-5");
-      loadScript("algolassi-image-layers-script","/assets/js/algolassi-image-layers.js?v=20260903-layers-1");
+      loadScript("algolassi-image-layers-script","/assets/js/algolassi-image-layers.js?v=20260903-layers-2");
       loadScript("algolassi-image-history-order-script","/assets/js/algolassi-image-history-order.js?v=20260903-history-order-1");
     }
     if(!document.getElementById("algolassi-tutorial-quiz-script"))loadScript("algolassi-tutorial-quiz-script","/assets/js/algolassi-tutorial-quiz.js?v=20260903-quiz-2");
