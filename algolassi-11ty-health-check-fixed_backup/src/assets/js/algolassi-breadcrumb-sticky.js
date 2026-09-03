@@ -74,7 +74,6 @@
       "@media(max-width:700px){" +
         ".breadcrumbs.algolassi-breadcrumb-sticky{" +
           "flex-wrap:nowrap!important;" +
-          "overflow-x:auto!important;" +
           "overflow-y:visible!important;" +
           "white-space:nowrap!important;" +
           "-webkit-overflow-scrolling:touch!important;" +

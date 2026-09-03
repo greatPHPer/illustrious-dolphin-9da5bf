@@ -222,6 +222,20 @@
     });
   }
 
+  function syncAndroidRootTrigger() {
+    var isAndroid = /Android/i.test(navigator.userAgent || "");
+    var link = document.querySelector(".algolassi-toolmenu-devtools > .breadcrumb-trigger");
+    if (!link) return;
+
+    if (isAndroid) {
+      link.removeAttribute("href");
+      link.setAttribute("aria-disabled", "true");
+    } else {
+      link.setAttribute("href", ROOT);
+      link.removeAttribute("aria-disabled");
+    }
+  }
+
   function makeCurrentMenuItemNonInteractiveOnMobile() {
     var isMobile = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
     document.querySelectorAll(".algolassi-toolmenu-menu a.breadcrumb-dropdown-current").forEach(function (link) {
@@ -237,6 +251,7 @@
         link.removeAttribute("tabindex");
       }
     });
+    syncAndroidRootTrigger();
   }
 
   function rebuild() {
