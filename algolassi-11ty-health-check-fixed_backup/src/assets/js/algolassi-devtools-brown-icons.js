@@ -113,9 +113,20 @@
     observer.observe(breadcrumbs, { childList: true, subtree: true, characterData: true });
   }
 
+  function loadTutorialQuiz() {
+    if (document.getElementById("algolassi-tutorial-quiz-script")) return;
+    var script = document.createElement("script");
+    script.id = "algolassi-tutorial-quiz-script";
+    script.src = "/assets/js/algolassi-tutorial-quiz.js?v=20260903-quiz-1";
+    script.defer = true;
+    script.async = true;
+    document.head.appendChild(script);
+  }
+
   function init() {
     scan();
     observe();
+    loadTutorialQuiz();
   }
 
   window.addEventListener("load", init);
