@@ -1,40 +1,52 @@
-/* Algolassi Image Tools - visual-only crop rectangle alignment. */
+/* Algolassi Image Tools - keep crop overlay exactly on the rendered image box. */
 (function(){
   "use strict";
 
   function q(id){return document.getElementById(id);}
-  var observer=null;
+  var resizeObserver=null;
 
   function align(){
-    var box=q("image-crop-rectangle"),stage=q("image-preview-stage"),img=q("image-preview-img");
-    if(!box||!stage||!img||img.classList.contains("image-hidden")||!img.getBoundingClientRect)return;
-    var cs=window.getComputedStyle(box);
-    if(cs.display==="none")return;
-    var left=parseFloat(box.style.left),top=parseFloat(box.style.top);
-    if(!Number.isFinite(left)||!Number.isFinite(top))return;
-
+    var stage=q("image-preview-stage"),img=q("image-preview-img"),overlay=q("image-crop-overlay");
+    if(!stage||!img||!overlay||img.classList.contains("image-hidden"))return;
     var ir=img.getBoundingClientRect(),sr=stage.getBoundingClientRect();
-    var offsetX=ir.left-sr.left,offsetY=ir.top-sr.top;
-    var currentLeft=box.style.left,currentTop=box.style.top;
-    var appliedLeft=Math.round(left+offsetX)+"px",appliedTop=Math.round(top+offsetY)+"px";
-    if(currentLeft===appliedLeft&&currentTop===appliedTop)return;
+    if(!ir.width||!ir.height||!sr.width||!sr.height)return;
+    overlay.style.left=Math.round(ir.left-sr.left)+"px";
+    overlay.style.top=Math.round(ir.top-sr.top)+"px";
+    overlay.style.width=Math.round(ir.width)+"px";
+    overlay.style.height=Math.round(ir.height)+"px";
+    overlay.style.right="auto";
+    overlay.style.bottom="auto";
+    overlay.style.boxSizing="border-box";
+  }
 
-    box.style.boxSizing="border-box";
-    box.style.left=appliedLeft;
-    box.style.top=appliedTop;
+  function reset(){
+    var overlay=q("image-crop-overlay");
+    if(!overlay)return;
+    overlay.style.left="0px";
+    overlay.style.top="0px";
+    overlay.style.width="100%";
+    overlay.style.height="100%";
+    overlay.style.right="auto";
+    overlay.style.bottom="auto";
   }
 
   function init(){
-    var stage=q("image-preview-stage"),box=q("image-crop-rectangle");
-    if(!stage||!box)return;
-    if(box.dataset.cropVisualFixBound==="1")return;
-    box.dataset.cropVisualFixBound="1";
+    var stage=q("image-preview-stage"),img=q("image-preview-img"),overlay=q("image-crop-overlay");
+    if(!stage||!img||!overlay)return;
     align();
-    observer=new MutationObserver(function(){requestAnimationFrame(align);});
-    observer.observe(box,{attributes:true,attributeFilter:["style","class"]});
-    window.addEventListener("resize",align);
+    if(resizeObserver)try{resizeObserver.disconnect();}catch(_){ }
+    if(window.ResizeObserver){
+      resizeObserver=new ResizeObserver(align);
+      resizeObserver.observe(stage);
+      resizeObserver.observe(img);
+    }
+    if(img.dataset.cropVisualFixObserved!=="1"){
+      img.dataset.cropVisualFixObserved="1";
+      new MutationObserver(function(){requestAnimationFrame(align);}).observe(img,{attributes:true,attributeFilter:["class","src","style"]});
+    }
+    window.addEventListener("resize",align,{passive:true});
   }
 
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
-  window.addEventListener("algolassi:spa-navigation",function(){requestAnimationFrame(init);});
+  window.addEventListener("algolassi:spa-navigation",function(){requestAnimationFrame(function(){reset();init();});});
 })();
