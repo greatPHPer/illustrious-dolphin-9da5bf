@@ -6,7 +6,7 @@
     if(document.getElementById("algolassi-image-tools-actions-loader-script"))return;
     var s=document.createElement("script");
     s.id="algolassi-image-tools-actions-loader-script";
-    s.src="/assets/js/algolassi-image-tools-actions.js?v=20260903-actions-3";
+    s.src="/assets/js/algolassi-image-tools-actions.js?v=20260903-actions-4";
     s.defer=true;
     s.async=true;
     document.head.appendChild(s);
