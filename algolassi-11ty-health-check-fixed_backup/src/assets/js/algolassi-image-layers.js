@@ -35,6 +35,19 @@
   });}
   function showPanel(){var p=q('image-layers-panel');if(!p)return;document.querySelectorAll('.image-tool-panel-view').forEach(function(x){x.classList.add('image-hidden');});p.classList.remove('image-hidden');var m=q('image-menu-status');if(m)m.textContent='Toolbox • Layers';}
 
+  /* Leaving Layers without pressing "Apply Layers to History" intentionally
+     discards the temporary layer state. This keeps Processing History intact
+     and makes the next tool operate on the last saved history image. */
+  function leaveLayers(){
+    if(!S.layers.length && !S.width)return;
+    S.layers=[];S.current=-1;S.width=0;S.height=0;S.selection=null;S.selectionCanvas=null;S.active=false;
+    var stage=q('image-preview-stage');if(stage)stage.classList.remove('image-layers-active');
+    var c=q('image-layers-canvas'),sel=q('image-layers-selection');
+    if(c){c.classList.add('image-hidden');c.width=1;c.height=1;}
+    if(sel){sel.classList.add('image-hidden');sel.width=1;sel.height=1;}
+    status('Unapplied layer changes discarded.',true);
+  }
+
   function render(){
     var list=q('image-layer-list');if(!list)return;list.innerHTML='';
     if(!S.layers.length){list.innerHTML='<div class="image-layers-empty">No layers yet.</div>';return;}
@@ -101,7 +114,12 @@
   function rotateLayerButton(id,deg){var b=q(id);if(!b||b.dataset.layerRotateBound==='1')return;b.dataset.layerRotateBound='1';b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();rotateLayer(deg);},true);}
   function bind(){
     var ws=workspace();if(!ws||ws.dataset.layersBound==='1')return;ws.dataset.layersBound='1';
-    document.addEventListener('click',function(e){var b=e.target&&e.target.closest?e.target.closest('[data-image-command="layers"]'):null;if(b&&ws.contains(b)){e.preventDefault();e.stopPropagation();open();}},true);
+    document.addEventListener('click',function(e){
+      var b=e.target&&e.target.closest?e.target.closest('[data-image-command="layers"]'):null;
+      if(b&&ws.contains(b)){e.preventDefault();e.stopPropagation();open();return;}
+      var command=e.target&&e.target.closest?e.target.closest('[data-image-command]'):null;
+      if(command&&ws.contains(command)&&command.getAttribute('data-image-command')!=='layers'&&S.layers.length){leaveLayers();}
+    },true);
     q('image-layer-add')&&q('image-layer-add').addEventListener('click',addLayer);q('image-layer-duplicate')&&q('image-layer-duplicate').addEventListener('click',duplicateLayer);q('image-layer-delete')&&q('image-layer-delete').addEventListener('click',deleteLayer);
     q('image-layer-opacity')&&q('image-layer-opacity').addEventListener('input',function(){var l=selected();if(l)l.opacity=Number(this.value)/100;syncLayerControls();draw();});
     q('image-magic-tolerance')&&q('image-magic-tolerance').addEventListener('input',function(){var o=q('image-magic-tolerance-value');if(o)o.textContent=this.value;});
