@@ -298,6 +298,7 @@
       '</section>';
 
     var quiz = root.querySelector(".algolassi-tutorial-quiz");
+    var code = root.querySelector(".algolassi-tutorial-quiz-code");
     var input = root.querySelector(".algolassi-tutorial-quiz-input");
     var check = root.querySelector(".algolassi-tutorial-quiz-button");
     var skip = root.querySelector(".algolassi-tutorial-quiz-skip");
@@ -309,12 +310,23 @@
     }
 
     function doSkip() {
+      if (!currentQuestion) return;
       var ps = pageState(currentKey);
       ps.skippedUntil = Date.now() + SKIP_COOLDOWN_MS;
       ps.lastPromptAt = Date.now();
       ps.quizCount += 1;
       saveState();
-      remove();
+
+      check.disabled = true;
+      skip.disabled = true;
+      input.disabled = true;
+      code.textContent = currentQuestion.source;
+      quiz.classList.add("is-answer-revealed");
+      result.className = "algolassi-tutorial-quiz-result is-answer";
+      result.textContent = "Answer: " + currentQuestion.answer;
+      result.style.color = "#dc2626";
+
+      setTimeout(remove, 2500);
     }
 
     async function doCheck() {
