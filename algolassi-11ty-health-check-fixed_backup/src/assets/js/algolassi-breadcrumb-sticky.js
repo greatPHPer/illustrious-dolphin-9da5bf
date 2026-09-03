@@ -28,7 +28,7 @@
 
     var script = document.createElement("script");
     script.id = BROWN_ICON_SCRIPT_ID;
-    script.src = "/assets/js/algolassi-devtools-brown-icons.js?v=20260902-brown-icons-1";
+    script.src = "/assets/js/algolassi-devtools-brown-icons.js?v=20260903-brown-icons-2";
     script.defer = true;
     document.body.appendChild(script);
   }
