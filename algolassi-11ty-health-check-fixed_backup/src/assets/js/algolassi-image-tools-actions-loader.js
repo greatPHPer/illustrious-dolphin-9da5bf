@@ -11,6 +11,14 @@
       s.async=true;
       document.head.appendChild(s);
     }
+    if(!document.getElementById("algolassi-image-crop-visual-fix-script")){
+      var c=document.createElement("script");
+      c.id="algolassi-image-crop-visual-fix-script";
+      c.src="/assets/js/algolassi-image-crop-visual-fix.js?v=20260903-crop-visual-1";
+      c.defer=true;
+      c.async=true;
+      document.head.appendChild(c);
+    }
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",load,{once:true});else load();
   window.addEventListener("algolassi:spa-navigation",function(){requestAnimationFrame(load);});
