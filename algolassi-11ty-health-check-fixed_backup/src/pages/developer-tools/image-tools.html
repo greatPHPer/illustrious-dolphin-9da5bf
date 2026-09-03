@@ -5,7 +5,7 @@ permalink: "/developer-tools/image-tools/"
 contentType: "page"
 description: "Browser-based image utilities for upload, background removal, cropping, scaling, rotation, and format conversion."
 ---
-<link rel="stylesheet" href="/assets/css/algolassi-image-tools.css?v=20260903-image-tools-upload-1">
+<link rel="stylesheet" href="/assets/css/algolassi-image-tools.css?v=20260903-image-tools-upload-2">
 
 <div class="devtools-page image-workspace">
   <h1>Image Tools</h1>
@@ -20,6 +20,27 @@ description: "Browser-based image utilities for upload, background removal, crop
       <span class="image-upload-drop-help">or choose a file to get started</span>
       <label for="image-file" class="image-upload-button">Upload image</label>
     </div>
+
+    <div class="image-toolbox" role="toolbar" aria-label="Image editing toolbox">
+      <span class="image-toolbox-label">Toolbox</span>
+      <button type="button" class="image-toolbox-button" data-image-command="crop" title="Crop" aria-label="Crop">
+        <span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M6 3v12a3 3 0 0 0 3 3h12M3 6h12a3 3 0 0 1 3 3v12"/></svg></span>
+        <span class="image-toolbox-text">Crop</span>
+      </button>
+      <button type="button" class="image-toolbox-button" data-image-command="scale" title="Scale" aria-label="Scale">
+        <span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M4 4l7 7M13 13l7 7M20 4l-7 7M11 13l-7 7"/></svg></span>
+        <span class="image-toolbox-text">Scale</span>
+      </button>
+      <button type="button" class="image-toolbox-button" data-image-command="rotate" title="Rotate" aria-label="Rotate">
+        <span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M20 11a8 8 0 1 0-2.3 5.7L20 14M20 11V5h-6"/></svg></span>
+        <span class="image-toolbox-text">Rotate</span>
+      </button>
+      <button type="button" class="image-toolbox-button" data-image-command="transparent" title="Background Transparent" aria-label="Background Transparent">
+        <span class="image-toolbox-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 6h16v12H4zM8 9h.01M12 9h.01M16 9h.01M8 13h.01M12 13h.01M16 13h.01"/><path d="m7 17 4-4 3 3 2-2 2 3"/></svg></span>
+        <span class="image-toolbox-text">Transparent</span>
+      </button>
+    </div>
+
     <div class="image-menu-bar" role="menubar" aria-label="Image Tools menu">
       <div class="image-menu-group">
         <button id="image-file-menu-button" class="image-menu-trigger" type="button" aria-expanded="false" aria-controls="image-file-menu">File ▾</button>
