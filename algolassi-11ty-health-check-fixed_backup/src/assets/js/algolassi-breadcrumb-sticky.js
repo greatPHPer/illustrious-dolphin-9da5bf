@@ -8,7 +8,6 @@
 
   var STYLE_ID = "algolassi-breadcrumb-sticky-style";
   var BROWN_ICON_SCRIPT_ID = "algolassi-devtools-brown-icons-script";
-  var MOBILE_OVERFLOW_SCRIPT_ID = "algolassi-breadcrumb-mobile-overflow-fix-script";
   var attached = false;
 
   function getHeader() {
@@ -30,16 +29,6 @@
     var script = document.createElement("script");
     script.id = BROWN_ICON_SCRIPT_ID;
     script.src = "/assets/js/algolassi-devtools-brown-icons.js?v=20260903-brown-icons-5";
-    script.defer = true;
-    document.body.appendChild(script);
-  }
-
-  function loadMobileOverflowFix() {
-    if (document.getElementById(MOBILE_OVERFLOW_SCRIPT_ID)) return;
-
-    var script = document.createElement("script");
-    script.id = MOBILE_OVERFLOW_SCRIPT_ID;
-    script.src = "/assets/js/algolassi-breadcrumb-mobile-overflow-fix.js?v=20260903-mobile-overflow-1";
     script.defer = true;
     document.body.appendChild(script);
   }
@@ -109,7 +98,6 @@
     breadcrumbs.classList.add("algolassi-breadcrumb-sticky");
     updateHeaderHeight();
     loadBrownDeveloperIcons();
-    loadMobileOverflowFix();
 
     if (!attached) {
       attached = true;
