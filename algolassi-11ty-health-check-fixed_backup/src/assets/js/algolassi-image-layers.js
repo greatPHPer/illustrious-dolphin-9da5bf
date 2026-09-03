@@ -38,15 +38,17 @@
   function ensureLayersSubtoolbox(){
     var ws=workspace(),anchor=ws&&ws.querySelector('[data-image-command="layers"]'),toolbox=ws&&ws.querySelector('.image-toolbox');
     if(toolbox)toolbox.classList.add('image-layers-layout');
-    if(q('image-layers-subtoolbox'))return;
+    if(q('image-layers-subtoolbox')){ensureLayersReplaceColorUI();return;}
     if(!ws||!anchor)return;
     var box=document.createElement('div');
     box.id='image-layers-subtoolbox';
     box.className='image-layers-subtoolbox image-hidden';
     box.setAttribute('role','toolbar');
     box.setAttribute('aria-label','Layers quick tools');
-    box.innerHTML='<span class="image-layers-subtoolbox-title">Layers</span><button type="button" data-layer-subtool="magic">Magic Wand</button><button type="button" data-layer-subtool="delete">Delete Selection</button><button type="button" data-layer-subtool="clear">Clear Selection</button><button type="button" data-layer-subtool="replace">Replace Color</button><button type="button" data-layer-subtool="apply">Apply Layers to History</button><button type="button" data-layer-subtool="export">Export PNG</button>';
+    box.innerHTML='<span class="image-layers-subtoolbox-title">Layers</span><button type="button" data-layer-subtool="magic">Magic Wand</button><button type="button" data-layer-subtool="delete">Delete Selection</button><button type="button" data-layer-subtool="clear">Clear Selection</button><label class="image-layers-replace-color-label" for="image-layers-replace-color" title="Choose replacement color"><input id="image-layers-replace-color" type="color" value="#ff0000" aria-label="Replacement color"></label><button type="button" data-layer-subtool="replace">Replace Color</button><button type="button" data-layer-subtool="apply">Apply Layers to History</button><button type="button" data-layer-subtool="export">Export PNG</button>';
     anchor.insertAdjacentElement('afterend',box);
+    var colorPicker=q('image-layers-replace-color');
+    if(colorPicker)colorPicker.addEventListener('input',function(){var main=q('image-magic-replace-color');if(main)main.value=this.value;});
     box.addEventListener('click',function(e){
       var b=e.target&&e.target.closest?e.target.closest('[data-layer-subtool]'):null;
       if(!b||!box.contains(b))return;
@@ -67,10 +69,18 @@
       }
     });
     if(!q('image-layers-subtoolbox-style')){
-      var style=document.createElement('style');style.id='image-layers-subtoolbox-style';style.textContent='.image-toolbox.image-layers-layout{flex-wrap:wrap!important;overflow-x:visible!important}.image-layers-subtoolbox{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;box-sizing:border-box;width:100%;flex:0 0 100%;min-width:100%;max-width:100%;margin:.35rem 0 0;padding:.35rem .45rem;border:1px solid rgba(139,90,43,.22);border-radius:9px;background:rgba(139,90,43,.055);box-shadow:0 1px 3px rgba(16,24,40,.06)}.image-layers-subtoolbox-title{font-size:.76rem;font-weight:800;opacity:.72;padding:0 .2rem}.image-layers-subtoolbox button{border:1px solid rgba(139,90,43,.22);background:transparent;border-radius:7px;padding:.3rem .55rem;font:inherit;font-size:.76rem;line-height:1.2;cursor:pointer;white-space:nowrap}.image-layers-subtoolbox button:hover{background:rgba(139,90,43,.1)}@media(max-width:700px){.image-toolbox.image-layers-layout{overflow-x:visible!important}.image-layers-subtoolbox{width:100%;min-width:100%;max-width:100%;flex-basis:100%;margin:.35rem 0 0;padding:.35rem}.image-layers-subtoolbox-title{width:100%}.image-layers-subtoolbox button{flex:1;min-width:0}}';document.head.appendChild(style);
+      var style=document.createElement('style');style.id='image-layers-subtoolbox-style';style.textContent='.image-toolbox.image-layers-layout{flex-wrap:wrap!important;overflow-x:visible!important}.image-layers-subtoolbox{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;box-sizing:border-box;width:100%;flex:0 0 100%;min-width:100%;max-width:100%;margin:.35rem 0 0;padding:.35rem .45rem;border:1px solid rgba(139,90,43,.22);border-radius:9px;background:rgba(139,90,43,.055);box-shadow:0 1px 3px rgba(16,24,40,.06)}.image-layers-subtoolbox-title{font-size:.76rem;font-weight:800;opacity:.72;padding:0 .2rem}.image-layers-replace-color-label{display:inline-flex;align-items:center;justify-content:center;width:34px;height:30px;padding:0;border:1px solid rgba(139,90,43,.22);border-radius:7px;background:transparent;cursor:pointer;box-sizing:border-box}.image-layers-replace-color-label:hover{background:rgba(139,90,43,.1)}.image-layers-replace-color-label input[type=color]{width:25px;height:25px;padding:2px;border:0;border-radius:5px;background:transparent;cursor:pointer}.image-layers-subtoolbox button{border:1px solid rgba(139,90,43,.22);background:transparent;border-radius:7px;padding:.3rem .55rem;font:inherit;font-size:.76rem;line-height:1.2;cursor:pointer;white-space:nowrap}.image-layers-subtoolbox button:hover{background:rgba(139,90,43,.1)}@media(max-width:700px){.image-toolbox.image-layers-layout{overflow-x:visible!important}.image-layers-subtoolbox{width:100%;min-width:100%;max-width:100%;flex-basis:100%;margin:.35rem 0 0;padding:.35rem}.image-layers-subtoolbox-title{width:100%}.image-layers-subtoolbox button{flex:1;min-width:0}.image-layers-replace-color-label{flex:0 0 34px}}';document.head.appendChild(style);
     }
+    ensureLayersReplaceColorUI();
   }
-  function setLayersSubtoolboxVisible(visible){var box=q('image-layers-subtoolbox');if(!box)return;box.classList.toggle('image-hidden',!visible);}
+  function ensureLayersReplaceColorUI(){
+    var picker=q('image-layers-replace-color');if(!picker)return;
+    var main=q('image-magic-replace-color');if(main&&picker.value!==main.value)picker.value=main.value;
+    if(picker.dataset.syncBound==='1')return;
+    picker.dataset.syncBound='1';
+    picker.addEventListener('input',function(){var mainPicker=q('image-magic-replace-color');if(mainPicker)mainPicker.value=this.value;});
+  }
+  function setLayersSubtoolboxVisible(visible){var box=q('image-layers-subtoolbox');if(!box)return;box.classList.toggle('image-hidden',!visible);ensureLayersReplaceColorUI();}
 
   function leaveLayers(){
     if(!S.layers.length&&!S.width)return;
@@ -112,7 +122,7 @@
   function distance(r,g,b,tr,tg,tb){var dr=r-tr,dg=g-tg,db=b-tb;return Math.sqrt(dr*dr+dg*dg+db*db);}
 
   function ensureMagicColorUI(){
-    if(q('image-magic-color-box'))return;
+    if(q('image-magic-color-box')){ensureLayersReplaceColorUI();return;}
     var host=q('image-magic-wand-box')||q('image-layers-panel');
     if(!host)return;
     var box=document.createElement('div');
@@ -125,12 +135,14 @@
     if(!q('image-magic-color-style')){
       var style=document.createElement('style');style.id='image-magic-color-style';style.textContent='.image-magic-color-box{margin-top:.7rem;padding-top:.7rem;border-top:1px solid rgba(139,90,43,.16)}.image-magic-color-label{display:block;font-size:.84rem;font-weight:700;margin-bottom:.35rem}.image-magic-color-controls{display:flex;align-items:center;gap:.5rem}.image-magic-color-controls input[type=color]{width:44px;height:36px;padding:2px;border:1px solid rgba(139,90,43,.28);border-radius:7px;background:transparent;cursor:pointer}.image-magic-color-controls .image-action-button{flex:1}.image-magic-color-help{margin:.35rem 0 0;font-size:.76rem;opacity:.75}';document.head.appendChild(style);
     }
+    ensureLayersReplaceColorUI();
   }
   function setMagicColorUIVisible(visible){var box=q('image-magic-color-box');if(!box)return;box.classList.toggle('image-hidden',!visible);}
   function hexToRgb(hex){var h=(hex||'').replace('#','');if(h.length===3)h=h.split('').map(function(ch){return ch+ch;}).join('');if(!/^[0-9a-fA-F]{6}$/.test(h))return null;return{r:parseInt(h.slice(0,2),16),g:parseInt(h.slice(2,4),16),b:parseInt(h.slice(4,6),16)};}
   function replaceSelectedColor(){
     var l=selected();if(!l||!S.selection)return status('Use Magic Wand to select a region first.',false);
-    var picker=q('image-magic-replace-color'),rgb=hexToRgb(picker?picker.value:'#ff0000');if(!rgb)return status('Choose a valid replacement color.',false);
+    var picker=q('image-layers-replace-color')||q('image-magic-replace-color'),rgb=hexToRgb(picker?picker.value:'#ff0000');if(!rgb)return status('Choose a valid replacement color.',false);
+    var mainPicker=q('image-magic-replace-color');if(mainPicker&&picker)mainPicker.value=picker.value;
     var ctx=l.canvas.getContext('2d'),id=ctx.getImageData(0,0,l.canvas.width,l.canvas.height),a=id.data,changed=0;
     for(var i=0;i<S.selection.length;i++)if(S.selection[i]){var p=i*4;if(a[p+3]>0){a[p]=rgb.r;a[p+1]=rgb.g;a[p+2]=rgb.b;changed++;}}
     ctx.putImageData(id,0,0);S.active=true;draw();
@@ -157,7 +169,7 @@
     }
     if(S.selection){for(var si=0;si<mask.length;si++)if(mask[si])S.selection[si]=1;}
     else{S.selection=mask;}
-    S.selectionCanvas=maskToCanvas(S.selection);S.active=true;drawSelection();setMagicColorUIVisible(true);
+    S.selectionCanvas=maskToCanvas(S.selection);S.active=true;drawSelection();setMagicColorUIVisible(true);ensureLayersReplaceColorUI();
     var count=0;for(var i=0;i<S.selection.length;i++)if(S.selection[i])count++;
     status('Magic Wand selected '+count.toLocaleString()+' pixels. Click another color region to add it, or use Delete Selection / another tool to finish.',true);
   }
