@@ -7,6 +7,7 @@
   var listenerBound = false;
   var historyListenerBound = false;
   var menuListenerBound = false;
+  var cropAlignmentBound = false;
 
   function q(id) { return document.getElementById(id); }
   function workspace() { return document.querySelector(".image-workspace"); }
@@ -135,12 +136,56 @@
     }, true);
   }
 
+  /* Crop coordinates are image-relative, but the crop rectangle is stage-relative.
+     The image is flex-centered, so its live stage-relative left/top offsets are
+     added dynamically rather than using fixed margins. */
+  function syncCropOverlayAlignment() {
+    var stage = q("image-preview-stage");
+    var img = q("image-preview-img");
+    var box = q("image-crop-rectangle");
+    if (!stage || !img || !box || img.classList.contains("image-hidden") || !img.naturalWidth) return;
+
+    var stageRect = stage.getBoundingClientRect();
+    var imageRect = img.getBoundingClientRect();
+    var offsetX = imageRect.left - stageRect.left;
+    var offsetY = imageRect.top - stageRect.top;
+
+    box.style.transform = "translate(" + Math.round(offsetX) + "px," + Math.round(offsetY) + "px)";
+  }
+
+  function bindCropOverlayAlignment() {
+    if (cropAlignmentBound) return;
+    cropAlignmentBound = true;
+
+    var schedule = function () {
+      window.requestAnimationFrame(syncCropOverlayAlignment);
+    };
+
+    document.addEventListener("pointermove", function (event) {
+      if (event.target && event.target.closest && event.target.closest("#image-preview-stage")) {
+        schedule();
+      }
+    }, false);
+
+    document.addEventListener("pointerup", function (event) {
+      if (event.target && event.target.closest && event.target.closest("#image-preview-stage")) {
+        schedule();
+      }
+    }, false);
+
+    window.addEventListener("resize", schedule, { passive: true });
+    window.addEventListener("orientationchange", schedule, { passive: true });
+    schedule();
+  }
+
   function patch() {
     if (!workspace()) return;
     patchScaleInput("scale-width", "width");
     patchScaleInput("scale-height", "height");
     bindImageHistory();
     bindImageMenuHoverBehaviour();
+    bindCropOverlayAlignment();
+    window.requestAnimationFrame(syncCropOverlayAlignment);
   }
 
   function onSpaNavigation() {
