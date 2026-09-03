@@ -178,10 +178,24 @@
   function copySelection(){var l=selected();if(!l||!S.selection)return status('Use Magic Wand to select a region first.',false);var src=l.canvas.getContext('2d').getImageData(0,0,l.canvas.width,l.canvas.height),out=newCanvas(l.canvas.width,l.canvas.height),od=out.getContext('2d').createImageData(l.canvas.width,l.canvas.height),a=od.data;for(var i=0;i<S.selection.length;i++)if(S.selection[i]){a[i*4]=src.data[i*4];a[i*4+1]=src.data[i*4+1];a[i*4+2]=src.data[i*4+2];a[i*4+3]=src.data[i*4+3];}out.getContext('2d').putImageData(od,0,0);S.layers.splice(S.current+1,0,{name:'Magic Wand Copy',visible:true,opacity:1,canvas:out});S.current++;S.active=false;setMagicColorUIVisible(false);clearSelection();render();draw();status('Selected region copied to a new layer.',true);}
   function deleteSelection(){var l=selected();if(!l||!S.selection)return status('Use Magic Wand to select a region first.',false);var ctx=l.canvas.getContext('2d'),id=ctx.getImageData(0,0,l.canvas.width,l.canvas.height),a=id.data;for(var i=0;i<S.selection.length;i++)if(S.selection[i])a[i*4+3]=0;ctx.putImageData(id,0,0);S.active=false;setMagicColorUIVisible(false);clearSelection();draw();syncLayerTransformFields();status('Selected region removed from the active layer.',true);}
   function canvasBlob(c){return new Promise(function(resolve,reject){c.toBlob(function(b){b?resolve(b):reject(new Error('PNG export failed'));},'image/png');});}
-  function resetLayerState(){
-    var ws=workspace(),toolbox=ws&&ws.querySelector('.image-toolbox');if(toolbox)toolbox.classList.remove('image-layers-layout');
-    setMagicColorUIVisible(false);setLayersSubtoolboxVisible(false);S.layers=[];S.current=-1;S.width=0;S.height=0;S.selection=null;S.selectionCanvas=null;S.active=false;var stage=q('image-preview-stage');if(stage)stage.classList.remove('image-layers-active');var c=q('image-layers-canvas'),sel=q('image-layers-selection');if(c)c.classList.add('image-hidden');if(sel)sel.classList.add('image-hidden');}
-  function applyHistory(){canvasBlob(composite()).then(function(blob){var file=new File([blob],'layers-composite.png',{type:'image/png'}),input=q('image-file');if(!input)throw new Error('Image uploader unavailable.');window.__algolassiImageToolsAppendHistory=true;var dt=new DataTransfer();dt.items.add(file);input.files=dt.files;input.dispatchEvent(new Event('change',{bubbles:true}));resetLayerState();status('All visible layers added as a new Processing History stage.',true);}).catch(function(){window.__algolassiImageToolsAppendHistory=false;status('Could not add the layered image to history.',false);});}
+  function resetLayerState(){var ws=workspace(),toolbox=ws&&ws.querySelector('.image-toolbox');if(toolbox)toolbox.classList.remove('image-layers-layout');setMagicColorUIVisible(false);setLayersSubtoolboxVisible(false);S.layers=[];S.current=-1;S.width=0;S.height=0;S.selection=null;S.selectionCanvas=null;S.active=false;var stage=q('image-preview-stage');if(stage)stage.classList.remove('image-layers-active');var c=q('image-layers-canvas'),sel=q('image-layers-selection');if(c)c.classList.add('image-hidden');if(sel)sel.classList.add('image-hidden');}
+  function applyHistory(){
+    var flattened=composite();
+    canvasBlob(flattened).then(function(blob){
+      var file=new File([blob],'layers-composite.png',{type:'image/png'}),input=q('image-file');
+      if(!input)throw new Error('Image uploader unavailable.');
+      window.__algolassiImageToolsAppendHistory=true;
+      var dt=new DataTransfer();dt.items.add(file);input.files=dt.files;
+      input.dispatchEvent(new Event('change',{bubbles:true}));
+      S.layers=[{name:'Applied Layers',visible:true,opacity:1,canvas:flattened}];
+      S.current=0;S.selection=null;S.selectionCanvas=null;S.active=false;
+      var stage=q('image-preview-stage');if(stage)stage.classList.add('image-layers-active');
+      var c=q('image-layers-canvas'),sel=q('image-layers-selection');
+      if(c)c.classList.remove('image-hidden');if(sel)sel.classList.remove('image-hidden');
+      showPanel();ensureMagicColorUI();setMagicColorUIVisible(false);ensureLayersSubtoolbox();setLayersSubtoolboxVisible(true);render();draw();
+      status('All visible layers added as a new Processing History stage. Layers mode is still active.',true);
+    }).catch(function(){window.__algolassiImageToolsAppendHistory=false;status('Could not add the layered image to history.',false);});
+  }
   function exportPng(){canvasBlob(composite()).then(function(blob){var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='algolassi-layers.png';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1500);status('Layered PNG exported.',true);});}
   function rotateLayerButton(id,deg){var b=q(id);if(!b||b.dataset.layerRotateBound==='1')return;b.dataset.layerRotateBound='1';b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();rotateLayer(deg);},true);}
   function bind(){
