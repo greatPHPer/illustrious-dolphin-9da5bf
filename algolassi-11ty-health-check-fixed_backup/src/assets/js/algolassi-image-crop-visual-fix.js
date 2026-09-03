@@ -15,15 +15,13 @@
 
     var ir=img.getBoundingClientRect(),sr=stage.getBoundingClientRect();
     var offsetX=ir.left-sr.left,offsetY=ir.top-sr.top;
-    var rawLeft=box.dataset.cropVisualRawLeft,rawTop=box.dataset.cropVisualRawTop;
     var currentLeft=box.style.left,currentTop=box.style.top;
-    if(rawLeft===currentLeft&&rawTop===currentTop)return;
+    var appliedLeft=Math.round(left+offsetX)+"px",appliedTop=Math.round(top+offsetY)+"px";
+    if(currentLeft===appliedLeft&&currentTop===appliedTop)return;
 
-    box.dataset.cropVisualRawLeft=currentLeft;
-    box.dataset.cropVisualRawTop=currentTop;
     box.style.boxSizing="border-box";
-    box.style.left=Math.round(left+offsetX)+"px";
-    box.style.top=Math.round(top+offsetY)+"px";
+    box.style.left=appliedLeft;
+    box.style.top=appliedTop;
   }
 
   function init(){
