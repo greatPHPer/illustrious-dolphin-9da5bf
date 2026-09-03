@@ -89,6 +89,24 @@
     document.head.appendChild(style);
   }
 
+  function loadScript(id, src) {
+    if (document.getElementById(id)) return;
+    var script = document.createElement("script");
+    script.id = id;
+    script.src = src;
+    script.defer = true;
+    script.async = true;
+    document.head.appendChild(script);
+  }
+
+  function loadTutorialQuiz() {
+    loadScript("algolassi-tutorial-quiz-script", "/assets/js/algolassi-tutorial-quiz.js?v=20260903-quiz-2");
+  }
+
+  function loadImageToolsActions() {
+    loadScript("algolassi-image-tools-actions-script", "/assets/js/algolassi-image-tools-actions.js?v=20260903-actions-1");
+  }
+
   function scan() {
     addStyles();
     document.querySelectorAll(".algolassi-toolmenu-managed, .algolassi-toolmenu-home").forEach(replaceSymbols);
@@ -113,20 +131,11 @@
     observer.observe(breadcrumbs, { childList: true, subtree: true, characterData: true });
   }
 
-  function loadTutorialQuiz() {
-    if (document.getElementById("algolassi-tutorial-quiz-script")) return;
-    var script = document.createElement("script");
-    script.id = "algolassi-tutorial-quiz-script";
-    script.src = "/assets/js/algolassi-tutorial-quiz.js?v=20260903-quiz-2";
-    script.defer = true;
-    script.async = true;
-    document.head.appendChild(script);
-  }
-
   function init() {
     scan();
     observe();
     loadTutorialQuiz();
+    if (document.querySelector(".image-workspace")) loadImageToolsActions();
   }
 
   window.addEventListener("load", init);
