@@ -111,14 +111,15 @@
 }
 
 .algolassi-tutorial-quiz-hide {
-  border: 1px solid var(--border-color, #d0d5dd);
-  background: transparent;
-  color: inherit;
+  border: 1px solid #dc2626;
+  background: #dc2626;
+  color: #fff;
   padding-inline: 10px;
 }
 
 .algolassi-tutorial-quiz-hide:hover {
-  background: var(--hover-bg, #f8fafc);
+  background: #b91c1c;
+  border-color: #b91c1c;
 }
 
 .algolassi-tutorial-quiz-result {
