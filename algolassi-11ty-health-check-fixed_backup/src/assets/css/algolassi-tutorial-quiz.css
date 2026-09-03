@@ -78,7 +78,8 @@
 }
 
 .algolassi-tutorial-quiz-button,
-.algolassi-tutorial-quiz-skip {
+.algolassi-tutorial-quiz-skip,
+.algolassi-tutorial-quiz-hide {
   flex: 0 0 auto;
   height: 34px;
   border-radius: 8px;
@@ -106,6 +107,17 @@
 }
 
 .algolassi-tutorial-quiz-skip:hover {
+  background: var(--hover-bg, #f8fafc);
+}
+
+.algolassi-tutorial-quiz-hide {
+  border: 1px solid var(--border-color, #d0d5dd);
+  background: transparent;
+  color: inherit;
+  padding-inline: 10px;
+}
+
+.algolassi-tutorial-quiz-hide:hover {
   background: var(--hover-bg, #f8fafc);
 }
 
@@ -160,7 +172,8 @@ body.dark #algolassi-tutorial-quiz-host .algolassi-tutorial-quiz {
   }
 
   .algolassi-tutorial-quiz-button,
-  .algolassi-tutorial-quiz-skip {
+  .algolassi-tutorial-quiz-skip,
+  .algolassi-tutorial-quiz-hide {
     padding: 0 8px;
   }
 
