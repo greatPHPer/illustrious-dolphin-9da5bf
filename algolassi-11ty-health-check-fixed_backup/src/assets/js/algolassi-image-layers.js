@@ -60,13 +60,6 @@
     var old=layer.canvas,out=newCanvas(w,h),ctx=out.getContext('2d');
     ctx.drawImage(old,offsetX||0,offsetY||0);layer.canvas=out;
   }
-  function expandDocument(newW,newH){
-    newW=Math.max(S.width,Math.ceil(newW));newH=Math.max(S.height,Math.ceil(newH));
-    if(newW===S.width&&newH===S.height)return;
-    var oldW=S.width,oldH=S.height,dx=(newW-oldW)/2,dy=(newH-oldH)/2;
-    S.layers.forEach(function(l){resizeLayerCanvas(l,newW,newH,Math.round(dx),Math.round(dy));});
-    S.width=newW;S.height=newH;
-  }
 
   function composite(){
     var c=blankCanvas(),ctx=c.getContext('2d');
@@ -77,21 +70,37 @@
     var c=q('image-layers-canvas');if(!c||!S.width)return;c.width=S.width;c.height=S.height;
     var ctx=c.getContext('2d');ctx.clearRect(0,0,S.width,S.height);ctx.drawImage(composite(),0,0);drawSelection();syncLayerControls();
   }
-  function stagePoint(e){var c=q('image-layers-canvas');if(!c)return null;var r=c.getBoundingClientRect();if(!r.width||!r.height)return null;var x=Math.floor((e.clientX-r.left)*S.width/r.width),y=Math.floor((e.clientY-r.top)*S.height/r.height);return{x:Math.max(0,Math.min(S.width-1,x)),y:Math.max(0,Math.min(S.height-1,y))};}
+  function stagePoint(e){
+    var c=q('image-layers-canvas')||q('image-preview-stage');if(!c||!S.width)return null;
+    var r=c.getBoundingClientRect();if(!r.width||!r.height)return null;
+    var x=Math.floor((e.clientX-r.left)*S.width/r.width),y=Math.floor((e.clientY-r.top)*S.height/r.height);
+    return{x:Math.max(0,Math.min(S.width-1,x)),y:Math.max(0,Math.min(S.height-1,y))};
+  }
   function distance(r,g,b,tr,tg,tb){var dr=r-tr,dg=g-tg,db=b-tb;return Math.sqrt(dr*dr+dg*dg+db*db);}
   function magicWand(pt){
-    var l=selected();if(!l)return;var ctx=l.canvas.getContext('2d',{willReadFrequently:true}),d=ctx.getImageData(0,0,S.width,S.height).data,idx=(pt.y*S.width+pt.x)*4,tr=d[idx],tg=d[idx+1],tb=d[idx+2],ta=d[idx+3];
-    var tol=Number((q('image-magic-tolerance')||{}).value||24),maxDist=tol*4.42,seen=new Uint8Array(S.width*S.height),queueX=new Int32Array(S.width*S.height),queueY=new Int32Array(S.width*S.height),head=0,tail=0,mask=new Uint8Array(S.width*S.height);
-    queueX[tail]=pt.x;queueY[tail]=pt.y;tail++;seen[pt.y*S.width+pt.x]=1;
-    while(head<tail){var x=queueX[head],y=queueY[head];head++;var p=y*S.width+x,di=p*4;if(Math.abs(d[di+3]-ta)>Math.max(18,tol))continue;if(distance(d[di],d[di+1],d[di+2],tr,tg,tb)<=maxDist){mask[p]=1;
-      var nx=x+1;if(nx<S.width){var np=y*S.width+nx;if(!seen[np]){seen[np]=1;queueX[tail]=nx;queueY[tail]=y;tail++;}}
-      nx=x-1;if(nx>=0){var np2=y*S.width+nx;if(!seen[np2]){seen[np2]=1;queueX[tail]=nx;queueY[tail]=y;tail++;}}
-      var ny=y+1;if(ny<S.height){var np3=ny*S.width+x;if(!seen[np3]){seen[np3]=1;queueX[tail]=x;queueY[tail]=ny;tail++;}}
-      ny=y-1;if(ny>=0){var np4=ny*S.width+x;if(!seen[np4]){seen[np4]=1;queueX[tail]=x;queueY[tail]=y-1;tail++;}}
-    }}
-    S.selection=mask;S.selectionCanvas=maskToCanvas(mask);drawSelection();var count=0;for(var i=0;i<mask.length;i++)if(mask[i])count++;status('Magic Wand selected '+count.toLocaleString()+' pixels.',true);
+    var l=selected();if(!l)return;
+    var lw=l.canvas.width,lh=l.canvas.height,ctx=l.canvas.getContext('2d',{willReadFrequently:true}),d=ctx.getImageData(0,0,lw,lh).data;
+    var px=Math.max(0,Math.min(lw-1,pt.x)),py=Math.max(0,Math.min(lh-1,pt.y)),idx=(py*lw+px)*4,tr=d[idx],tg=d[idx+1],tb=d[idx+2],ta=d[idx+3];
+    var tol=Number((q('image-magic-tolerance')||{}).value||24),maxDist=tol*4.42,seen=new Uint8Array(lw*lh),queueX=new Int32Array(lw*lh),queueY=new Int32Array(lw*lh),head=0,tail=0,mask=new Uint8Array(lw*lh);
+    queueX[tail]=px;queueY[tail]=py;tail++;seen[py*lw+px]=1;
+    while(head<tail){var x=queueX[head],y=queueY[head];head++;var p=y*lw+x,di=p*4;
+      if(Math.abs(d[di+3]-ta)>Math.max(18,tol))continue;
+      if(distance(d[di],d[di+1],d[di+2],tr,tg,tb)<=maxDist){mask[p]=1;
+        var nx=x+1;if(nx<lw){var np=y*lw+nx;if(!seen[np]){seen[np]=1;queueX[tail]=nx;queueY[tail]=y;tail++;}}
+        nx=x-1;if(nx>=0){var np2=y*lw+nx;if(!seen[np2]){seen[np2]=1;queueX[tail]=nx;queueY[tail]=y;tail++;}}
+        var ny=y+1;if(ny<lh){var np3=ny*lw+x;if(!seen[np3]){seen[np3]=1;queueX[tail]=x;queueY[tail]=ny;tail++;}}
+        ny=y-1;if(ny>=0){var np4=ny*lw+x;if(!seen[np4]){seen[np4]=1;queueX[tail]=x;queueY[tail]=ny;tail++;}}
+      }
+    }
+    S.selection=mask;S.selectionCanvas=maskToCanvas(mask);drawSelection();
+    var count=0;for(var i=0;i<mask.length;i++)if(mask[i])count++;
+    status('Magic Wand selected '+count.toLocaleString()+' pixels.',true);
   }
-  function maskToCanvas(mask){var c=blankCanvas(),id=c.getContext('2d').createImageData(S.width,S.height),a=id.data;for(var i=0;i<mask.length;i++)if(mask[i]){a[i*4]=255;a[i*4+1]=210;a[i*4+2]=70;a[i*4+3]=150;}c.getContext('2d').putImageData(id,0,0);return c;}
+  function maskToCanvas(mask){
+    var c=newCanvas(S.width,S.height),id=c.getContext('2d').createImageData(S.width,S.height),a=id.data;
+    var len=Math.min(mask.length,S.width*S.height);for(var i=0;i<len;i++)if(mask[i]){a[i*4]=255;a[i*4+1]=210;a[i*4+2]=70;a[i*4+3]=150;}
+    c.getContext('2d').putImageData(id,0,0);return c;
+  }
   function drawSelection(){var c=q('image-layers-selection');if(!c||!S.width)return;c.width=S.width;c.height=S.height;var ctx=c.getContext('2d');ctx.clearRect(0,0,S.width,S.height);if(!S.selection)return;var id=ctx.createImageData(S.width,S.height),a=id.data,now=Date.now()%1200>600;for(var i=0;i<S.selection.length;i++)if(S.selection[i]&&now){a[i*4]=255;a[i*4+1]=255;a[i*4+2]=255;a[i*4+3]=190;}ctx.putImageData(id,0,0);}
   setInterval(function(){if(S.active&&S.selection)drawSelection();},220);
   function clearSelection(){S.selection=null;S.selectionCanvas=null;drawSelection();}
@@ -114,7 +123,7 @@
     var l=selected();if(!l)return status('Select a layer first.',false);
     var src=cloneCanvas(l.canvas),oldW=src.width,oldH=src.height,newW=oldH,newH=oldW,out=newCanvas(newW,newH),ctx=out.getContext('2d');
     ctx.translate(newW/2,newH/2);ctx.rotate(deg*Math.PI/180);ctx.drawImage(src,-oldW/2,-oldH/2);l.canvas=out;
-    var targetW=Math.max(S.width,newW),targetH=Math.max(S.height,newH); 
+    var targetW=Math.max(S.width,newW),targetH=Math.max(S.height,newH);
     if(targetW>S.width||targetH>S.height){
       var oldDocW=S.width,oldDocH=S.height,dx=Math.round((targetW-oldDocW)/2),dy=Math.round((targetH-oldDocH)/2);
       S.layers.forEach(function(layer){if(layer===l){var nc=newCanvas(targetW,targetH),nctx=nc.getContext('2d');nctx.drawImage(layer.canvas,Math.round((targetW-newW)/2),Math.round((targetH-newH)/2));layer.canvas=nc;}else{resizeLayerCanvas(layer,targetW,targetH,dx,dy);}});
@@ -124,9 +133,9 @@
     }
     clearSelection();render();draw();syncLayerTransformFields();status('Rotated layer “'+l.name+'” only ('+deg+'°).',true);
   }
-  
-  function copySelection(){var l=selected();if(!l||!S.selection)return status('Use Magic Wand to select a region first.',false);var src=l.canvas.getContext('2d').getImageData(0,0,S.width,S.height),out=blankCanvas(),od=out.getContext('2d').createImageData(S.width,S.height),a=od.data;for(var i=0;i<S.selection.length;i++)if(S.selection[i]){a[i*4]=src.data[i*4];a[i*4+1]=src.data[i*4+1];a[i*4+2]=src.data[i*4+2];a[i*4+3]=src.data[i*4+3];}out.getContext('2d').putImageData(od,0,0);S.layers.splice(S.current+1,0,{name:'Magic Wand Copy',visible:true,opacity:1,canvas:out});S.current++;render();draw();status('Selected region copied to a new layer.',true);}
-  function deleteSelection(){var l=selected();if(!l||!S.selection)return status('Use Magic Wand to select a region first.',false);var ctx=l.canvas.getContext('2d'),id=ctx.getImageData(0,0,S.width,S.height),a=id.data;for(var i=0;i<S.selection.length;i++)if(S.selection[i])a[i*4+3]=0;ctx.putImageData(id,0,0);clearSelection();draw();syncLayerTransformFields();status('Selected region removed from the active layer.',true);}
+
+  function copySelection(){var l=selected();if(!l||!S.selection)return status('Use Magic Wand to select a region first.',false);var src=l.canvas.getContext('2d').getImageData(0,0,l.canvas.width,l.canvas.height),out=newCanvas(l.canvas.width,l.canvas.height),od=out.getContext('2d').createImageData(l.canvas.width,l.canvas.height),a=od.data;for(var i=0;i<S.selection.length;i++)if(S.selection[i]){a[i*4]=src.data[i*4];a[i*4+1]=src.data[i*4+1];a[i*4+2]=src.data[i*4+2];a[i*4+3]=src.data[i*4+3];}out.getContext('2d').putImageData(od,0,0);S.layers.splice(S.current+1,0,{name:'Magic Wand Copy',visible:true,opacity:1,canvas:out});S.current++;render();draw();status('Selected region copied to a new layer.',true);}
+  function deleteSelection(){var l=selected();if(!l||!S.selection)return status('Use Magic Wand to select a region first.',false);var ctx=l.canvas.getContext('2d'),id=ctx.getImageData(0,0,l.canvas.width,l.canvas.height),a=id.data;for(var i=0;i<S.selection.length;i++)if(S.selection[i])a[i*4+3]=0;ctx.putImageData(id,0,0);clearSelection();draw();syncLayerTransformFields();status('Selected region removed from the active layer.',true);}
   function canvasBlob(c){return new Promise(function(resolve,reject){c.toBlob(function(b){b?resolve(b):reject(new Error('PNG export failed'));},'image/png');});}
   function applyHistory(){canvasBlob(composite()).then(function(blob){var file=new File([blob],'layers-composite.png',{type:'image/png'}),input=q('image-file');if(!input)throw new Error('Image uploader unavailable.');var dt=new DataTransfer();dt.items.add(file);input.files=dt.files;input.dispatchEvent(new Event('change',{bubbles:true}));S.active=false;var st=q('image-preview-stage');if(st)st.classList.remove('image-layers-active');status('All visible layers flattened into Processing History.',true);}).catch(function(){status('Could not add the layered image to history.',false);});}
   function exportPng(){canvasBlob(composite()).then(function(blob){var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='algolassi-layers.png';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1500);status('Layered PNG exported.',true);});}
@@ -137,12 +146,24 @@
     q('image-layer-add')&&q('image-layer-add').addEventListener('click',addLayer);q('image-layer-duplicate')&&q('image-layer-duplicate').addEventListener('click',duplicateLayer);q('image-layer-delete')&&q('image-layer-delete').addEventListener('click',deleteLayer);
     q('image-layer-opacity')&&q('image-layer-opacity').addEventListener('input',function(){var l=selected();if(l)l.opacity=Number(this.value)/100;syncLayerControls();draw();});
     q('image-magic-tolerance')&&q('image-magic-tolerance').addEventListener('input',function(){var o=q('image-magic-tolerance-value');if(o)o.textContent=this.value;});
-    q('image-magic-wand')&&q('image-magic-wand').addEventListener('click',function(){S.active=true;status('Magic Wand active. Click a color region in the image.',true);});
+    q('image-magic-wand')&&q('image-magic-wand').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();S.active=true;status('Magic Wand active. Click a color region in the image.',true);});
     q('image-magic-copy')&&q('image-magic-copy').addEventListener('click',copySelection);q('image-magic-delete')&&q('image-magic-delete').addEventListener('click',deleteSelection);q('image-magic-clear')&&q('image-magic-clear').addEventListener('click',function(){clearSelection();status('Selection cleared.',true);});
     q('image-layers-export')&&q('image-layers-export').addEventListener('click',exportPng);q('image-layers-apply')&&q('image-layers-apply').addEventListener('click',applyHistory);
     q('image-layer-crop-apply')&&q('image-layer-crop-apply').addEventListener('click',cropLayer);q('image-layer-scale-apply')&&q('image-layer-scale-apply').addEventListener('click',scaleLayer);
     rotateLayerButton('image-layer-rotate-90',90);rotateLayerButton('image-layer-rotate-180',180);rotateLayerButton('image-layer-rotate-270',270);
-    var c=q('image-layers-canvas');if(c)c.addEventListener('click',function(e){if(!S.active||!S.layers.length)return;var pt=stagePoint(e);if(pt)magicWand(pt);});
+    var stage=q('image-preview-stage');
+    if(stage&&stage.dataset.magicWandBound!=='1'){
+      stage.dataset.magicWandBound='1';
+      stage.addEventListener('pointerdown',function(e){
+        if(!S.active||!S.layers.length)return;
+        if(e.target&&e.target.closest&&e.target.closest('button,input,select,textarea,a,.image-toolbar,.image-history'))return;
+        var pt=stagePoint(e);if(!pt)return;
+        e.preventDefault();
+        magicWand(pt);
+      },true);
+    }
+    var c=q('image-layers-canvas');
+    if(c)c.addEventListener('click',function(e){if(!S.active||!S.layers.length)return;var pt=stagePoint(e);if(pt)magicWand(pt);});
   }
   function init(){bind();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
