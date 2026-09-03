@@ -81,10 +81,10 @@
     var l=selected();if(!l)return;
     var lw=l.canvas.width,lh=l.canvas.height,ctx=l.canvas.getContext('2d',{willReadFrequently:true}),d=ctx.getImageData(0,0,lw,lh).data;
     var px=Math.max(0,Math.min(lw-1,pt.x)),py=Math.max(0,Math.min(lh-1,pt.y)),idx=(py*lw+px)*4,tr=d[idx],tg=d[idx+1],tb=d[idx+2],ta=d[idx+3];
-    var tol=Number((q('image-magic-tolerance')||{}).value||24),maxDist=tol*4.42,seen=new Uint8Array(lw*lh),queueX=new Int32Array(lw*lh),queueY=new Int32Array(lw*lh),head=0,tail=0,mask=new Uint8Array(lw*lh);
+    var tol=Number((q('image-magic-tolerance')||{}).value||24),maxDist=Math.max(4,tol),alphaTol=Math.max(8,Math.round(tol*0.6)),seen=new Uint8Array(lw*lh),queueX=new Int32Array(lw*lh),queueY=new Int32Array(lw*lh),head=0,tail=0,mask=new Uint8Array(lw*lh);
     queueX[tail]=px;queueY[tail]=py;tail++;seen[py*lw+px]=1;
     while(head<tail){var x=queueX[head],y=queueY[head];head++;var p=y*lw+x,di=p*4;
-      if(Math.abs(d[di+3]-ta)>Math.max(18,tol))continue;
+      if(Math.abs(d[di+3]-ta)>alphaTol)continue;
       if(distance(d[di],d[di+1],d[di+2],tr,tg,tb)<=maxDist){mask[p]=1;
         var nx=x+1;if(nx<lw){var np=y*lw+nx;if(!seen[np]){seen[np]=1;queueX[tail]=nx;queueY[tail]=y;tail++;}}
         nx=x-1;if(nx>=0){var np2=y*lw+nx;if(!seen[np2]){seen[np2]=1;queueX[tail]=nx;queueY[tail]=y;tail++;}}
