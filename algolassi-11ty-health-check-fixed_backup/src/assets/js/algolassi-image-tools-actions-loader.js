@@ -11,10 +11,10 @@
       s.async=true;
       document.head.appendChild(s);
     }
-    if(!document.getElementById("algolassi-image-crop-visual-fix-script")){
+    if(!document.getElementById("algolassi-image-crop-surface-fix-script")){
       var c=document.createElement("script");
-      c.id="algolassi-image-crop-visual-fix-script";
-      c.src="/assets/js/algolassi-image-crop-visual-fix.js?v=20260903-crop-visual-2";
+      c.id="algolassi-image-crop-surface-fix-script";
+      c.src="/assets/js/algolassi-image-crop-surface-fix.js?v=20260903-crop-surface-1";
       c.defer=true;
       c.async=true;
       document.head.appendChild(c);
