@@ -304,6 +304,7 @@
       '<input class="algolassi-tutorial-quiz-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Your answer" placeholder="answer">' +
       '<button type="button" class="algolassi-tutorial-quiz-button">Check</button>' +
       '<button type="button" class="algolassi-tutorial-quiz-skip">Skip (no benefits)</button>' +
+      '<button type="button" class="algolassi-tutorial-quiz-hide" aria-label="Hide quiz">Hide</button>' +
       '<span class="algolassi-tutorial-quiz-result" aria-live="polite"></span>' +
       '</section>';
 
@@ -312,11 +313,20 @@
     var input = root.querySelector(".algolassi-tutorial-quiz-input");
     var check = root.querySelector(".algolassi-tutorial-quiz-button");
     var skip = root.querySelector(".algolassi-tutorial-quiz-skip");
+    var hide = root.querySelector(".algolassi-tutorial-quiz-hide");
     var result = root.querySelector(".algolassi-tutorial-quiz-result");
 
     function remove() {
       root.classList.remove("is-visible");
       currentQuestion = null;
+    }
+
+    function doHide() {
+      if (!currentQuestion) return;
+      var ps = pageState(currentKey);
+      ps.lastPromptAt = Date.now();
+      saveState();
+      remove();
     }
 
     function doSkip() {
@@ -329,6 +339,7 @@
 
       check.disabled = true;
       skip.disabled = true;
+      hide.disabled = true;
       input.disabled = true;
       code.textContent = currentQuestion.source;
       quiz.classList.add("is-answer-revealed");
@@ -382,10 +393,6 @@
           skip.disabled = false;
           console.error("Algolassi quiz reputation:", e);
         }
-
-        setTimeout(function () {
-          if (currentQuestion) remove();
-        }, 2500);
       } else {
         result.className = "algolassi-tutorial-quiz-result";
         result.textContent = "Not quite — check the code above.";
@@ -396,9 +403,10 @@
 
     check.addEventListener("click", doCheck);
     skip.addEventListener("click", doSkip);
+    hide.addEventListener("click", doHide);
     input.addEventListener("keydown", function (event) {
       if (event.key === "Enter") doCheck();
-      if (event.key === "Escape") doSkip();
+      if (event.key === "Escape") doHide();
     });
 
     root.classList.add("is-visible");
