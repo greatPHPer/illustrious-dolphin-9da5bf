@@ -27,7 +27,7 @@
   function svgPathToEps(d,out){var t=d.match(/[a-zA-Z]|[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/g)||[],i=0,cmd="",x=0,y=0,sx=0,sy=0,ok=true;function num(){if(i>=t.length||/^[a-zA-Z]$/.test(t[i])){ok=false;return 0;}var v=Number(t[i++]);if(!Number.isFinite(v))ok=false;return v;}while(i<t.length&&ok){if(/^[a-zA-Z]$/.test(t[i]))cmd=t[i++];if(!cmd){ok=false;break;}var lo=cmd.toLowerCase(),rel=cmd===lo;if(lo==="m"||lo==="l"){var nx=num(),ny=num();if(rel){nx+=x;ny+=y;}out.push(nx+" "+ny+" "+(lo==="m"?"moveto":"lineto"));x=nx;y=ny;if(lo==="m"){sx=x;sy=y;cmd=rel?"l":"L";}}else if(lo==="h"){var hx=num();if(rel)hx+=x;x=hx;out.push(x+" "+y+" lineto");}else if(lo==="v"){var vy=num();if(rel)vy+=y;y=vy;out.push(x+" "+y+" lineto");}else if(lo==="c"){var c1x=num(),c1y=num(),c2x=num(),c2y=num(),ex=num(),ey=num();if(rel){c1x+=x;c1y+=y;c2x+=x;c2y+=y;ex+=x;ey+=y;}out.push(c1x+" "+c1y+" "+c2x+" "+c2y+" "+ex+" "+ey+" curveto");x=ex;y=ey;}else if(lo==="q"){var qx=num(),qy=num(),qex=num(),qey=num();if(rel){qx+=x;qy+=y;qex+=x;qey+=y;}out.push((x+(2/3)*(qx-x))+" "+(y+(2/3)*(qy-y))+" "+(qex+(2/3)*(qex-qx))+" "+(qey+(2/3)*(qey-qy))+" "+qex+" "+qey+" curveto");x=qex;y=qey;}else if(lo==="z"){out.push("closepath");x=sx;y=sy;}else ok=false;}return ok;}
   function svgToEps(svg){var doc=new DOMParser().parseFromString(svg,"image/svg+xml");if(doc.querySelector("parsererror"))throw new Error("Invalid traced SVG.");var root=doc.documentElement,w=parseFloat(root.getAttribute("width"))||1,h=parseFloat(root.getAttribute("height"))||1,v=(root.getAttribute("viewBox")||"").trim().split(/\s+/).map(Number);if(v.length===4&&v.every(Number.isFinite)){w=v[2];h=v[3];}var out=["%!PS-Adobe-3.0 EPSF-3.0","%%Creator: Algolassi Image Tools","%%BoundingBox: 0 0 "+Math.ceil(w)+" "+Math.ceil(h),"%%Pages: 1","%%EndComments","gsave","0 "+Math.ceil(h)+" translate","1 -1 scale"];Array.prototype.forEach.call(doc.querySelectorAll("path"),function(path){var d=path.getAttribute("d")||"",fill=path.getAttribute("fill")||"none",m=fill.match(/^#([0-9a-f]{6})$/i),pc=[];if(!d||!m||!svgPathToEps(d,pc))return;var hx=m[1],r=parseInt(hx.slice(0,2),16)/255,g=parseInt(hx.slice(2,4),16)/255,b=parseInt(hx.slice(4,6),16)/255;out.push(r.toFixed(4)+" "+g.toFixed(4)+" "+b.toFixed(4)+" setrgbcolor",pc.join("\n"),"eofill");});out.push("grestore","showpage","%%EOF");return out.join("\n");}
   function downloadText(text,name,type){var blob=new Blob([text],{type:type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},1500);}
-  function vectorExport(kind){status("Vectorizing selected image…",false);Promise.all([loadTracer(),selectedImage()]).then(function(parts){var tracer=parts[0],image=parts[1],c=document.createElement("canvas");c.width=image.naturalWidth||image.width;c.height=image.naturalHeight||image.height;var ctx=c.getContext("2d",{willReadFrequently:true});ctx.drawImage(image,0,0,c.width,c.height);return tracer.imagedataToSVG(ctx.getImageData(0,0,c.width,c.height),{colorsampling:2,numberofcolors:24,colorquantcycles:2,pathomit:4,ltres:1,qtres:1,linefilter:true,roundcoords:2,strokewidth:0,layering:0,desc:false,viewbox:true});}).then(function(svg){if(kind==="svg"){downloadText(svg,"algolassi-vector.svg","image/svg+xml");status("Vector SVG created.",true);}else{downloadText(svgToEps(svg),"algolassi-vector.eps","application/postscript");status("Vector EPS created.",true);}}).catch(function(err){console.error("Algolassi Image Tools:",err);status(err&&err.message?err.message:"Could not create a vector file.",false);});}
+  function vectorExport(kind){status("Vectorizing selected image…",false);Promise.all([loadTracer(),selectedImage()]).then(function(parts){var tracer=parts[0],image=parts[1],c=document.createElement("canvas");c.width=image.naturalWidth||image.width;c.height=image.naturalHeight||image.height;var ctx=c.getContext("2d",{willReadFrequently:true});ctx.drawImage(image,0,0,c.width,c.height);return tracer.imagedataToSVG(ctx.getImageData(0,0,c.width,c.height),{colorsampling:2,numberofcolors:24,colorquantcycles:2,pathomit:4,ltres:1,qtres:1,linefilter:true,roundcoords:2,layering:0,strokewidth:0,viewbox:true,desc:false});}).then(function(svg){if(kind==="svg"){downloadText(svg,"algolassi-vector.svg","image/svg+xml");status("Vector SVG created.",true);}else{downloadText(svgToEps(svg),"algolassi-vector.eps","application/postscript");status("Vector EPS created.",true);}}).catch(function(err){console.error("Algolassi Image Tools:",err);status(err&&err.message?err.message:"Could not create a vector file.",false);});}
 
   function layerApplyCurrentReady(){
     if(!layerApplyPending)return true;
@@ -51,9 +51,7 @@
     layerApplyPreviousSrc=preview&&preview.src||null;
     layerApplyPending=true;
     if(layerApplyTimer)clearInterval(layerApplyTimer);
-    layerApplyTimer=setInterval(function(){
-      if(finishLayerApplyWait())return;
-    },40);
+    layerApplyTimer=setInterval(function(){finishLayerApplyWait();},40);
     setTimeout(function(){
       if(!layerApplyPending)return;
       layerApplyPending=false;
@@ -85,17 +83,18 @@
     var target=e.target&&e.target.closest?e.target.closest("[data-image-command=\"crop\"],[data-image-command=\"compress\"],#image-compress-button,#image-compress-download,#image-vector-svg-button,#image-vector-eps-button"):null;
     if(!target)return;
     if(target.closest(".image-workspace")===null)return;
-    if(target.matches("[data-image-command=\"crop\"]")&&layerApplyPending){
-      e.preventDefault();
-      e.stopPropagation();
-      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-      queueCropAfterLayerApply(target);
+    if(target.matches("[data-image-command=\"crop\"]")){
+      if(layerApplyPending){
+        e.preventDefault();
+        e.stopPropagation();
+        if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+        queueCropAfterLayerApply(target);
+      }
       return;
     }
     e.preventDefault();
     e.stopPropagation();
     if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-    if(target.matches("[data-image-command=\"crop\"]"))return;
     if(target.matches("[data-image-command=\"compress\"]"))return openCompress();
     if(target.id==="image-compress-button")return compress();
     if(target.id==="image-compress-download")return downloadCompress();
