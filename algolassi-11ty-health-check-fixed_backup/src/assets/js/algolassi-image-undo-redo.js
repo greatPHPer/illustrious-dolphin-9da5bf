@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var KEY = "__algolassiImageUndoRedo_v3";
+  var KEY = "__algolassiImageUndoRedo_v4";
   var bound = false;
 
   function q(id) { return document.getElementById(id); }
@@ -13,12 +13,37 @@
     return h ? Array.prototype.slice.call(h.querySelectorAll(".image-history-card")) : [];
   }
 
-  function currentIndex() {
+  /* The history cards are displayed newest-first with CSS row-reverse, so
+     never use DOM position as the editing timeline. Each card already carries
+     its real state.items index in data-index. */
+  function currentStateIndex() {
+    var list = cards();
+    var current = null;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].classList.contains("current")) {
+        current = parseInt(list[i].dataset.index, 10);
+        break;
+      }
+    }
+    return Number.isFinite(current) ? current : (list.length ? 0 : -1);
+  }
+
+  function cardForStateIndex(index) {
     var list = cards();
     for (var i = 0; i < list.length; i++) {
-      if (list[i].classList.contains("current")) return i;
+      if (parseInt(list[i].dataset.index, 10) === index) return list[i];
     }
-    return list.length ? list.length - 1 : -1;
+    return null;
+  }
+
+  function maxStateIndex() {
+    var list = cards();
+    var max = -1;
+    for (var i = 0; i < list.length; i++) {
+      var index = parseInt(list[i].dataset.index, 10);
+      if (Number.isFinite(index) && index > max) max = index;
+    }
+    return max;
   }
 
   function setStatus(text, good) {
@@ -35,7 +60,6 @@
     var stage = q("image-preview-stage");
     var toolbar = stage && stage.parentNode ? stage.parentNode.querySelector(".image-toolbar") : null;
     if (!toolbar) return false;
-
     var wrap = q("image-undo-redo-controls");
     if (!wrap) {
       wrap = document.createElement("div");
@@ -64,48 +88,43 @@
   }
 
   function updateButtons() {
-    var list = cards();
-    var index = currentIndex();
+    var current = currentStateIndex();
+    var max = maxStateIndex();
     var undo = q("image-undo-button");
     var redo = q("image-redo-button");
     if (!undo || !redo) return;
-
-    undo.disabled = !(index > 0);
-    redo.disabled = !(index >= 0 && index < list.length - 1);
+    undo.disabled = !(current > 0);
+    redo.disabled = !(current >= 0 && current < max);
   }
 
-  function selectIndex(index, label) {
-    var list = cards();
-    if (index < 0 || index >= list.length) return false;
-
-    var historyButton = list[index].querySelector(".image-history-link");
-    if (!historyButton) return false;
-
-    historyButton.click();
-    window.setTimeout(function () {
-      updateButtons();
-    }, 0);
+  function selectState(index, label) {
+    var card = cardForStateIndex(index);
+    if (!card) return false;
+    var button = card.querySelector(".image-history-link");
+    if (!button) return false;
+    button.click();
+    window.setTimeout(updateButtons, 0);
     setStatus(label, true);
     return true;
   }
 
   function undo() {
-    var index = currentIndex();
-    if (index <= 0) {
+    var current = currentStateIndex();
+    if (current <= 0) {
       updateButtons();
       return;
     }
-    selectIndex(index - 1, "Undo — restored previous image version.");
+    selectState(current - 1, "Undo — restored previous image version.");
   }
 
   function redo() {
-    var list = cards();
-    var index = currentIndex();
-    if (index < 0 || index >= list.length - 1) {
+    var current = currentStateIndex();
+    var max = maxStateIndex();
+    if (current < 0 || current >= max) {
       updateButtons();
       return;
     }
-    selectIndex(index + 1, "Redo — restored next image version.");
+    selectState(current + 1, "Redo — restored next image version.");
   }
 
   function editableTarget(target) {
@@ -118,11 +137,9 @@
     if (bound || !ws()) return;
     if (!ensureUi()) return;
     style();
-
     var undoButton = q("image-undo-button");
     var redoButton = q("image-redo-button");
     if (!undoButton || !redoButton) return;
-
     bound = true;
 
     undoButton.addEventListener("click", function (event) {
@@ -130,7 +147,6 @@
       event.stopPropagation();
       undo();
     });
-
     redoButton.addEventListener("click", function (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -142,14 +158,12 @@
       if (!root || editableTarget(event.target)) return;
       if (!root.contains(event.target)) return;
       if (event.altKey || event.metaKey) return;
-
       if (event.ctrlKey && !event.shiftKey && (event.key === "z" || event.key === "Z")) {
         event.preventDefault();
         event.stopPropagation();
         undo();
         return;
       }
-
       if ((event.ctrlKey && (event.key === "y" || event.key === "Y")) ||
           (event.ctrlKey && event.shiftKey && (event.key === "z" || event.key === "Z"))) {
         event.preventDefault();
@@ -160,9 +174,7 @@
 
     var history = historyEl();
     if (history && window.MutationObserver) {
-      var observer = new MutationObserver(function () {
-        updateButtons();
-      });
+      var observer = new MutationObserver(function () { updateButtons(); });
       observer.observe(history, {
         childList: true,
         subtree: true,
@@ -193,11 +205,8 @@
 
   if (!window[KEY]) {
     window[KEY] = { init: init };
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", init, { once: true });
-    } else {
-      init();
-    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
+    else init();
   } else {
     window[KEY].init();
   }
