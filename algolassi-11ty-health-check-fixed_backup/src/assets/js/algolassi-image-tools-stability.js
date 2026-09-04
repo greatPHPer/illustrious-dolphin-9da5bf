@@ -8,9 +8,24 @@
   var historyListenerBound = false;
   var menuListenerBound = false;
   var cropAlignmentBound = false;
+  var coordinateScriptBound = false;
 
   function q(id) { return document.getElementById(id); }
   function workspace() { return document.querySelector(".image-workspace"); }
+
+  function loadCursorCoordinates() {
+    if (!workspace() || coordinateScriptBound) return;
+    if (document.getElementById("algolassi-image-cursor-coordinates-script")) {
+      coordinateScriptBound = true;
+      return;
+    }
+    coordinateScriptBound = true;
+    var script = document.createElement("script");
+    script.id = "algolassi-image-cursor-coordinates-script";
+    script.src = "/assets/js/algolassi-image-cursor-coordinates.js?v=20260904-cursor-coordinates-1";
+    script.defer = true;
+    document.head.appendChild(script);
+  }
 
   function loadCropHandles() {
     if (!workspace()) return;
@@ -215,6 +230,7 @@
   function patch() {
     if (!workspace()) return;
     loadCropHandles();
+    loadCursorCoordinates();
     patchScaleInput("scale-width", "width");
     patchScaleInput("scale-height", "height");
     bindImageHistory();
