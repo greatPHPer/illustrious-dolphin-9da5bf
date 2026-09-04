@@ -2,10 +2,9 @@
 (function () {
   "use strict";
 
-  var KEY = "__algolassiImageUndoRedo_v1";
+  var KEY = "__algolassiImageUndoRedo_v2";
   var bound = false;
   var knownSignature = "";
-  var suppressClick = false;
 
   function q(id) { return document.getElementById(id); }
   function ws() { return document.querySelector(".image-workspace"); }
@@ -34,7 +33,6 @@
     var stage = q("image-preview-stage");
     var toolbar = stage && stage.parentNode ? stage.parentNode.querySelector(".image-toolbar") : null;
     if (!toolbar) return null;
-
     var wrap = q("image-undo-redo-controls");
     if (!wrap) {
       wrap = document.createElement("div");
@@ -71,29 +69,25 @@
     if (redo) redo.disabled = index < 0 || index >= cards.length - 1;
   }
 
-  function choose(index, label) {
+  function selectHistoryIndex(index, label) {
     var cards = historyCards();
     if (index < 0 || index >= cards.length) return;
     var button = cards[index].querySelector(".image-history-link");
     if (!button) return;
-    suppressClick = true;
     button.click();
-    window.setTimeout(function () {
-      suppressClick = false;
-      updateButtons();
-    }, 0);
+    window.setTimeout(updateButtons, 0);
     status(label, true);
   }
 
-  function undo() {
+  function doUndo() {
     var index = currentIndex();
-    if (index > 0) choose(index - 1, "Undo — selected previous image version.");
+    if (index > 0) selectHistoryIndex(index - 1, "Undo — selected previous image version.");
   }
 
-  function redo() {
+  function doRedo() {
     var cards = historyCards();
     var index = currentIndex();
-    if (index >= 0 && index < cards.length - 1) choose(index + 1, "Redo — restored next image version.");
+    if (index >= 0 && index < cards.length - 1) selectHistoryIndex(index + 1, "Redo — restored next image version.");
   }
 
   function signature() {
@@ -102,28 +96,34 @@
     }).join("|");
   }
 
+  function isEditableTarget(target) {
+    if (!target) return false;
+    var tag = (target.tagName || "").toLowerCase();
+    return tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable;
+  }
+
   function bind() {
     if (bound || !ws()) return;
     ensureUi();
     style();
-    var undo = q("image-undo-button");
-    var redo = q("image-redo-button");
-    if (!undo || !redo) return;
+    var undoButton = q("image-undo-button");
+    var redoButton = q("image-redo-button");
+    if (!undoButton || !redoButton) return;
 
     bound = true;
-    undo.addEventListener("click", function () { undo(); });
-    redo.addEventListener("click", function () { redo(); });
+    undoButton.addEventListener("click", doUndo);
+    redoButton.addEventListener("click", doRedo);
 
     document.addEventListener("keydown", function (e) {
       var root = ws();
-      if (!root || !root.contains(document.activeElement) && !root.matches(":has(:focus)")) return;
+      if (!root || isEditableTarget(e.target)) return;
       if (e.altKey || e.metaKey) return;
       if (e.ctrlKey && !e.shiftKey && (e.key === "z" || e.key === "Z")) {
         e.preventDefault();
-        undo();
+        doUndo();
       } else if ((e.ctrlKey && (e.key === "y" || e.key === "Y")) || (e.ctrlKey && e.shiftKey && (e.key === "z" || e.key === "Z"))) {
         e.preventDefault();
-        redo();
+        doRedo();
       }
     }, true);
 
