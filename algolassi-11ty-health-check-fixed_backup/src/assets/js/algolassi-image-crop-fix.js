@@ -56,13 +56,12 @@
     var x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),w=Math.abs(a.x-b.x),h=Math.abs(a.y-b.y);
 
     if(r.layersMode){
-      /* In Layers mode the overlay itself is the exact visible image surface.
-         Keep the rectangle 0-based inside that surface so no inherited stage
-         offsets/max-size rules can trim the selectable region. */
-      overlay.style.left="0px";
-      overlay.style.top="0px";
-      overlay.style.width="100%";
-      overlay.style.height="100%";
+      /* Layers canvas is rendered with object-fit:contain. The overlay must use
+         the exact visible image surface, including its real letterbox offset. */
+      overlay.style.left=(r.left-r.stageLeft)+"px";
+      overlay.style.top=(r.top-r.stageTop)+"px";
+      overlay.style.width=Math.max(1,Math.round(r.width))+"px";
+      overlay.style.height=Math.max(1,Math.round(r.height))+"px";
       overlay.style.right="auto";
       overlay.style.bottom="auto";
       overlay.style.margin="0";
@@ -71,6 +70,7 @@
       overlay.style.maxWidth="none";
       overlay.style.maxHeight="none";
 
+      /* Rectangle coordinates are now relative to the exact image surface. */
       box.style.position="absolute";
       box.style.left=Math.round(x)+"px";
       box.style.top=Math.round(y)+"px";
