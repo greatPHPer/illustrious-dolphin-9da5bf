@@ -12,6 +12,15 @@
   function q(id) { return document.getElementById(id); }
   function workspace() { return document.querySelector(".image-workspace"); }
 
+  function loadCropHandles() {
+    if (!workspace()) return;
+    if (document.getElementById("algolassi-image-crop-handles-script")) return;
+    var script = document.createElement("script");
+    script.id = "algolassi-image-crop-handles-script";
+    script.src = "/assets/js/algolassi-image-crop-handles.js?v=20260904-crop-handles-2";
+    document.head.appendChild(script);
+  }
+
   function patchScaleInput(id, changed) {
     var input = q(id);
     if (!input || input.dataset.imageStabilityPatched === "1") return;
@@ -205,6 +214,7 @@
 
   function patch() {
     if (!workspace()) return;
+    loadCropHandles();
     patchScaleInput("scale-width", "width");
     patchScaleInput("scale-height", "height");
     bindImageHistory();
