@@ -17,10 +17,7 @@
 
   function loadCursorCoordinates() {
     if (!workspace() || coordinateScriptBound) return;
-    if (document.getElementById("algolassi-image-cursor-coordinates-script")) {
-      coordinateScriptBound = true;
-      return;
-    }
+    if (document.getElementById("algolassi-image-cursor-coordinates-script")) { coordinateScriptBound = true; return; }
     coordinateScriptBound = true;
     var script = document.createElement("script");
     script.id = "algolassi-image-cursor-coordinates-script";
@@ -31,10 +28,7 @@
 
   function loadSelectionClipboard() {
     if (!workspace() || selectionClipboardScriptBound) return;
-    if (document.getElementById("algolassi-image-selection-clipboard-script")) {
-      selectionClipboardScriptBound = true;
-      return;
-    }
+    if (document.getElementById("algolassi-image-selection-clipboard-script")) { selectionClipboardScriptBound = true; return; }
     selectionClipboardScriptBound = true;
     var script = document.createElement("script");
     script.id = "algolassi-image-selection-clipboard-script";
@@ -45,14 +39,11 @@
 
   function loadUndoRedo() {
     if (!workspace() || undoRedoScriptBound) return;
-    if (document.getElementById("algolassi-image-undo-redo-script")) {
-      undoRedoScriptBound = true;
-      return;
-    }
+    if (document.getElementById("algolassi-image-undo-redo-script")) { undoRedoScriptBound = true; return; }
     undoRedoScriptBound = true;
     var script = document.createElement("script");
     script.id = "algolassi-image-undo-redo-script";
-    script.src = "/assets/js/algolassi-image-undo-redo.js?v=20260904-undo-redo-2";
+    script.src = "/assets/js/algolassi-image-undo-redo.js?v=20260904-undo-redo-3";
     script.defer = true;
     document.head.appendChild(script);
   }
@@ -80,8 +71,7 @@
       var lock = q("scale-lock-ratio");
       var item = ws.querySelector("#image-preview-img");
       if (lock && lock.checked && width && height && item && item.naturalWidth && item.naturalHeight) {
-        var w = parseInt(width.value, 10);
-        var h = parseInt(height.value, 10);
+        var w = parseInt(width.value, 10), h = parseInt(height.value, 10);
         if (changed === "width" && w) height.value = Math.max(1, Math.round(w * item.naturalHeight / item.naturalWidth));
         else if (changed === "height" && h) width.value = Math.max(1, Math.round(h * item.naturalWidth / item.naturalHeight));
       }
@@ -117,24 +107,14 @@
   }
 
   function closeImageMenus() {
-    ["image-file-menu", "image-edit-menu"].forEach(function (id) {
-      var menu = q(id);
-      if (menu) menu.classList.add("image-hidden");
-    });
-    [["image-file-menu-button", "image-file-menu"], ["image-edit-menu-button", "image-edit-menu"]].forEach(function (pair) {
-      var button = q(pair[0]);
-      if (button) button.setAttribute("aria-expanded", "false");
-    });
+    ["image-file-menu", "image-edit-menu"].forEach(function (id) { var menu = q(id); if (menu) menu.classList.add("image-hidden"); });
+    [["image-file-menu-button", "image-file-menu"], ["image-edit-menu-button", "image-edit-menu"]].forEach(function (pair) { var button = q(pair[0]); if (button) button.setAttribute("aria-expanded", "false"); });
   }
-
   function openImageMenu(menuId, buttonId) {
     var menu = q(menuId), button = q(buttonId);
     if (!menu || !button) return;
-    closeImageMenus();
-    menu.classList.remove("image-hidden");
-    button.setAttribute("aria-expanded", "true");
+    closeImageMenus(); menu.classList.remove("image-hidden"); button.setAttribute("aria-expanded", "true");
   }
-
   function bindImageMenuHoverBehaviour() {
     if (menuListenerBound) return;
     menuListenerBound = true;
@@ -173,12 +153,8 @@
     if (cropAlignmentBound) return;
     cropAlignmentBound = true;
     var schedule = function () { window.requestAnimationFrame(syncCropOverlayAlignment); };
-    document.addEventListener("pointermove", function (event) {
-      if (event.target && event.target.closest && event.target.closest("#image-preview-stage")) schedule();
-    }, false);
-    document.addEventListener("pointerup", function (event) {
-      if (event.target && event.target.closest && event.target.closest("#image-preview-stage")) schedule();
-    }, false);
+    document.addEventListener("pointermove", function (event) { if (event.target && event.target.closest && event.target.closest("#image-preview-stage")) schedule(); }, false);
+    document.addEventListener("pointerup", function (event) { if (event.target && event.target.closest && event.target.closest("#image-preview-stage")) schedule(); }, false);
     window.addEventListener("resize", schedule, { passive: true });
     window.addEventListener("orientationchange", schedule, { passive: true });
     if (window.MutationObserver) {
