@@ -1,42 +1,28 @@
-/* Algolassi Image Tools - make Crop use the same visible surface as the image. */
+/* Algolassi Image Tools - keep Crop and Layers on the exact same rendered image surface. */
 (function(){
   "use strict";
-  var ro=null,mo=null;
+  var ro=null,mo=null,eventsBound=false;
   function q(id){return document.getElementById(id);}
 
-  function visibleSurface(){
-    var stage=q("image-preview-stage");
-    if(!stage)return null;
-    var layers=stage.classList.contains("image-layers-active")?q("image-layers-canvas"):null;
-    if(layers&&!layers.classList.contains("image-hidden")&&layers.width&&layers.height){
-      var lr=layers.getBoundingClientRect(),sr=stage.getBoundingClientRect(),ratio=layers.width/layers.height;
-      if(!lr.width||!lr.height||!ratio)return null;
-      var width=lr.width,height=lr.height,left=lr.left,top=lr.top;
-      if(lr.width/lr.height>ratio){width=lr.height*ratio;left=lr.left+(lr.width-width)/2;}
-      else if(lr.width/lr.height<ratio){height=lr.width/ratio;top=lr.top+(lr.height-height)/2;}
-      return {left:left,top:top,width:width,height:height,stageLeft:sr.left,stageTop:sr.top};
-    }
-    var img=q("image-preview-img");
-    if(!img||img.classList.contains("image-hidden")||!img.naturalWidth)return null;
+  function renderedImage(){
+    var stage=q("image-preview-stage"),img=q("image-preview-img");
+    if(!stage||!img||!img.naturalWidth)return null;
     var ir=img.getBoundingClientRect(),sr=stage.getBoundingClientRect();
-    if(!ir.width||!ir.height)return null;
-    return {left:ir.left,top:ir.top,width:ir.width,height:ir.height,stageLeft:sr.left,stageTop:sr.top};
+    if(!ir.width||!ir.height||!sr.width||!sr.height)return null;
+    return {stage:stage,img:img,left:ir.left,top:ir.top,width:ir.width,height:ir.height,stageLeft:sr.left,stageTop:sr.top,scaleX:img.naturalWidth/ir.width,scaleY:img.naturalHeight/ir.height};
   }
 
   function sync(){
     var stage=q("image-preview-stage"),panel=q("image-crop-panel"),overlay=q("image-crop-overlay"),box=q("image-crop-rectangle");
     if(!stage||!panel||!overlay||!box)return;
-    var surface=visibleSurface();
-    var active=!panel.classList.contains("image-hidden");
-    stage.classList.toggle("image-crop-active",active);
-    if(!active||!surface)return;
+    if(panel.classList.contains("image-hidden"))return;
+    var r=renderedImage();if(!r)return;
 
-    var left=surface.left-surface.stageLeft,top=surface.top-surface.stageTop;
     overlay.style.position="absolute";
-    overlay.style.left=left+"px";
-    overlay.style.top=top+"px";
-    overlay.style.width=surface.width+"px";
-    overlay.style.height=surface.height+"px";
+    overlay.style.left=Math.round(r.left-r.stageLeft)+"px";
+    overlay.style.top=Math.round(r.top-r.stageTop)+"px";
+    overlay.style.width=Math.max(1,Math.round(r.width))+"px";
+    overlay.style.height=Math.max(1,Math.round(r.height))+"px";
     overlay.style.right="auto";
     overlay.style.bottom="auto";
     overlay.style.margin="0";
@@ -47,21 +33,43 @@
     overlay.style.maxHeight="none";
 
     box.style.position="absolute";
-    box.style.left=box.style.left||"0px";
-    box.style.top=box.style.top||"0px";
+    box.style.transform="none";
     box.style.margin="0";
     box.style.padding="0";
-    box.style.borderBoxSizing="border-box";
     box.style.boxSizing="border-box";
-    box.style.transform="none";
     box.style.maxWidth="none";
     box.style.maxHeight="none";
+
+    var x=parseInt((q("crop-x")||{}).value,10),y=parseInt((q("crop-y")||{}).value,10),w=parseInt((q("crop-width")||{}).value,10),h=parseInt((q("crop-height")||{}).value,10);
+    if(Number.isFinite(x)&&Number.isFinite(y)&&Number.isFinite(w)&&Number.isFinite(h)&&w>0&&h>0){
+      box.style.left=Math.round(Math.max(0,x)/r.scaleX)+"px";
+      box.style.top=Math.round(Math.max(0,y)/r.scaleY)+"px";
+      box.style.width=Math.max(1,Math.round(w/r.scaleX))+"px";
+      box.style.height=Math.max(1,Math.round(h/r.scaleY))+"px";
+    }else{
+      box.style.left="0px";
+      box.style.top="0px";
+    }
+  }
+
+  function bindEvents(){
+    if(eventsBound)return;
+    eventsBound=true;
+    var schedule=function(){requestAnimationFrame(sync);};
+    document.addEventListener("pointermove",function(){
+      var stage=q("image-preview-stage"),panel=q("image-crop-panel");
+      if(stage&&panel&&!panel.classList.contains("image-hidden")&&stage.classList.contains("image-layers-active"))schedule();
+    },false);
+    document.addEventListener("pointerup",function(){
+      var stage=q("image-preview-stage"),panel=q("image-crop-panel");
+      if(stage&&panel&&!panel.classList.contains("image-hidden")&&stage.classList.contains("image-layers-active"))schedule();
+    },false);
   }
 
   function init(){
     var stage=q("image-preview-stage"),panel=q("image-crop-panel");
     if(!stage||!panel)return;
-    sync();
+    sync();bindEvents();
     if(window.ResizeObserver){
       if(ro)try{ro.disconnect();}catch(_){ }
       ro=new ResizeObserver(function(){requestAnimationFrame(sync);});
