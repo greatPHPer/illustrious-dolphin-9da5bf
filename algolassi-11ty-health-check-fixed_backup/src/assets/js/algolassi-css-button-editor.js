@@ -1,6 +1,12 @@
 (function () {
   "use strict";
 
+  var ids = [
+    "be-text", "be-size", "be-weight", "be-text-color", "be-c1", "be-gradient",
+    "be-c2", "be-direction", "be-shape", "be-width", "be-pady", "be-padx",
+    "be-border", "be-borderw", "be-shadow", "be-gloss", "be-dark"
+  ];
+
   function init() {
     if (!document.getElementById("be-preview")) return;
     var get = function (id) { return document.getElementById(id); };
@@ -29,8 +35,8 @@
     function outputs() {
       var v = values();
       var bg = v.gradient ? "linear-gradient(" + v.dir + ", " + v.c1 + ", " + v.c2 + ")" : v.c1;
-      var r = parseInt(v.c1.slice(1), 16);
-      var rr = (r >> 16) & 255, gg = (r >> 8) & 255, bb = r & 255;
+      var rgb = parseInt(v.c1.slice(1), 16);
+      var rr = (rgb >> 16) & 255, gg = (rgb >> 8) & 255, bb = rgb & 255;
       var glow = "rgba(" + rr + "," + gg + "," + bb + ",.34)";
       var gloss = (v.gloss / 100).toFixed(2);
       var css = ".algolassi-generated-button {\n" +
@@ -54,7 +60,7 @@
       var fill = v.gradient ? "url(#algolassiButtonGradient)" : v.c1;
       var svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"" + w + "\" height=\"" + h + "\" viewBox=\"0 0 " + w + " " + h + "\">" +
         (v.gradient ? "<defs><linearGradient id=\"algolassiButtonGradient\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0%\" stop-color=\"" + v.c1 + "\"/><stop offset=\"100%\" stop-color=\"" + v.c2 + "\"/></linearGradient></defs>" : "") +
-        "<rect x=\"" + (v.borderw || 0) + "\" y=\"" + (v.borderw || 0) + "\" width=\"" + (w - v.borderw * 2) + "\" height=\"" + (h - v.borderw * 2) + "\" rx=\"" + radius + "\" fill=\"" + fill + "\" stroke=\"" + v.border + "\" stroke-width=\"" + v.borderw + "\"/>" +
+        "<rect x=\"" + v.borderw + "\" y=\"" + v.borderw + "\" width=\"" + (w - v.borderw * 2) + "\" height=\"" + (h - v.borderw * 2) + "\" rx=\"" + radius + "\" fill=\"" + fill + "\" stroke=\"" + v.border + "\" stroke-width=\"" + v.borderw + "\"/>" +
         "<text x=\"50%\" y=\"50%\" dominant-baseline=\"middle\" text-anchor=\"middle\" fill=\"" + v.textColor + "\" font-family=\"Arial, sans-serif\" font-size=\"" + v.size + "px\" font-weight=\"" + v.weight + "\">" + esc(v.text) + "</text></svg>";
       return { css: css, html: html, svg: svg };
     }
@@ -74,7 +80,9 @@
       p.style.setProperty("--editor-gloss", (v.gloss / 100).toFixed(2));
       stage.classList.toggle("dark", v.dark);
       get("be-summary").textContent = (v.shape === "999px" ? "Pill" : "Rounded") + " • " + (v.gradient ? "Gradient" : "Solid") + " • " + v.size + "px";
-      get("code-html").textContent = o.html; get("code-css").textContent = o.css; get("code-svg").textContent = o.svg;
+      get("code-html").textContent = o.html;
+      get("code-css").textContent = o.css;
+      get("code-svg").textContent = o.svg;
       get("be-size-v").textContent = v.size + "px"; get("be-width-v").textContent = v.width + "px"; get("be-pady-v").textContent = v.pady + "px";
       get("be-padx-v").textContent = v.padx + "px"; get("be-borderw-v").textContent = v.borderw + "px"; get("be-shadow-v").textContent = v.shadow + "px";
       get("be-gloss-v").textContent = v.gloss + "%";
@@ -83,18 +91,16 @@
 
     function copy(text, button) {
       function done() { var old = button.textContent; button.textContent = "Copied!"; setTimeout(function () { button.textContent = old; }, 900); }
-      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done).catch(function () {}); }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(function () {});
       else { var a = document.createElement("textarea"); a.value = text; a.style.position = "fixed"; a.style.opacity = "0"; document.body.appendChild(a); a.select(); document.execCommand("copy"); document.body.removeChild(a); done(); }
     }
 
-    ids.forEach(function (id) { var e = get(id); if (e) e.addEventListener("input", refresh); e && e.addEventListener("change", refresh); });
+    ids.forEach(function (id) { var e = get(id); if (e) { e.addEventListener("input", refresh); e.addEventListener("change", refresh); } });
     document.querySelectorAll(".btn-tab").forEach(function (tab) { tab.addEventListener("click", function () { document.querySelectorAll(".btn-tab").forEach(function (x) { x.classList.remove("active"); }); document.querySelectorAll(".btn-code-panel").forEach(function (x) { x.classList.remove("active"); }); tab.classList.add("active"); get("panel-" + tab.dataset.tab).classList.add("active"); }); });
     document.querySelectorAll(".btn-copy-output").forEach(function (b) { b.addEventListener("click", function () { var o = outputs(); copy(o[b.dataset.copy], b); }); });
     get("be-copy-all").addEventListener("click", function (e) { var o = outputs(); copy("HTML:\n" + o.html + "\n\nCSS:\n" + o.css + "\n\nSVG:\n" + o.svg, e.currentTarget); });
     get("be-reset").addEventListener("click", function () { ids.forEach(function (id) { var e = get(id); if (!e) return; if (e.type === "checkbox") e.checked = defaults[id]; else e.value = defaults[id]; }); refresh(); });
-    var presets = {
-      blue: ["#2563eb", "#60a5fa"], violet: ["#7c3aed", "#c4b5fd"], sunset: ["#f97316", "#facc15"], emerald: ["#059669", "#6ee7b7"], neon: ["#ec4899", "#06b6d4"]
-    };
+    var presets = { blue: ["#2563eb", "#60a5fa"], violet: ["#7c3aed", "#c4b5fd"], sunset: ["#f97316", "#facc15"], emerald: ["#059669", "#6ee7b7"], neon: ["#ec4899", "#06b6d4"] };
     document.querySelectorAll(".btn-preset").forEach(function (b) { b.addEventListener("click", function () { var p = presets[b.dataset.preset]; get("be-c1").value = p[0]; get("be-c2").value = p[1]; get("be-gradient").checked = true; refresh(); }); });
     refresh();
   }
