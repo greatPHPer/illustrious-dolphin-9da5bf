@@ -24,7 +24,8 @@
       return {
         left:left,top:top,width:visibleW,height:visibleH,
         stageLeft:sr.left,stageTop:sr.top,
-        scaleX:layers.width/visibleW,scaleY:layers.height/visibleH
+        scaleX:layers.width/visibleW,scaleY:layers.height/visibleH,
+        layersMode:true
       };
     }
 
@@ -35,7 +36,8 @@
     return {
       left:ir.left,top:ir.top,width:ir.width,height:ir.height,
       stageLeft:sr.left,stageTop:sr.top,
-      scaleX:img.naturalWidth/ir.width,scaleY:img.naturalHeight/ir.height
+      scaleX:img.naturalWidth/ir.width,scaleY:img.naturalHeight/ir.height,
+      layersMode:false
     };
   }
 
@@ -49,16 +51,41 @@
   }
 
   function render(a,b,r){
-    var overlay=q("image-crop-overlay"),box=q("image-crop-rectangle"),stage=q("image-preview-stage");
-    if(!overlay||!box||!stage)return null;
+    var overlay=q("image-crop-overlay"),box=q("image-crop-rectangle");
+    if(!overlay||!box)return null;
     var x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),w=Math.abs(a.x-b.x),h=Math.abs(a.y-b.y);
-    var left=(r.left-r.stageLeft)+x,top=(r.top-r.stageTop)+y;
+
+    if(r.layersMode){
+      /* In Layers mode the overlay itself is the exact visible image surface.
+         Keep the rectangle 0-based inside that surface so no inherited stage
+         offsets/max-size rules can trim the selectable region. */
+      overlay.style.left="0px";
+      overlay.style.top="0px";
+      overlay.style.width="100%";
+      overlay.style.height="100%";
+      overlay.style.right="auto";
+      overlay.style.bottom="auto";
+      overlay.style.margin="0";
+      overlay.style.padding="0";
+      overlay.style.boxSizing="border-box";
+      overlay.style.maxWidth="none";
+      overlay.style.maxHeight="none";
+
+      box.style.position="absolute";
+      box.style.left=Math.round(x)+"px";
+      box.style.top=Math.round(y)+"px";
+    }else{
+      var left=(r.left-r.stageLeft)+x,top=(r.top-r.stageTop)+y;
+      box.style.left=Math.round(left)+"px";
+      box.style.top=Math.round(top)+"px";
+    }
+
     box.style.transform="none";
     box.style.margin="0";
     box.style.padding="0";
     box.style.boxSizing="border-box";
-    box.style.left=Math.round(left)+"px";
-    box.style.top=Math.round(top)+"px";
+    box.style.maxWidth="none";
+    box.style.maxHeight="none";
     box.style.width=Math.max(1,Math.round(w))+"px";
     box.style.height=Math.max(1,Math.round(h))+"px";
     overlay.classList.remove("image-hidden");
