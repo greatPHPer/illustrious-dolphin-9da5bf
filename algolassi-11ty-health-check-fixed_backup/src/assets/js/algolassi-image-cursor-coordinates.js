@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var KEY = "__algolassiImageCursorCoordinates_v1";
+  var KEY = "__algolassiImageCursorCoordinates_v2";
 
   function q(id) { return document.getElementById(id); }
   function workspace() { return document.querySelector(".image-workspace"); }
@@ -24,38 +24,42 @@
     return panel;
   }
 
-  function sync() {
-    var panel = ensurePanel();
-    var stage = q("image-preview-stage");
-    var img = q("image-preview-img");
+  function setValue(text) {
     var value = q("image-cursor-coordinates-value");
-    if (!panel || !stage || !img || !value) return;
+    if (value) value.textContent = text;
+  }
 
-    function clear() {
-      value.textContent = "X: — px   Y: — px";
-    }
-
-    if (img.classList.contains("image-hidden") || !img.naturalWidth || !img.naturalHeight) {
-      clear();
+  function updateCoordinates(event) {
+    var img = q("image-preview-img");
+    if (!img || !img.naturalWidth || !img.naturalHeight || img.classList.contains("image-hidden")) {
+      setValue("X: — px   Y: — px");
       return;
     }
 
-    stage.addEventListener("pointermove", function (event) {
-      var rect = img.getBoundingClientRect();
-      if (!rect.width || !rect.height) { clear(); return; }
+    var rect = img.getBoundingClientRect();
+    if (!rect.width || !rect.height ||
+        event.clientX < rect.left || event.clientX > rect.right ||
+        event.clientY < rect.top || event.clientY > rect.bottom) {
+      setValue("X: — px   Y: — px");
+      return;
+    }
 
-      if (event.clientX < rect.left || event.clientX > rect.right ||
-          event.clientY < rect.top || event.clientY > rect.bottom) {
-        clear();
-        return;
-      }
+    var x = Math.max(0, Math.min(img.naturalWidth - 1,
+      Math.floor((event.clientX - rect.left) * img.naturalWidth / rect.width)));
+    var y = Math.max(0, Math.min(img.naturalHeight - 1,
+      Math.floor((event.clientY - rect.top) * img.naturalHeight / rect.height)));
 
-      var x = Math.max(0, Math.min(img.naturalWidth - 1,
-        Math.floor((event.clientX - rect.left) * img.naturalWidth / rect.width)));
-      var y = Math.max(0, Math.min(img.naturalHeight - 1,
-        Math.floor((event.clientY - rect.top) * img.naturalHeight / rect.height)));
+    setValue("X: " + x + " px   Y: " + y + " px");
+  }
 
-      value.textContent = "X: " + x + " px   Y: " + y + " px";
+  function bindTracking() {
+    var stage = q("image-preview-stage");
+    if (!stage || stage.dataset.imageCursorCoordinatesBound === "1") return;
+    stage.dataset.imageCursorCoordinatesBound = "1";
+
+    stage.addEventListener("pointermove", updateCoordinates, true);
+    stage.addEventListener("pointerleave", function () {
+      setValue("X: — px   Y: — px");
     }, true);
   }
 
@@ -64,7 +68,7 @@
     var s = document.createElement("style");
     s.id = "algolassi-image-cursor-coordinates-style";
     s.textContent = [
-      ".image-cursor-coordinates{display:flex;align-items:center;gap:.65rem;margin:0 0 .5rem;padding:.45rem .7rem;border:1px solid rgba(127,127,127,.28);border-radius:.45rem;background:rgba(127,127,127,.06);font-size:.84rem;line-height:1.2;min-height:2rem;box-sizing:border-box}",
+      ".image-cursor-coordinates{display:flex;align-items:center;gap:.65rem;margin:0 0 .5rem;padding:.45rem .7rem;border:1px solid rgba(127,127,127,.28);border-radius:.45rem;background:rgba(127,127,127,.06);font-size:.84rem;line-height:1.2;min-height:2rem;box-sizing:border-box;pointer-events:none;user-select:none}",
       ".image-cursor-coordinates-title{font-weight:700;white-space:nowrap}",
       ".image-cursor-coordinates-value{font-variant-numeric:tabular-nums;letter-spacing:.01em}",
       "@media(max-width:640px){.image-cursor-coordinates{font-size:.78rem;gap:.45rem;padding:.4rem .55rem}}"
@@ -76,25 +80,31 @@
     if (!workspace()) return;
     style();
     ensurePanel();
-    sync();
-    if (window.MutationObserver) {
-      var stage = q("image-preview-stage");
-      if (stage && stage.dataset.imageCursorCoordinatesObserver !== "1") {
-        stage.dataset.imageCursorCoordinatesObserver = "1";
-        var observer = new MutationObserver(function () {
-          ensurePanel();
-        });
-        observer.observe(stage, { attributes: true, attributeFilter: ["class"] });
-      }
-    }
+    bindTracking();
+  }
+
+  function watchForSpaStage() {
+    if (!window.MutationObserver) return;
+    var root = workspace();
+    if (!root || root.dataset.imageCursorCoordinatesRootObserver === "1") return;
+    root.dataset.imageCursorCoordinatesRootObserver = "1";
+    var observer = new MutationObserver(function () {
+      ensurePanel();
+      bindTracking();
+    });
+    observer.observe(root, { childList: true, subtree: true });
   }
 
   if (!window[KEY]) {
     window[KEY] = { init: init };
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", init, { once: true });
+      document.addEventListener("DOMContentLoaded", function () {
+        init();
+        watchForSpaStage();
+      }, { once: true });
     } else {
       init();
+      watchForSpaStage();
     }
   } else {
     window[KEY].init();
