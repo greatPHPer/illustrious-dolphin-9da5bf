@@ -1,25 +1,27 @@
-/* Algolassi Image Tools - lightweight undo/redo over Processing History */
+/* Algolassi Image Tools - deterministic history undo/redo */
 (function () {
   "use strict";
 
-  var KEY = "__algolassiImageUndoRedo_v2";
+  var KEY = "__algolassiImageUndoRedo_v3";
   var bound = false;
-  var knownSignature = "";
 
   function q(id) { return document.getElementById(id); }
   function ws() { return document.querySelector(".image-workspace"); }
-  function historyCards() {
-    var history = q("image-history");
-    return history ? Array.prototype.slice.call(history.querySelectorAll(".image-history-card")) : [];
+  function historyEl() { return q("image-history"); }
+  function cards() {
+    var h = historyEl();
+    return h ? Array.prototype.slice.call(h.querySelectorAll(".image-history-card")) : [];
   }
+
   function currentIndex() {
-    var cards = historyCards();
-    for (var i = 0; i < cards.length; i++) {
-      if (cards[i].classList.contains("current")) return i;
+    var list = cards();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].classList.contains("current")) return i;
     }
-    return cards.length ? cards.length - 1 : -1;
+    return list.length ? list.length - 1 : -1;
   }
-  function status(text, good) {
+
+  function setStatus(text, good) {
     var el = q("image-status");
     if (el) {
       el.textContent = text || "";
@@ -32,7 +34,8 @@
   function ensureUi() {
     var stage = q("image-preview-stage");
     var toolbar = stage && stage.parentNode ? stage.parentNode.querySelector(".image-toolbar") : null;
-    if (!toolbar) return null;
+    if (!toolbar) return false;
+
     var wrap = q("image-undo-redo-controls");
     if (!wrap) {
       wrap = document.createElement("div");
@@ -44,7 +47,7 @@
         '<button id="image-redo-button" class="image-action-button secondary" type="button" title="Redo (Ctrl+Y)" aria-label="Redo" disabled>Redo ↷</button>';
       toolbar.appendChild(wrap);
     }
-    return wrap;
+    return true;
   }
 
   function style() {
@@ -61,42 +64,51 @@
   }
 
   function updateButtons() {
-    var cards = historyCards();
+    var list = cards();
     var index = currentIndex();
     var undo = q("image-undo-button");
     var redo = q("image-redo-button");
-    if (undo) undo.disabled = index <= 0;
-    if (redo) redo.disabled = index < 0 || index >= cards.length - 1;
+    if (!undo || !redo) return;
+
+    undo.disabled = !(index > 0);
+    redo.disabled = !(index >= 0 && index < list.length - 1);
   }
 
-  function selectHistoryIndex(index, label) {
-    var cards = historyCards();
-    if (index < 0 || index >= cards.length) return;
-    var button = cards[index].querySelector(".image-history-link");
-    if (!button) return;
-    button.click();
-    window.setTimeout(updateButtons, 0);
-    status(label, true);
+  function selectIndex(index, label) {
+    var list = cards();
+    if (index < 0 || index >= list.length) return false;
+
+    var historyButton = list[index].querySelector(".image-history-link");
+    if (!historyButton) return false;
+
+    historyButton.click();
+    window.setTimeout(function () {
+      updateButtons();
+    }, 0);
+    setStatus(label, true);
+    return true;
   }
 
-  function doUndo() {
+  function undo() {
     var index = currentIndex();
-    if (index > 0) selectHistoryIndex(index - 1, "Undo — selected previous image version.");
+    if (index <= 0) {
+      updateButtons();
+      return;
+    }
+    selectIndex(index - 1, "Undo — restored previous image version.");
   }
 
-  function doRedo() {
-    var cards = historyCards();
+  function redo() {
+    var list = cards();
     var index = currentIndex();
-    if (index >= 0 && index < cards.length - 1) selectHistoryIndex(index + 1, "Redo — restored next image version.");
+    if (index < 0 || index >= list.length - 1) {
+      updateButtons();
+      return;
+    }
+    selectIndex(index + 1, "Redo — restored next image version.");
   }
 
-  function signature() {
-    return historyCards().map(function (card) {
-      return (card.dataset.index || "") + ":" + (card.classList.contains("current") ? "1" : "0");
-    }).join("|");
-  }
-
-  function isEditableTarget(target) {
+  function editableTarget(target) {
     if (!target) return false;
     var tag = (target.tagName || "").toLowerCase();
     return tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable;
@@ -104,41 +116,67 @@
 
   function bind() {
     if (bound || !ws()) return;
-    ensureUi();
+    if (!ensureUi()) return;
     style();
+
     var undoButton = q("image-undo-button");
     var redoButton = q("image-redo-button");
     if (!undoButton || !redoButton) return;
 
     bound = true;
-    undoButton.addEventListener("click", doUndo);
-    redoButton.addEventListener("click", doRedo);
 
-    document.addEventListener("keydown", function (e) {
+    undoButton.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      undo();
+    });
+
+    redoButton.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      redo();
+    });
+
+    document.addEventListener("keydown", function (event) {
       var root = ws();
-      if (!root || isEditableTarget(e.target)) return;
-      if (e.altKey || e.metaKey) return;
-      if (e.ctrlKey && !e.shiftKey && (e.key === "z" || e.key === "Z")) {
-        e.preventDefault();
-        doUndo();
-      } else if ((e.ctrlKey && (e.key === "y" || e.key === "Y")) || (e.ctrlKey && e.shiftKey && (e.key === "z" || e.key === "Z"))) {
-        e.preventDefault();
-        doRedo();
+      if (!root || editableTarget(event.target)) return;
+      if (!root.contains(event.target)) return;
+      if (event.altKey || event.metaKey) return;
+
+      if (event.ctrlKey && !event.shiftKey && (event.key === "z" || event.key === "Z")) {
+        event.preventDefault();
+        event.stopPropagation();
+        undo();
+        return;
+      }
+
+      if ((event.ctrlKey && (event.key === "y" || event.key === "Y")) ||
+          (event.ctrlKey && event.shiftKey && (event.key === "z" || event.key === "Z"))) {
+        event.preventDefault();
+        event.stopPropagation();
+        redo();
       }
     }, true);
 
-    var history = q("image-history");
+    var history = historyEl();
     if (history && window.MutationObserver) {
       var observer = new MutationObserver(function () {
-        var next = signature();
-        if (next !== knownSignature) {
-          knownSignature = next;
-          updateButtons();
-        }
+        updateButtons();
       });
-      observer.observe(history, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-index"] });
+      observer.observe(history, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class", "data-index"]
+      });
       window.__algolassiImageUndoRedoObserver = observer;
     }
+
+    document.addEventListener("click", function (event) {
+      if (!event.target || !event.target.closest) return;
+      if (!event.target.closest(".image-workspace")) return;
+      window.setTimeout(updateButtons, 0);
+    }, true);
 
     updateButtons();
   }
@@ -146,13 +184,20 @@
   function init() {
     if (!ws()) return;
     if (!bound) bind();
-    else { ensureUi(); style(); updateButtons(); }
+    else {
+      ensureUi();
+      style();
+      updateButtons();
+    }
   }
 
   if (!window[KEY]) {
     window[KEY] = { init: init };
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
-    else init();
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init, { once: true });
+    } else {
+      init();
+    }
   } else {
     window[KEY].init();
   }
