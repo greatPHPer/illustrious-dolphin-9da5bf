@@ -70,6 +70,19 @@
       mo.observe(panel,{attributes:true,attributeFilter:["class"]});
       window.__algolassiCropSurfaceMutationObserver2=mo;
     }
+    if(window.MutationObserver&&stage.dataset.layersSurfaceObserved!="1"){
+      stage.dataset.layersSurfaceObserved="1";
+      var smo=new MutationObserver(function(mutations){
+        for(var i=0;i<mutations.length;i++){
+          if(mutations[i].type==="attributes"&&mutations[i].attributeName==="class"){
+            requestAnimationFrame(sync);
+            break;
+          }
+        }
+      });
+      smo.observe(stage,{attributes:true,attributeFilter:["class"]});
+      window.__algolassiLayersSurfaceMutationObserver2=smo;
+    }
   }
 
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
