@@ -15,10 +15,7 @@
   function image() { return q("image-preview-img"); }
   function status(text, good) {
     var el = q("image-status");
-    if (el) {
-      el.textContent = text || "";
-      el.classList.toggle("image-status-good", !!good);
-    }
+    if (el) { el.textContent = text || ""; el.classList.toggle("image-status-good", !!good); }
     var menu = q("image-menu-status");
     if (menu && text) menu.textContent = text;
     var clip = q("image-selection-clipboard-status");
@@ -57,9 +54,7 @@
 
   function canvasBlob(canvas) {
     return new Promise(function (resolve, reject) {
-      canvas.toBlob(function (blob) {
-        blob ? resolve(blob) : reject(new Error("Could not create clipboard image."));
-      }, "image/png");
+      canvas.toBlob(function (blob) { blob ? resolve(blob) : reject(new Error("Could not create clipboard image.")); }, "image/png");
     });
   }
 
@@ -107,14 +102,10 @@
     if (!pasteActive || !ghost || !clipboard) return;
     var r = imageRect();
     if (!r) return;
-    var w = clipboard.width / r.scaleX;
-    var h = clipboard.height / r.scaleY;
-    w = Math.max(2, Math.min(w, r.width));
-    h = Math.max(2, Math.min(h, r.height));
-    var left = Number(clientX) - w / 2;
-    var top = Number(clientY) - h / 2;
-    left = Math.max(r.left, Math.min(r.left + r.width - w, left));
-    top = Math.max(r.top, Math.min(r.top + r.height - h, top));
+    var w = Math.max(2, Math.min(clipboard.width / r.scaleX, r.width));
+    var h = Math.max(2, Math.min(clipboard.height / r.scaleY, r.height));
+    var left = Math.max(r.left, Math.min(r.left + r.width - w, Number(clientX) - w / 2));
+    var top = Math.max(r.top, Math.min(r.top + r.height - h, Number(clientY) - h / 2));
     ghost.style.left = Math.round(left) + "px";
     ghost.style.top = Math.round(top) + "px";
     ghost.style.width = Math.round(w) + "px";
@@ -145,18 +136,11 @@
   }
 
   function startPaste(e) {
-    if (!clipboard) {
-      status("Nothing copied. Select a region and use Copy Selection first.", false);
-      return;
-    }
+    if (!clipboard) { status("Nothing copied. Select a region and use Copy Selection first.", false); return; }
     var r = imageRect();
-    if (!r) {
-      status("Select an image before pasting the selection.", false);
-      return;
-    }
+    if (!r) { status("Select an image before pasting the selection.", false); return; }
     pasteActive = true;
-    lastPointer = e && Number.isFinite(e.clientX) ? { x: e.clientX, y: e.clientY } :
-      { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    lastPointer = e && Number.isFinite(e.clientX) ? { x: e.clientX, y: e.clientY } : { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     var g = ensureGhost();
     g.src = clipboard.url;
     document.documentElement.classList.add("image-selection-paste-mode");
@@ -176,15 +160,15 @@
   function selectedPasteRect() {
     if (!ghost || !clipboard) return null;
     var r = imageRect();
-    var base = pointerInImage(
-      parseFloat(ghost.dataset.left) + parseFloat(ghost.dataset.width) / 2,
-      parseFloat(ghost.dataset.top) + parseFloat(ghost.dataset.height) / 2
-    );
-    if (!r || !base) return null;
+    var centerX = parseFloat(ghost.dataset.left) + parseFloat(ghost.dataset.width) / 2;
+    var centerY = parseFloat(ghost.dataset.top) + parseFloat(ghost.dataset.height) / 2;
+    var base = pointerInImage(centerX, centerY);
+    var img = image();
+    if (!r || !base || !img) return null;
     var x = Math.round(base.x - clipboard.width / 2);
     var y = Math.round(base.y - clipboard.height / 2);
-    x = Math.max(0, Math.min(r.r ? image().naturalWidth - clipboard.width : x, x));
-    y = Math.max(0, Math.min(r.r ? image().naturalHeight - clipboard.height : y, y));
+    x = Math.max(0, Math.min(img.naturalWidth - clipboard.width, x));
+    y = Math.max(0, Math.min(img.naturalHeight - clipboard.height, y));
     return { x: x, y: y };
   }
 
@@ -192,11 +176,7 @@
     if (!pasteActive || !clipboard) return;
     var target = image();
     var pos = selectedPasteRect();
-    if (!target || !pos) {
-      stopPaste();
-      status("Move the paste preview inside the image and try again.", false);
-      return;
-    }
+    if (!target || !pos) { stopPaste(); status("Move the paste preview inside the image and try again.", false); return; }
     var currentSrc = target.currentSrc || target.src;
     var patch = clipboard;
     status("Placing selection…");
@@ -219,36 +199,25 @@
       input.files = dt.files;
       input.dispatchEvent(new Event("change", { bubbles: true }));
       stopPaste("Selection pasted into the image.");
-    }).catch(function (err) {
-      console.error(err);
-      stopPaste();
-      status("Could not paste the selection.", false);
-    });
+    }).catch(function (err) { console.error(err); stopPaste(); status("Could not paste the selection.", false); });
   }
 
   function copySelection() {
     var sel = selectionFromFields();
     var target = image();
-    if (!sel || !target) {
-      status("Select a valid crop region first.", false);
-      return;
-    }
+    if (!sel || !target) { status("Select a valid crop region first.", false); return; }
     var src = target.currentSrc || target.src;
     status("Copying selection…");
     loadImage(src).then(function (img) {
       var c = document.createElement("canvas");
-      c.width = sel.width;
-      c.height = sel.height;
+      c.width = sel.width; c.height = sel.height;
       c.getContext("2d").drawImage(img, sel.x, sel.y, sel.width, sel.height, 0, 0, sel.width, sel.height);
       return canvasBlob(c).then(function (blob) {
         if (clipboard && clipboard.url) URL.revokeObjectURL(clipboard.url);
         clipboard = { blob: blob, url: URL.createObjectURL(blob), width: sel.width, height: sel.height };
         status("Copied " + sel.width + " × " + sel.height + " px. Press Ctrl+V or Paste Selection to place it.", true);
       });
-    }).catch(function (err) {
-      console.error(err);
-      status("Could not copy the selected region.", false);
-    });
+    }).catch(function (err) { console.error(err); status("Could not copy the selected region.", false); });
   }
 
   function onPointerMove(e) {
@@ -262,10 +231,7 @@
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
       var active = document.activeElement;
       if (active && (/INPUT|TEXTAREA|SELECT/.test(active.tagName) || active.isContentEditable)) return;
-      if (selectionFromFields()) {
-        e.preventDefault();
-        copySelection();
-      }
+      if (selectionFromFields()) { e.preventDefault(); copySelection(); }
       return;
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
@@ -273,24 +239,22 @@
       if (activePaste && (/INPUT|TEXTAREA|SELECT/.test(activePaste.tagName) || activePaste.isContentEditable)) return;
       if (!clipboard) return;
       e.preventDefault();
-      if (pasteActive) commitPaste();
-      else startPaste(lastPointer || null);
+      if (pasteActive) commitPaste(); else startPaste(lastPointer || null);
       return;
     }
-    if (e.key === "Escape" && pasteActive) {
-      e.preventDefault();
-      stopPaste("Paste cancelled.");
-    }
+    if (e.key === "Escape" && pasteActive) { e.preventDefault(); stopPaste("Paste cancelled."); }
   }
 
   function capturePointerDown(e) {
-    if (!pasteActive || !stage() || !stage().contains(e.target)) return;
+    var st = stage();
+    if (!pasteActive || !st || !st.contains(e.target)) return;
     e.preventDefault();
     e.stopImmediatePropagation();
   }
 
   function capturePointerUp(e) {
-    if (!pasteActive || !stage() || !stage().contains(e.target)) return;
+    var st = stage();
+    if (!pasteActive || !st || !st.contains(e.target)) return;
     e.preventDefault();
     e.stopImmediatePropagation();
     lastPointer = { x: e.clientX, y: e.clientY };
@@ -298,7 +262,8 @@
   }
 
   function onClick(e) {
-    if (!pasteActive || !stage() || !stage().contains(e.target)) return;
+    var st = stage();
+    if (!pasteActive || !st || !st.contains(e.target)) return;
     e.preventDefault();
     e.stopImmediatePropagation();
     commitPaste();
@@ -309,9 +274,7 @@
     bound = true;
     style();
     ensureUi();
-    var copy = q("image-selection-copy");
-    var paste = q("image-selection-paste");
-    var cancel = q("image-selection-cancel");
+    var copy = q("image-selection-copy"), paste = q("image-selection-paste"), cancel = q("image-selection-cancel");
     if (copy) copy.addEventListener("click", copySelection);
     if (paste) paste.addEventListener("click", function () { startPaste(lastPointer || null); });
     if (cancel) cancel.addEventListener("click", function () { stopPaste("Paste cancelled."); });
@@ -324,11 +287,7 @@
     window.addEventListener("algolassi:spa-navigation", function () { stopPaste(); bound = false; window.requestAnimationFrame(bind); });
   }
 
-  function init() {
-    if (!workspace()) return;
-    ensureUi();
-    bind();
-  }
+  function init() { if (!workspace()) return; ensureUi(); bind(); }
 
   if (!window[KEY]) {
     window[KEY] = { init: init };
