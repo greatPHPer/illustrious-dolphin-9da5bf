@@ -3,16 +3,39 @@
   "use strict";
 
   function q(id){return document.getElementById(id);}
+
   function imageRect(){
-    var img=q("image-preview-img"),stage=q("image-preview-stage");
-    if(!img||!stage||img.classList.contains("image-hidden")||!img.naturalWidth)return null;
-    var ir=img.getBoundingClientRect(),sr=stage.getBoundingClientRect(),
-        itemWidth=parseInt((q("crop-width")||{}).value,10),
-        itemHeight=parseInt((q("crop-height")||{}).value,10);
+    var stage=q("image-preview-stage");
+    if(!stage)return null;
+
+    var layers=stage.classList.contains("image-layers-active")?q("image-layers-canvas"):null;
+    if(layers&&!layers.classList.contains("image-hidden")&&layers.width&&layers.height){
+      var lr=layers.getBoundingClientRect(),sr=stage.getBoundingClientRect();
+      var boxW=lr.width,boxH=lr.height,ratio=layers.width/layers.height;
+      if(!boxW||!boxH||!ratio)return null;
+      var visibleW=boxW,visibleH=boxH,left=lr.left,top=lr.top;
+      if(boxW/boxH>ratio){
+        visibleW=boxH*ratio;
+        left=lr.left+(boxW-visibleW)/2;
+      }else if(boxW/boxH<ratio){
+        visibleH=boxW/ratio;
+        top=lr.top+(boxH-visibleH)/2;
+      }
+      return {
+        left:left,top:top,width:visibleW,height:visibleH,
+        stageLeft:sr.left,stageTop:sr.top,
+        scaleX:layers.width/visibleW,scaleY:layers.height/visibleH
+      };
+    }
+
+    var img=q("image-preview-img");
+    if(!img||img.classList.contains("image-hidden")||!img.naturalWidth)return null;
+    var ir=img.getBoundingClientRect(),sr=stage.getBoundingClientRect();
+    if(!ir.width||!ir.height)return null;
     return {
-      left:ir.left, top:ir.top, width:ir.width, height:ir.height,
-      stageLeft:sr.left, stageTop:sr.top,
-      scaleX:(img.naturalWidth/ir.width), scaleY:(img.naturalHeight/ir.height)
+      left:ir.left,top:ir.top,width:ir.width,height:ir.height,
+      stageLeft:sr.left,stageTop:sr.top,
+      scaleX:img.naturalWidth/ir.width,scaleY:img.naturalHeight/ir.height
     };
   }
 
@@ -30,6 +53,10 @@
     if(!overlay||!box||!stage)return null;
     var x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),w=Math.abs(a.x-b.x),h=Math.abs(a.y-b.y);
     var left=(r.left-r.stageLeft)+x,top=(r.top-r.stageTop)+y;
+    box.style.transform="none";
+    box.style.margin="0";
+    box.style.padding="0";
+    box.style.boxSizing="border-box";
     box.style.left=Math.round(left)+"px";
     box.style.top=Math.round(top)+"px";
     box.style.width=Math.max(1,Math.round(w))+"px";
