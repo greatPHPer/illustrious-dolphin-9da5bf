@@ -136,14 +136,26 @@
     }, true);
   }
 
-  /* Crop coordinates are image-relative, but the crop rectangle is stage-relative.
-     The image is flex-centered, so its live stage-relative left/top offsets are
-     added dynamically rather than using fixed margins. */
+  /* Crop uses the image-relative surface in normal modes. Layers mode has a
+     different visible surface: #image-layers-canvas. Never let the generic
+     image-based alignment code write a translate() into the crop rectangle
+     while that surface is active. */
   function syncCropOverlayAlignment() {
     var stage = q("image-preview-stage");
     var img = q("image-preview-img");
     var box = q("image-crop-rectangle");
-    if (!stage || !img || !box || img.classList.contains("image-hidden") || !img.naturalWidth) return;
+    if (!stage || !box) return;
+
+    var layersActive = stage.classList.contains("image-layers-active");
+    if (layersActive) {
+      box.style.transform = "none";
+      box.style.margin = "0";
+      box.style.padding = "0";
+      box.style.boxSizing = "border-box";
+      return;
+    }
+
+    if (!img || img.classList.contains("image-hidden") || !img.naturalWidth) return;
 
     var stageRect = stage.getBoundingClientRect();
     var imageRect = img.getBoundingClientRect();
@@ -175,6 +187,17 @@
 
     window.addEventListener("resize", schedule, { passive: true });
     window.addEventListener("orientationchange", schedule, { passive: true });
+
+    if (window.MutationObserver) {
+      var stage = q("image-preview-stage");
+      if (stage && stage.dataset.imageStabilityCropObserver !== "1") {
+        stage.dataset.imageStabilityCropObserver = "1";
+        var observer = new MutationObserver(schedule);
+        observer.observe(stage, { attributes: true, attributeFilter: ["class"] });
+        window.__algolassiImageToolsCropStageObserver = observer;
+      }
+    }
+
     schedule();
   }
 
