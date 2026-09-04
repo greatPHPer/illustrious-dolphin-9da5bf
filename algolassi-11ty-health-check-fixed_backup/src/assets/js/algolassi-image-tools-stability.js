@@ -52,7 +52,7 @@
     undoRedoScriptBound = true;
     var script = document.createElement("script");
     script.id = "algolassi-image-undo-redo-script";
-    script.src = "/assets/js/algolassi-image-undo-redo.js?v=20260904-undo-redo-1";
+    script.src = "/assets/js/algolassi-image-undo-redo.js?v=20260904-undo-redo-2";
     script.defer = true;
     document.head.appendChild(script);
   }
