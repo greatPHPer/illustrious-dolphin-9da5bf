@@ -137,25 +137,24 @@
   }
 
   /* Crop uses the image-relative surface in normal modes. Layers mode has a
-     different visible surface: #image-layers-canvas. Never let the generic
-     image-based alignment code write a translate() into the crop rectangle
-     while that surface is active. */
+     different visible surface: #image-layers-canvas. The crop rectangle still
+     uses image-relative coordinates, so its visual box must include the
+     image's actual top/left offset inside the preview stage. */
   function syncCropOverlayAlignment() {
     var stage = q("image-preview-stage");
     var img = q("image-preview-img");
     var box = q("image-crop-rectangle");
     if (!stage || !box) return;
 
-    var layersActive = stage.classList.contains("image-layers-active");
-    if (layersActive) {
-      box.style.transform = "none";
-      box.style.margin = "0";
-      box.style.padding = "0";
-      box.style.boxSizing = "border-box";
+    if (!img || img.classList.contains("image-hidden") || !img.naturalWidth) {
+      if (stage.classList.contains("image-layers-active")) {
+        box.style.transform = "none";
+        box.style.margin = "0";
+        box.style.padding = "0";
+        box.style.boxSizing = "border-box";
+      }
       return;
     }
-
-    if (!img || img.classList.contains("image-hidden") || !img.naturalWidth) return;
 
     var stageRect = stage.getBoundingClientRect();
     var imageRect = img.getBoundingClientRect();
@@ -163,6 +162,9 @@
     var offsetY = imageRect.top - stageRect.top;
 
     box.style.transform = "translate(" + Math.round(offsetX) + "px," + Math.round(offsetY) + "px)";
+    box.style.margin = "0";
+    box.style.padding = "0";
+    box.style.boxSizing = "border-box";
   }
 
   function bindCropOverlayAlignment() {
