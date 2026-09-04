@@ -9,6 +9,7 @@
   var menuListenerBound = false;
   var cropAlignmentBound = false;
   var coordinateScriptBound = false;
+  var selectionClipboardScriptBound = false;
 
   function q(id) { return document.getElementById(id); }
   function workspace() { return document.querySelector(".image-workspace"); }
@@ -23,6 +24,20 @@
     var script = document.createElement("script");
     script.id = "algolassi-image-cursor-coordinates-script";
     script.src = "/assets/js/algolassi-image-cursor-coordinates.js?v=20260904-cursor-coordinates-1";
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
+  function loadSelectionClipboard() {
+    if (!workspace() || selectionClipboardScriptBound) return;
+    if (document.getElementById("algolassi-image-selection-clipboard-script")) {
+      selectionClipboardScriptBound = true;
+      return;
+    }
+    selectionClipboardScriptBound = true;
+    var script = document.createElement("script");
+    script.id = "algolassi-image-selection-clipboard-script";
+    script.src = "/assets/js/algolassi-image-selection-clipboard.js?v=20260904-selection-clipboard-1";
     script.defer = true;
     document.head.appendChild(script);
   }
@@ -98,10 +113,6 @@
     });
   }
 
-  /* Desktop application-menu behaviour:
-     once a menu is open, moving between File/Edit switches the open menu
-     immediately without requiring another click. Menus remain open until
-     a menu item is selected or the user clicks outside the menu bar. */
   function closeImageMenus() {
     ["image-file-menu", "image-edit-menu"].forEach(function (id) {
       var menu = q(id);
@@ -160,10 +171,6 @@
     }, true);
   }
 
-  /* Crop uses the image-relative surface in normal modes. Layers mode has a
-     different visible surface: #image-layers-canvas. The crop rectangle still
-     uses image-relative coordinates, so its visual box must include the
-     image's actual top/left offset inside the preview stage. */
   function syncCropOverlayAlignment() {
     var stage = q("image-preview-stage");
     var img = q("image-preview-img");
@@ -231,6 +238,7 @@
     if (!workspace()) return;
     loadCropHandles();
     loadCursorCoordinates();
+    loadSelectionClipboard();
     patchScaleInput("scale-width", "width");
     patchScaleInput("scale-height", "height");
     bindImageHistory();
