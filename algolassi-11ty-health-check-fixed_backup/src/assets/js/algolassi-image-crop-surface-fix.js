@@ -30,19 +30,32 @@
     var active=!panel.classList.contains("image-hidden");
     stage.classList.toggle("image-crop-active",active);
     if(!active||!surface)return;
-    overlay.style.left=(surface.left-surface.stageLeft)+"px";
-    overlay.style.top=(surface.top-surface.stageTop)+"px";
+
+    var left=surface.left-surface.stageLeft,top=surface.top-surface.stageTop;
+    overlay.style.position="absolute";
+    overlay.style.left=left+"px";
+    overlay.style.top=top+"px";
     overlay.style.width=surface.width+"px";
     overlay.style.height=surface.height+"px";
     overlay.style.right="auto";
     overlay.style.bottom="auto";
     overlay.style.margin="0";
     overlay.style.padding="0";
+    overlay.style.border="0";
     overlay.style.boxSizing="border-box";
+    overlay.style.maxWidth="none";
+    overlay.style.maxHeight="none";
+
+    box.style.position="absolute";
+    box.style.left=box.style.left||"0px";
+    box.style.top=box.style.top||"0px";
     box.style.margin="0";
     box.style.padding="0";
+    box.style.borderBoxSizing="border-box";
     box.style.boxSizing="border-box";
     box.style.transform="none";
+    box.style.maxWidth="none";
+    box.style.maxHeight="none";
   }
 
   function init(){
