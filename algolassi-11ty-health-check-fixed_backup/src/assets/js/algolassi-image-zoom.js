@@ -71,24 +71,19 @@
     if (!st || !br) return;
     var sr = st.getBoundingClientRect();
     var w = br.width * scale, h = br.height * scale;
+    
     var offsetX = sr.left - br.left;
     var offsetY = sr.top - br.top;
 
-    if (w <= sr.width) {
-      tx = offsetX + (sr.width - w) / 2;
-    } else {
-      var minX = offsetX + sr.width - w;
-      var maxX = offsetX;
-      tx = Math.max(minX, Math.min(maxX, tx));
-    }
+    // Unified bounding logic: gracefully handles both "larger than stage" 
+    // and "smaller than stage" bounds without forcing a jarring center snap.
+    var minX = Math.min(offsetX, offsetX + sr.width - w);
+    var maxX = Math.max(offsetX, offsetX + sr.width - w);
+    tx = Math.max(minX, Math.min(maxX, tx));
 
-    if (h <= sr.height) {
-      ty = offsetY + (sr.height - h) / 2;
-    } else {
-      var minY = offsetY + sr.height - h;
-      var maxY = offsetY;
-      ty = Math.max(minY, Math.min(maxY, ty));
-    }
+    var minY = Math.min(offsetY, offsetY + sr.height - h);
+    var maxY = Math.max(offsetY, offsetY + sr.height - h);
+    ty = Math.max(minY, Math.min(maxY, ty));
   }
 
   function finishWheelGesture() {
