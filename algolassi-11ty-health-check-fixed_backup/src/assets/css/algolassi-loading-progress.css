@@ -1,3 +1,4 @@
+@import url('/assets/css/algolassi-workspace-ui.css?v=20260905-workspace-1');
 /* Algolassi centered loading progress overlay. */
 #algolassi-centered-loading{position:fixed;inset:0;z-index:2147483646;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .18s ease,visibility .18s ease;background:rgba(255,255,255,.08)}
 #algolassi-centered-loading.is-loading{opacity:1;visibility:visible}

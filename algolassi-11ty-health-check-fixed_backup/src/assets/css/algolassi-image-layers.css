@@ -32,3 +32,8 @@
 .image-layers-table .image-layer-apply-actions{margin:0}
 .image-layers-table .image-layer-transform-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:700px){.image-layers-table{font-size:.69rem}.image-layers-table th{font-size:.64rem;padding:.24rem .34rem}.image-layers-table td{padding:.28rem}.image-layers-table .image-action-button{font-size:.63rem;padding:.3rem .24rem}.image-layers-table .image-layer-list{max-height:165px}.image-layers-table .image-control-inline-four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* --- IMAGE MENU STACKING FIX --- */
+.image-upload-panel{position:relative;z-index:20}
+.image-editor{position:relative;z-index:1}
+.image-menu-dropdown{z-index:100}
