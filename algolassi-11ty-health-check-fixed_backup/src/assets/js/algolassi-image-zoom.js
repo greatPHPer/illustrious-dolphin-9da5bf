@@ -15,6 +15,7 @@
   var pan = null;
   var spaceDown = false;
   var zoomEnabled = false;
+  var wheelGestureTimer = null;
 
   function q(id) { return document.getElementById(id); }
   function stage() { return q("image-preview-stage"); }
@@ -72,26 +73,52 @@
     if (h <= sr.height) ty = (sr.height - h) / 2;
     else ty = Math.max(minY, Math.min(maxY, ty));
   }
-  function zoomAt(factor, clientX, clientY) {
+  function finishWheelGesture() {
+    wheelGestureTimer = null;
+    if (!zoomEnabled) return;
+    if (scale !== 1 || tx || ty) {
+      clampPan();
+      apply();
+    }
+  }
+  function scheduleWheelGestureFinish() {
+    if (wheelGestureTimer) window.clearTimeout(wheelGestureTimer);
+    /* Wheel devices do not expose a reliable mouseup for the wheel gesture.
+       Treat a short period without another wheel event as mouse-up/end-of-zoom. */
+    wheelGestureTimer = window.setTimeout(finishWheelGesture, 140);
+  }
+  function zoomAt(factor, clientX, clientY, deferClamp) {
     if (!zoomEnabled) return;
     var im = img();
     if (!im || im.classList.contains("image-hidden") || !im.naturalWidth) return;
     var old = scale;
     var next = Math.max(minScale, Math.min(maxScale, old * factor));
     if (Math.abs(next - old) < 0.0001) return;
+
+    /* Calculate the image-space point once from the current rendered image.
+       During a wheel gesture this point remains the fixed visual anchor;
+       boundary clamping is deliberately postponed until the gesture ends. */
     var r = im.getBoundingClientRect();
     var x = (clientX - r.left) / old;
     var y = (clientY - r.top) / old;
+    var baseLeft = r.left - tx;
+    var baseTop = r.top - ty;
+
     scale = next;
-    tx = clientX - (r.left - tx) - x * scale;
-    ty = clientY - (r.top - ty) - y * scale;
-    clampPan();
+    tx = clientX - baseLeft - x * scale;
+    ty = clientY - baseTop - y * scale;
+
+    if (!deferClamp) clampPan();
     apply();
     window.requestAnimationFrame(function () {
       window.dispatchEvent(new CustomEvent("algolassi:image-zoom-changed"));
     });
   }
   function reset() {
+    if (wheelGestureTimer) {
+      window.clearTimeout(wheelGestureTimer);
+      wheelGestureTimer = null;
+    }
     scale = 1;
     tx = 0;
     ty = 0;
@@ -162,12 +189,12 @@
     q("image-zoom-in") && q("image-zoom-in").addEventListener("click", function (e) {
       if (!zoomEnabled) return;
       e.preventDefault(); e.stopPropagation();
-      var r = st.getBoundingClientRect(); zoomAt(step, r.left + r.width / 2, r.top + r.height / 2);
+      var r = st.getBoundingClientRect(); zoomAt(step, r.left + r.width / 2, r.top + r.height / 2, false);
     });
     q("image-zoom-out") && q("image-zoom-out").addEventListener("click", function (e) {
       if (!zoomEnabled) return;
       e.preventDefault(); e.stopPropagation();
-      var r = st.getBoundingClientRect(); zoomAt(1 / step, r.left + r.width / 2, r.top + r.height / 2);
+      var r = st.getBoundingClientRect(); zoomAt(1 / step, r.left + r.width / 2, r.top + r.height / 2, false);
     });
     q("image-zoom-reset") && q("image-zoom-reset").addEventListener("click", function (e) {
       if (!zoomEnabled) return;
@@ -178,12 +205,13 @@
       if (!img() || img().classList.contains("image-hidden")) return;
       e.preventDefault();
       var factor = e.deltaY < 0 ? step : 1 / step;
-      zoomAt(factor, e.clientX, e.clientY);
+      zoomAt(factor, e.clientX, e.clientY, true);
+      scheduleWheelGestureFinish();
     }, { passive: false });
     st.addEventListener("dblclick", function (e) {
       if (!zoomEnabled) return;
       if (e.target.closest && e.target.closest("#image-crop-rectangle")) return;
-      zoomAt(scale > 1.01 ? 1 / step : step, e.clientX, e.clientY);
+      zoomAt(scale > 1.01 ? 1 / step : step, e.clientX, e.clientY, false);
     });
     st.addEventListener("pointerdown", function (e) {
       if (!zoomEnabled) return;
@@ -219,9 +247,9 @@
       if (!st.closest(".image-workspace") || !zoomEnabled) return;
       if (e.key === "0" && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) { reset(); }
       else if ((e.key === "+" || e.key === "=") && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        var r = st.getBoundingClientRect(); zoomAt(step, r.left + r.width / 2, r.top + r.height / 2);
+        var r = st.getBoundingClientRect(); zoomAt(step, r.left + r.width / 2, r.top + r.height / 2, false);
       } else if ((e.key === "-" || e.key === "_") && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        var rr = st.getBoundingClientRect(); zoomAt(1 / step, rr.left + rr.width / 2, rr.top + rr.height / 2);
+        var rr = st.getBoundingClientRect(); zoomAt(1 / step, rr.left + rr.width / 2, rr.top + rr.height / 2, false);
       }
     }, true);
     document.addEventListener("keyup", function (e) {
