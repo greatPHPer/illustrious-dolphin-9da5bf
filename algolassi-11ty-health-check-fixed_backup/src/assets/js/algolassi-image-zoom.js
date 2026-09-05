@@ -92,7 +92,6 @@
     });
   }
   function reset() {
-    if (!zoomEnabled) return;
     scale = 1;
     tx = 0;
     ty = 0;
@@ -109,6 +108,7 @@
   function setZoomEnabled(value) {
     zoomEnabled = !!value;
     if (!zoomEnabled) {
+      reset();
       pan = null;
       var st = stage();
       if (st) st.classList.remove("image-zoom-panning", "image-zoomed");
@@ -229,7 +229,7 @@
     }, true);
     window.addEventListener("resize", function () { if (zoomEnabled && (scale !== 1 || tx || ty)) { clampPan(); apply(); } }, { passive: true });
     window.addEventListener("algolassi:spa-navigation", function () {
-      scale = 1; tx = 0; ty = 0; zoomEnabled = false; pan = null;
+      reset(); zoomEnabled = false; pan = null;
       updateLabel(); updateToggleUi();
     });
   }
