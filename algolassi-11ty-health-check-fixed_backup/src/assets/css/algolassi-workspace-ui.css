@@ -28,11 +28,13 @@
   letter-spacing:-.035em;
   color:var(--workspace-ink);
 }
-.devtools-page>p:first-of-type,.dt>h1+p{
+.devtools-page>p:first-of-type,.dt>h1+p,
+.devtools-page .devtools-intro>p,.dt .devtools-intro>p{
   max-width:760px;
   margin:.1rem 0 .7rem;
   padding:0;
   color:var(--workspace-muted);
+  font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace!important;
   font-size:.9rem;
   line-height:1.45;
 }
@@ -159,7 +161,8 @@
 @media(max-width:800px){
   .devtools-page::before,.dt::before{inset:-14px -12px -16px;background-size:20px 20px}
   .devtools-page>h1,.dt>h1{font-size:1.8rem!important;margin-bottom:.15rem}
-  .devtools-page>p:first-of-type,.dt>h1+p{margin-bottom:.55rem}
+  .devtools-page>p:first-of-type,.dt>h1+p,
+  .devtools-page .devtools-intro>p,.dt .devtools-intro>p{margin-bottom:.55rem}
   .devtools-grid{gap:.55rem!important;margin:.6rem 0!important}
   .devtool-card{min-height:125px;padding:.75rem!important}
   .devtool-card::after{left:.75rem!important;bottom:.55rem!important}
