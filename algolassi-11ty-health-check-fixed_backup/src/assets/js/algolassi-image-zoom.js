@@ -71,14 +71,24 @@
     if (!st || !br) return;
     var sr = st.getBoundingClientRect();
     var w = br.width * scale, h = br.height * scale;
-    var minX = sr.left - br.left - w + Math.min(w, sr.width);
-    var maxX = sr.left - br.left;
-    var minY = sr.top - br.top - h + Math.min(h, sr.height);
-    var maxY = sr.top - br.top;
-    if (w <= sr.width) tx = (sr.width - w) / 2;
-    else tx = Math.max(minX, Math.min(maxX, tx));
-    if (h <= sr.height) ty = (sr.height - h) / 2;
-    else ty = Math.max(minY, Math.min(maxY, ty));
+    var offsetX = sr.left - br.left;
+    var offsetY = sr.top - br.top;
+
+    if (w <= sr.width) {
+      tx = offsetX + (sr.width - w) / 2;
+    } else {
+      var minX = offsetX + sr.width - w;
+      var maxX = offsetX;
+      tx = Math.max(minX, Math.min(maxX, tx));
+    }
+
+    if (h <= sr.height) {
+      ty = offsetY + (sr.height - h) / 2;
+    } else {
+      var minY = offsetY + sr.height - h;
+      var maxY = offsetY;
+      ty = Math.max(minY, Math.min(maxY, ty));
+    }
   }
 
   function finishWheelGesture() {
@@ -104,14 +114,12 @@
     var br = baseRect();
     if (!br || br.width <= 0 || br.height <= 0) return;
 
-    // Cache unscaled bounds during continuous wheel gestures
     if (!gestureBase) gestureBase = br;
 
     var old = scale;
     var next = Math.max(minScale, Math.min(maxScale, old * factor));
     if (Math.abs(next - old) < 0.0001) return;
 
-    // Calculate normalized position on unscaled image (0 to 1)
     var u = (clientX - gestureBase.left - tx) / (gestureBase.width * old);
     var v = (clientY - gestureBase.top - ty) / (gestureBase.height * old);
 
