@@ -27,12 +27,6 @@
   letter-spacing:-.035em;
   color:var(--workspace-ink);
 }
-.devtools-page>h1::before,.dt>h1::before{
-  content:"/";
-  margin-right:.36rem;
-  color:var(--workspace-accent);
-  opacity:.75;
-}
 .devtools-page>p:first-of-type,.dt>h1+p{
   max-width:760px;
   margin:.2rem 0 1.35rem;
