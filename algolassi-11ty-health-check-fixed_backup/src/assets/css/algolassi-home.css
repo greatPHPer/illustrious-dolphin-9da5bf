@@ -5,8 +5,9 @@
 .home-hero{
   position:relative;
   isolation:isolate;
-  overflow:hidden;
+  overflow:visible;
   min-height:620px;
+  height:620px;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -14,8 +15,7 @@
   padding:72px 24px 66px;
   text-align:center;
   border-radius:28px;
-  background:
-    radial-gradient(circle at 50% 42%,rgba(255,255,255,.96) 0%,rgba(255,255,255,.88) 36%,rgba(255,255,255,.58) 67%,rgba(255,255,255,.20) 100%);
+  background:transparent;
 }
 
 .home-hero::before{
@@ -29,6 +29,7 @@
   background-size:cover;
   opacity:.88;
   pointer-events:none;
+  border-radius:28px;
 }
 
 .home-hero::after{
@@ -37,7 +38,9 @@
   inset:0;
   z-index:-1;
   pointer-events:none;
+  border-radius:28px;
   background:
+    radial-gradient(circle at 50% 42%,rgba(255,255,255,.96) 0%,rgba(255,255,255,.88) 36%,rgba(255,255,255,.58) 67%,rgba(255,255,255,.20) 100%),
     linear-gradient(90deg,rgba(255,255,255,.93) 0%,rgba(255,255,255,.34) 20%,rgba(255,255,255,0) 38%,rgba(255,255,255,0) 62%,rgba(255,255,255,.34) 80%,rgba(255,255,255,.93) 100%),
     linear-gradient(180deg,rgba(255,255,255,.52) 0%,rgba(255,255,255,0) 22%,rgba(255,255,255,0) 77%,rgba(255,255,255,.58) 100%);
 }
@@ -78,7 +81,7 @@
   width:min(720px,100%);
   margin-top:25px;
   position:relative;
-  z-index:20;
+  z-index:30;
 }
 
 .home-hero .algolassi-home-search-box{
@@ -88,16 +91,15 @@
   backdrop-filter:blur(10px);
 }
 
-/* Keep the search results as a floating overlay so opening the
-   dropdown never increases the hero's height or changes the art. */
+/* Float search results over the hero. They never contribute to layout height. */
 .home-hero .algolassi-search-panel{
   position:absolute;
   top:calc(100% + 10px);
   left:0;
   right:0;
   width:100%;
-  margin-top:0;
-  z-index:30;
+  margin:0;
+  z-index:50;
 }
 
 .home-hero .home-actions{
@@ -111,16 +113,20 @@
 @media(max-width:800px){
   .home-hero{
     min-height:600px;
+    height:600px;
     padding:60px 14px 52px;
     border-radius:20px;
-    background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.97) 0%,rgba(255,255,255,.90) 55%,rgba(255,255,255,.42) 100%);
+    background:transparent;
   }
+  .home-hero::before,
+  .home-hero::after{border-radius:20px}
   .home-hero::before{
     background-size:auto 100%;
     opacity:.48;
   }
   .home-hero::after{
     background:
+      radial-gradient(circle at 50% 42%,rgba(255,255,255,.97) 0%,rgba(255,255,255,.90) 55%,rgba(255,255,255,.42) 100%),
       linear-gradient(90deg,rgba(255,255,255,.94) 0%,rgba(255,255,255,.25) 28%,rgba(255,255,255,.25) 72%,rgba(255,255,255,.94) 100%),
       linear-gradient(180deg,rgba(255,255,255,.62) 0%,rgba(255,255,255,0) 25%,rgba(255,255,255,0) 74%,rgba(255,255,255,.65) 100%);
   }
