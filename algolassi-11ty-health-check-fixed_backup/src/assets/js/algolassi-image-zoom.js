@@ -82,8 +82,7 @@
     tx = Math.max(minX, Math.min(maxX, tx));
 
     var minY = Math.min(offsetY, offsetY + sr.height - h);
-    var maxY = Math.max(offsetY, offsetY + sr.height - h);
-    ty = Math.max(minY, Math.min(maxY, ty));
+    var maxY = Math.max(offsetY, Math.min(maxY, ty));
   }
 
   function finishWheelGesture() {
@@ -191,6 +190,8 @@
       ".image-zoom-value{min-width:46px;text-align:center;font-size:.76rem;font-variant-numeric:tabular-nums;color:#667085}" +
       ".image-preview-stage.image-zoomed{cursor:grab}" +
       ".image-preview-stage.image-zoomed.image-zoom-panning{cursor:grabbing}" +
+      ".image-crop-rectangle{box-shadow:0 0 0 9999px rgba(15,23,42,.72)}" +
+      "html[data-theme=\"dark\"] .image-crop-rectangle{box-shadow:0 0 0 9999px rgba(0,0,0,.68)}" +
       "@media(max-width:640px){.image-zoom-controls{margin-left:0}.image-zoom-value{min-width:42px}}";
     document.head.appendChild(s);
   }
