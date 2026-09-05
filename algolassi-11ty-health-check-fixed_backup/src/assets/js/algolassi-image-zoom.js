@@ -20,10 +20,12 @@
   function q(id) { return document.getElementById(id); }
   function stage() { return q("image-preview-stage"); }
   function img() { return q("image-preview-img"); }
+  
   function updateLabel() {
     var el = q("image-zoom-value");
     if (el) el.textContent = Math.round(scale * 100) + "%";
   }
+
   function updateToggleUi() {
     var toggle = q("image-zoom-toggle");
     if (toggle) {
@@ -38,17 +40,54 @@
     var st = stage();
     if (st) st.classList.toggle("image-zoom-active", zoomEnabled);
   }
+
   function baseRect() {
     var im = img();
     if (!im || im.classList.contains("image-hidden") || !im.naturalWidth) return null;
     var r = im.getBoundingClientRect();
+    
+    // Fix: Compensate for in-progress CSS transitions when reading the bounding rect.
+    // This allows us to establish a stable, un-transformed baseline.
+    var currentTx = tx;
+    var currentTy = ty;
+    var currentScale = scale;
+
+    try {
+      var style = window.getComputedStyle(im);
+      var transform = style.transform;
+      if (transform && transform !== 'none') {
+        if (typeof DOMMatrix !== 'undefined') {
+          var matrix = new DOMMatrix(transform);
+          currentTx = matrix.m41;
+          currentTy = matrix.m42;
+          currentScale = matrix.a !== undefined ? matrix.a : matrix.m11;
+        } else {
+          // Fallback for extremely old browsers
+          var match = transform.match(/matrix\((.+)\)/);
+          if (match) {
+            var values = match[1].split(',').map(parseFloat);
+            currentScale = values[0];
+            currentTx = values[4];
+            currentTy = values[5];
+          }
+        }
+      } else {
+        currentTx = 0;
+        currentTy = 0;
+        currentScale = 1;
+      }
+    } catch (e) {
+      // Ignored: safely fallback to js state tracker
+    }
+
     return {
-      left: r.left - tx,
-      top: r.top - ty,
-      width: r.width / scale,
-      height: r.height / scale
+      left: r.left - currentTx,
+      top: r.top - currentTy,
+      width: r.width / currentScale,
+      height: r.height / currentScale
     };
   }
+
   function apply() {
     var im = img();
     if (!im) return;
@@ -59,6 +98,7 @@
     var st = stage();
     if (st) st.classList.toggle("image-zoomed", zoomEnabled && (scale > 1.001 || Math.abs(tx) > 0.5 || Math.abs(ty) > 0.5));
   }
+
   function clampPan() {
     var st = stage(), br = baseRect();
     if (!st || !br) return;
@@ -73,20 +113,25 @@
     if (h <= sr.height) ty = (sr.height - h) / 2;
     else ty = Math.max(minY, Math.min(maxY, ty));
   }
+
   function finishWheelGesture() {
     wheelGestureTimer = null;
+    var im = img();
+    if (im) {
+      im.style.transition = ""; // Restore original CSS transition
+    }
     if (!zoomEnabled) return;
     if (scale !== 1 || tx || ty) {
       clampPan();
       apply();
     }
   }
+
   function scheduleWheelGestureFinish() {
     if (wheelGestureTimer) window.clearTimeout(wheelGestureTimer);
-    /* Wheel devices do not expose a reliable mouseup for the wheel gesture.
-       Treat a short period without another wheel event as mouse-up/end-of-zoom. */
     wheelGestureTimer = window.setTimeout(finishWheelGesture, 140);
   }
+
   function zoomAt(factor, clientX, clientY, deferClamp) {
     if (!zoomEnabled) return;
     var im = img();
@@ -95,18 +140,16 @@
     var next = Math.max(minScale, Math.min(maxScale, old * factor));
     if (Math.abs(next - old) < 0.0001) return;
 
-    /* Calculate the image-space point once from the current rendered image.
-       During a wheel gesture this point remains the fixed visual anchor;
-       boundary clamping is deliberately postponed until the gesture ends. */
-    var r = im.getBoundingClientRect();
-    var x = (clientX - r.left) / old;
-    var y = (clientY - r.top) / old;
-    var baseLeft = r.left - tx;
-    var baseTop = r.top - ty;
+    var br = baseRect();
+    if (!br) return;
+
+    // Calculate image-space point using the reliable base rect and pure JS mathematical state
+    var x = (clientX - br.left - tx) / old;
+    var y = (clientY - br.top - ty) / old;
 
     scale = next;
-    tx = clientX - baseLeft - x * scale;
-    ty = clientY - baseTop - y * scale;
+    tx = clientX - br.left - x * scale;
+    ty = clientY - br.top - y * scale;
 
     if (!deferClamp) clampPan();
     apply();
@@ -114,6 +157,7 @@
       window.dispatchEvent(new CustomEvent("algolassi:image-zoom-changed"));
     });
   }
+
   function reset() {
     if (wheelGestureTimer) {
       window.clearTimeout(wheelGestureTimer);
@@ -124,6 +168,7 @@
     ty = 0;
     var im = img();
     if (im) {
+      im.style.transition = ""; // ensure transition isn't stuck disabled
       im.style.transform = "";
       im.style.transformOrigin = "";
       im.style.willChange = "";
@@ -132,6 +177,7 @@
     var st = stage();
     if (st) st.classList.remove("image-zoomed");
   }
+
   function setZoomEnabled(value) {
     zoomEnabled = !!value;
     if (!zoomEnabled) {
@@ -142,6 +188,7 @@
     }
     updateToggleUi();
   }
+
   function ensureUi() {
     var st = stage();
     if (!st || !st.parentNode) return false;
@@ -160,6 +207,7 @@
     toolbar.appendChild(wrap);
     return true;
   }
+
   function installStyle() {
     if (q("algolassi-image-zoom-style")) return;
     var s = document.createElement("style");
@@ -175,6 +223,7 @@
       "@media(max-width:640px){.image-zoom-controls{margin-left:0}.image-zoom-value{min-width:42px}}";
     document.head.appendChild(s);
   }
+
   function bind() {
     var st = stage(), im = img();
     if (!st || !im || st.dataset.imageZoomBound === "1") return;
@@ -182,37 +231,51 @@
     ensureUi();
     installStyle();
     updateToggleUi();
+
     q("image-zoom-toggle") && q("image-zoom-toggle").addEventListener("click", function (e) {
       e.preventDefault(); e.stopPropagation();
       setZoomEnabled(!zoomEnabled);
     });
+
     q("image-zoom-in") && q("image-zoom-in").addEventListener("click", function (e) {
       if (!zoomEnabled) return;
       e.preventDefault(); e.stopPropagation();
       var r = st.getBoundingClientRect(); zoomAt(step, r.left + r.width / 2, r.top + r.height / 2, false);
     });
+
     q("image-zoom-out") && q("image-zoom-out").addEventListener("click", function (e) {
       if (!zoomEnabled) return;
       e.preventDefault(); e.stopPropagation();
       var r = st.getBoundingClientRect(); zoomAt(1 / step, r.left + r.width / 2, r.top + r.height / 2, false);
     });
+
     q("image-zoom-reset") && q("image-zoom-reset").addEventListener("click", function (e) {
       if (!zoomEnabled) return;
       e.preventDefault(); e.stopPropagation(); reset();
     });
+
     st.addEventListener("wheel", function (e) {
       if (!zoomEnabled) return;
-      if (!img() || img().classList.contains("image-hidden")) return;
+      var im = img();
+      if (!im || im.classList.contains("image-hidden")) return;
       e.preventDefault();
+      
+      // Temporarily remove CSS transition for true instantaneous wheel tracking
+      if (!wheelGestureTimer) {
+        im.style.transition = "none";
+      }
+
       var factor = e.deltaY < 0 ? step : 1 / step;
       zoomAt(factor, e.clientX, e.clientY, true);
       scheduleWheelGestureFinish();
     }, { passive: false });
+
     st.addEventListener("dblclick", function (e) {
       if (!zoomEnabled) return;
       if (e.target.closest && e.target.closest("#image-crop-rectangle")) return;
       zoomAt(scale > 1.01 ? 1 / step : step, e.clientX, e.clientY, false);
     });
+
     st.addEventListener("pointerdown", function (e) {
       if (!zoomEnabled) return;
       if (e.button !== 1 && !(spaceDown && e.button === 0)) return;
@@ -223,6 +286,7 @@
       e.preventDefault();
       e.stopPropagation();
     }, true);
+
     st.addEventListener("pointermove", function (e) {
       if (!pan || !zoomEnabled) return;
       tx = pan.tx + e.clientX - pan.x;
@@ -232,6 +296,7 @@
       e.preventDefault();
       e.stopPropagation();
     }, true);
+
     function endPan(e) {
       if (!pan) return;
       pan = null;
@@ -240,8 +305,10 @@
       e.preventDefault();
       e.stopPropagation();
     }
+    
     st.addEventListener("pointerup", endPan, true);
     st.addEventListener("pointercancel", endPan, true);
+
     document.addEventListener("keydown", function (e) {
       if (e.code === "Space" && !e.repeat) spaceDown = true;
       if (!st.closest(".image-workspace") || !zoomEnabled) return;
@@ -252,15 +319,24 @@
         var rr = st.getBoundingClientRect(); zoomAt(1 / step, rr.left + rr.width / 2, rr.top + rr.height / 2, false);
       }
     }, true);
+
     document.addEventListener("keyup", function (e) {
       if (e.code === "Space") spaceDown = false;
     }, true);
-    window.addEventListener("resize", function () { if (zoomEnabled && (scale !== 1 || tx || ty)) { clampPan(); apply(); } }, { passive: true });
+
+    window.addEventListener("resize", function () { 
+      if (zoomEnabled && (scale !== 1 || tx || ty)) { 
+        clampPan(); 
+        apply(); 
+      } 
+    }, { passive: true });
+
     window.addEventListener("algolassi:spa-navigation", function () {
       reset(); zoomEnabled = false; pan = null;
       updateLabel(); updateToggleUi();
     });
   }
+
   function init() { ensureUi(); installStyle(); updateToggleUi(); window.requestAnimationFrame(bind); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true }); else init();
   window.addEventListener("algolassi:spa-navigation", function () { window.requestAnimationFrame(init); });
