@@ -16,11 +16,12 @@
   var spaceDown = false;
   var zoomEnabled = false;
   var wheelGestureTimer = null;
+  var gestureBase = null;
 
   function q(id) { return document.getElementById(id); }
   function stage() { return q("image-preview-stage"); }
   function img() { return q("image-preview-img"); }
-  
+
   function updateLabel() {
     var el = q("image-zoom-value");
     if (el) el.textContent = Math.round(scale * 100) + "%";
@@ -44,47 +45,13 @@
   function baseRect() {
     var im = img();
     if (!im || im.classList.contains("image-hidden") || !im.naturalWidth) return null;
+    if (gestureBase) return gestureBase;
     var r = im.getBoundingClientRect();
-    
-    // Fix: Compensate for in-progress CSS transitions when reading the bounding rect.
-    // This allows us to establish a stable, un-transformed baseline.
-    var currentTx = tx;
-    var currentTy = ty;
-    var currentScale = scale;
-
-    try {
-      var style = window.getComputedStyle(im);
-      var transform = style.transform;
-      if (transform && transform !== 'none') {
-        if (typeof DOMMatrix !== 'undefined') {
-          var matrix = new DOMMatrix(transform);
-          currentTx = matrix.m41;
-          currentTy = matrix.m42;
-          currentScale = matrix.a !== undefined ? matrix.a : matrix.m11;
-        } else {
-          // Fallback for extremely old browsers
-          var match = transform.match(/matrix\((.+)\)/);
-          if (match) {
-            var values = match[1].split(',').map(parseFloat);
-            currentScale = values[0];
-            currentTx = values[4];
-            currentTy = values[5];
-          }
-        }
-      } else {
-        currentTx = 0;
-        currentTy = 0;
-        currentScale = 1;
-      }
-    } catch (e) {
-      // Ignored: safely fallback to js state tracker
-    }
-
     return {
-      left: r.left - currentTx,
-      top: r.top - currentTy,
-      width: r.width / currentScale,
-      height: r.height / currentScale
+      left: r.left - tx,
+      top: r.top - ty,
+      width: scale > 0 ? r.width / scale : r.width,
+      height: scale > 0 ? r.height / scale : r.height
     };
   }
 
@@ -116,15 +83,12 @@
 
   function finishWheelGesture() {
     wheelGestureTimer = null;
-    var im = img();
-    if (im) {
-      im.style.transition = ""; // Restore original CSS transition
-    }
     if (!zoomEnabled) return;
     if (scale !== 1 || tx || ty) {
       clampPan();
       apply();
     }
+    gestureBase = null;
   }
 
   function scheduleWheelGestureFinish() {
@@ -136,20 +100,24 @@
     if (!zoomEnabled) return;
     var im = img();
     if (!im || im.classList.contains("image-hidden") || !im.naturalWidth) return;
+
+    var br = baseRect();
+    if (!br || br.width <= 0 || br.height <= 0) return;
+
+    // Cache unscaled bounds during continuous wheel gestures
+    if (!gestureBase) gestureBase = br;
+
     var old = scale;
     var next = Math.max(minScale, Math.min(maxScale, old * factor));
     if (Math.abs(next - old) < 0.0001) return;
 
-    var br = baseRect();
-    if (!br) return;
-
-    // Calculate image-space point using the reliable base rect and pure JS mathematical state
-    var x = (clientX - br.left - tx) / old;
-    var y = (clientY - br.top - ty) / old;
+    // Calculate normalized position on unscaled image (0 to 1)
+    var u = (clientX - gestureBase.left - tx) / (gestureBase.width * old);
+    var v = (clientY - gestureBase.top - ty) / (gestureBase.height * old);
 
     scale = next;
-    tx = clientX - br.left - x * scale;
-    ty = clientY - br.top - y * scale;
+    tx = clientX - gestureBase.left - u * gestureBase.width * scale;
+    ty = clientY - gestureBase.top - v * gestureBase.height * scale;
 
     if (!deferClamp) clampPan();
     apply();
@@ -163,12 +131,12 @@
       window.clearTimeout(wheelGestureTimer);
       wheelGestureTimer = null;
     }
+    gestureBase = null;
     scale = 1;
     tx = 0;
     ty = 0;
     var im = img();
     if (im) {
-      im.style.transition = ""; // ensure transition isn't stuck disabled
       im.style.transform = "";
       im.style.transformOrigin = "";
       im.style.willChange = "";
@@ -256,15 +224,8 @@
 
     st.addEventListener("wheel", function (e) {
       if (!zoomEnabled) return;
-      var im = img();
-      if (!im || im.classList.contains("image-hidden")) return;
+      if (!img() || img().classList.contains("image-hidden")) return;
       e.preventDefault();
-      
-      // Temporarily remove CSS transition for true instantaneous wheel tracking
-      if (!wheelGestureTimer) {
-        im.style.transition = "none";
-      }
-
       var factor = e.deltaY < 0 ? step : 1 / step;
       zoomAt(factor, e.clientX, e.clientY, true);
       scheduleWheelGestureFinish();
@@ -305,7 +266,7 @@
       e.preventDefault();
       e.stopPropagation();
     }
-    
+
     st.addEventListener("pointerup", endPan, true);
     st.addEventListener("pointercancel", endPan, true);
 
@@ -324,11 +285,9 @@
       if (e.code === "Space") spaceDown = false;
     }, true);
 
-    window.addEventListener("resize", function () { 
-      if (zoomEnabled && (scale !== 1 || tx || ty)) { 
-        clampPan(); 
-        apply(); 
-      } 
+    window.addEventListener("resize", function () {
+      gestureBase = null;
+      if (zoomEnabled && (scale !== 1 || tx || ty)) { clampPan(); apply(); }
     }, { passive: true });
 
     window.addEventListener("algolassi:spa-navigation", function () {
