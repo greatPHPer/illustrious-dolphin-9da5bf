@@ -15,6 +15,10 @@
       { title: "JWT Inspector", url: ROOT + "jwt-decoder/" },
       { title: ".* Regex Tester", url: ROOT + "regex-tester/" }
     ] },
+    { title: "🎨 CSS & UI Tools", url: ROOT + "css-button-editor/", key: "css-ui-tools", tools: [
+      { title: "✦ CSS Button Editor", url: ROOT + "css-button-editor/" },
+      { title: "✨ 60 Glossy CSS Buttons", url: ROOT + "glossy-css-buttons/" }
+    ] },
     { title: "🧰 Developer Utilities", url: ROOT + "developer-utilities/", key: "developer-utilities", tools: [
       { title: "ID GUID / UUID Generator", url: ROOT + "guid-generator/" },
       { title: "TS Unix Timestamp Converter", url: ROOT + "unix-timestamp-converter/" },

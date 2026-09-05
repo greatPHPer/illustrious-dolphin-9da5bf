@@ -19,6 +19,14 @@
       c.async=true;
       document.head.appendChild(c);
     }
+    if(!document.getElementById("algolassi-image-crop-handles-script")){
+      var h=document.createElement("script");
+      h.id="algolassi-image-crop-handles-script";
+      h.src="/assets/js/algolassi-image-crop-handles.js?v=20260904-crop-handles-1";
+      h.defer=true;
+      h.async=true;
+      document.head.appendChild(h);
+    }
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",load,{once:true});else load();
   window.addEventListener("algolassi:spa-navigation",function(){requestAnimationFrame(load);});
