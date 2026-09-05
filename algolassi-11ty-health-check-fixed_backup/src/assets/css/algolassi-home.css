@@ -1,0 +1,117 @@
+/* =========================================================
+   ALGOLASSI HOME HERO — editorial developer illustration
+   Scoped to .home-hero so the rest of the site stays unchanged.
+   ========================================================= */
+.home-hero{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  min-height:620px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:72px 24px 66px;
+  text-align:center;
+  border-radius:28px;
+  background:
+    radial-gradient(circle at 50% 42%,rgba(255,255,255,.96) 0%,rgba(255,255,255,.88) 36%,rgba(255,255,255,.58) 67%,rgba(255,255,255,.20) 100%);
+}
+
+.home-hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-2;
+  background-image:url('/assets/images/algolassi-home-hero-art.svg');
+  background-position:center center;
+  background-repeat:no-repeat;
+  background-size:cover;
+  opacity:.88;
+  pointer-events:none;
+}
+
+.home-hero::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.93) 0%,rgba(255,255,255,.34) 20%,rgba(255,255,255,0) 38%,rgba(255,255,255,0) 62%,rgba(255,255,255,.34) 80%,rgba(255,255,255,.93) 100%),
+    linear-gradient(180deg,rgba(255,255,255,.52) 0%,rgba(255,255,255,0) 22%,rgba(255,255,255,0) 77%,rgba(255,255,255,.58) 100%);
+}
+
+.home-hero .eyebrow,
+.home-hero h1,
+.home-hero .lead,
+.home-hero .algolassi-home-search,
+.home-hero .home-actions{
+  position:relative;
+  z-index:2;
+}
+
+.home-hero .eyebrow{
+  margin-bottom:8px;
+  padding:5px 10px;
+  border:1px solid rgba(124,106,88,.24);
+  border-radius:999px;
+  background:rgba(255,255,255,.76);
+  box-shadow:0 6px 24px rgba(24,34,48,.05);
+  backdrop-filter:blur(6px);
+}
+
+.home-hero h1{
+  max-width:860px;
+  margin:10px auto 12px;
+  text-wrap:balance;
+  text-shadow:0 2px 18px rgba(255,255,255,.88);
+}
+
+.home-hero .lead{
+  max-width:720px;
+  margin:0 auto;
+  text-shadow:0 2px 14px rgba(255,255,255,.94);
+}
+
+.home-hero .algolassi-home-search{
+  width:min(720px,100%);
+  margin-top:25px;
+}
+
+.home-hero .algolassi-home-search-box{
+  box-shadow:0 16px 38px rgba(24,34,48,.10);
+  border-color:rgba(124,106,88,.32);
+  background:rgba(255,255,255,.91);
+  backdrop-filter:blur(10px);
+}
+
+.home-hero .home-actions{
+  margin-top:28px;
+}
+
+.home-hero .button{
+  box-shadow:0 9px 24px rgba(24,34,48,.08);
+}
+
+@media(max-width:800px){
+  .home-hero{
+    min-height:600px;
+    padding:60px 14px 52px;
+    border-radius:20px;
+    background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.97) 0%,rgba(255,255,255,.90) 55%,rgba(255,255,255,.42) 100%);
+  }
+  .home-hero::before{
+    background-size:auto 100%;
+    opacity:.48;
+  }
+  .home-hero::after{
+    background:
+      linear-gradient(90deg,rgba(255,255,255,.94) 0%,rgba(255,255,255,.25) 28%,rgba(255,255,255,.25) 72%,rgba(255,255,255,.94) 100%),
+      linear-gradient(180deg,rgba(255,255,255,.62) 0%,rgba(255,255,255,0) 25%,rgba(255,255,255,0) 74%,rgba(255,255,255,.65) 100%);
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .home-hero::before{opacity:.78}
+}
