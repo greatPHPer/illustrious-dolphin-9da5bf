@@ -22,15 +22,13 @@
     return {x:Math.max(0,Math.min(r.width,e.clientX-r.left)),y:Math.max(0,Math.min(r.height,e.clientY-r.top))};
   }
 
-  function render(a,b,r){
-    var overlay=q("image-crop-overlay"),box=q("image-crop-rectangle");
-    if(!overlay||!box)return null;
-    var x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),w=Math.abs(a.x-b.x),h=Math.abs(a.y-b.y);
+  function prepareOverlay(overlay,stage){
+    var sr=stage.getBoundingClientRect();
     overlay.style.position="absolute";
-    overlay.style.left=Math.round(r.left-r.stageLeft)+"px";
-    overlay.style.top=Math.round(r.top-r.stageTop)+"px";
-    overlay.style.width=Math.max(1,Math.round(r.width))+"px";
-    overlay.style.height=Math.max(1,Math.round(r.height))+"px";
+    overlay.style.left="0px";
+    overlay.style.top="0px";
+    overlay.style.width=Math.max(1,Math.round(sr.width))+"px";
+    overlay.style.height=Math.max(1,Math.round(sr.height))+"px";
     overlay.style.right="auto";
     overlay.style.bottom="auto";
     overlay.style.margin="0";
@@ -39,9 +37,17 @@
     overlay.style.boxSizing="border-box";
     overlay.style.maxWidth="none";
     overlay.style.maxHeight="none";
+  }
+
+  function render(a,b,r){
+    var stage=q("image-preview-stage"),overlay=q("image-crop-overlay"),box=q("image-crop-rectangle");
+    if(!stage||!overlay||!box)return null;
+    var x=Math.min(a.x,b.x),y=Math.min(a.y,b.y),w=Math.abs(a.x-b.x),h=Math.abs(a.y-b.y);
+    prepareOverlay(overlay,stage);
+
     box.style.position="absolute";
-    box.style.left=Math.round(x)+"px";
-    box.style.top=Math.round(y)+"px";
+    box.style.left=Math.round((r.left-r.stageLeft)+x)+"px";
+    box.style.top=Math.round((r.top-r.stageTop)+y)+"px";
     box.style.transform="none";
     box.style.margin="0";
     box.style.padding="0";
