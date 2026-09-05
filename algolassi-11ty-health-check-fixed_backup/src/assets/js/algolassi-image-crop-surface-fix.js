@@ -9,7 +9,7 @@
     if(!stage||!img||!img.naturalWidth)return null;
     var ir=img.getBoundingClientRect(),sr=stage.getBoundingClientRect();
     if(!ir.width||!ir.height||!sr.width||!sr.height)return null;
-    return {stage:stage,img:img,left:ir.left,top:ir.top,width:ir.width,height:ir.height,stageLeft:sr.left,stageTop:sr.top,scaleX:img.naturalWidth/ir.width,scaleY:img.naturalHeight/ir.height};
+    return {stage:stage,img:img,left:ir.left,top:ir.top,width:ir.width,height:ir.height,stageLeft:sr.left,stageTop:sr.top,stageWidth:sr.width,stageHeight:sr.height,scaleX:img.naturalWidth/ir.width,scaleY:img.naturalHeight/ir.height};
   }
 
   function sync(){
@@ -19,10 +19,10 @@
     var r=renderedImage();if(!r)return;
 
     overlay.style.position="absolute";
-    overlay.style.left=Math.round(r.left-r.stageLeft)+"px";
-    overlay.style.top=Math.round(r.top-r.stageTop)+"px";
-    overlay.style.width=Math.max(1,Math.round(r.width))+"px";
-    overlay.style.height=Math.max(1,Math.round(r.height))+"px";
+    overlay.style.left="0px";
+    overlay.style.top="0px";
+    overlay.style.width=Math.max(1,Math.round(r.stageWidth))+"px";
+    overlay.style.height=Math.max(1,Math.round(r.stageHeight))+"px";
     overlay.style.right="auto";
     overlay.style.bottom="auto";
     overlay.style.margin="0";
@@ -42,13 +42,15 @@
 
     var x=parseInt((q("crop-x")||{}).value,10),y=parseInt((q("crop-y")||{}).value,10),w=parseInt((q("crop-width")||{}).value,10),h=parseInt((q("crop-height")||{}).value,10);
     if(Number.isFinite(x)&&Number.isFinite(y)&&Number.isFinite(w)&&Number.isFinite(h)&&w>0&&h>0){
-      box.style.left=Math.round(Math.max(0,x)/r.scaleX)+"px";
-      box.style.top=Math.round(Math.max(0,y)/r.scaleY)+"px";
+      box.style.left=Math.round((r.left-r.stageLeft)+Math.max(0,x)/r.scaleX)+"px";
+      box.style.top=Math.round((r.top-r.stageTop)+Math.max(0,y)/r.scaleY)+"px";
       box.style.width=Math.max(1,Math.round(w/r.scaleX))+"px";
       box.style.height=Math.max(1,Math.round(h/r.scaleY))+"px";
     }else{
-      box.style.left="0px";
-      box.style.top="0px";
+      box.style.left=Math.round(r.left-r.stageLeft)+"px";
+      box.style.top=Math.round(r.top-r.stageTop)+"px";
+      box.style.width=Math.max(1,Math.round(r.width))+"px";
+      box.style.height=Math.max(1,Math.round(r.height))+"px";
     }
   }
 
