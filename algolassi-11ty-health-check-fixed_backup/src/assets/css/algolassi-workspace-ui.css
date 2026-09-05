@@ -34,56 +34,81 @@
   font-size:.95rem;
   line-height:1.6;
 }
+
+/* --- GRID & CARD LAYOUT OVERHAUL --- */
 .devtools-grid{
-  gap:.8rem!important;
-  margin:1.35rem 0!important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+  gap: 1.5rem !important;
+  margin: 2rem 0 !important;
+  align-items: stretch;
 }
 .devtool-card{
+  display: flex !important;
+  flex-direction: column !important;
+  text-decoration: none !important;
+  color: var(--workspace-ink) !important;
   position:relative;
-  min-height:175px;
-  padding:1rem!important;
+  min-height: 180px;
+  padding: 1.5rem !important;
   border:1px solid var(--workspace-line)!important;
-  border-radius:8px!important;
-  background:rgba(255,255,255,.82)!important;
+  border-radius: 4px !important;
+  background: #ffffff !important;
   box-shadow:none!important;
-  backdrop-filter:blur(3px);
   transition:transform .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease!important;
 }
 .devtool-card::after{
-  content:"OPEN →";
+  content:"OPEN ➔" !important;
   position:absolute;
-  right:.8rem;
-  bottom:.72rem;
+  left: 1.5rem !important;
+  bottom: 1.2rem !important;
   font-family:"SFMono-Regular",Consolas,monospace;
-  font-size:.66rem;
+  font-size: .7rem !important;
+  font-weight: 600;
   letter-spacing:.08em;
-  color:var(--workspace-muted);
+  color:var(--workspace-muted) !important;
+  transition: color 0.2s ease !important;
 }
 .devtool-card:hover{
-  transform:translateY(-2px)!important;
-  border-color:rgba(139,90,43,.42)!important;
-  background:#fff!important;
-  box-shadow:0 8px 22px rgba(15,23,42,.07)!important;
+  transform:translateY(-3px)!important;
+  border-color:var(--workspace-muted)!important;
+  box-shadow:0 8px 24px rgba(15,23,42,.06)!important;
+}
+.devtool-card:hover::after {
+  color: var(--workspace-ink) !important;
 }
 .devtool-icon{
-  width:2rem!important;
-  height:2rem!important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem !important;
+  height: 2.2rem !important;
   margin-bottom:.65rem!important;
   border:1px solid rgba(139,90,43,.28);
   border-radius:6px!important;
   background:var(--workspace-accent-soft)!important;
   color:var(--workspace-accent)!important;
   font-family:"SFMono-Regular",Consolas,monospace;
-  font-size:.68rem!important;
+  font-size:.75rem!important;
 }
 .devtool-card h2{
-  margin:.1rem 0 .35rem!important;
+  margin: 1.2rem 0 0.4rem !important;
   font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
-  font-size:.98rem!important;
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
   letter-spacing:-.01em;
+  color: var(--workspace-ink) !important;
 }
-.devtool-card p{font-size:.82rem!important;line-height:1.5}
+.devtool-card p{
+  font-size:.85rem!important;
+  line-height:1.5;
+  color: var(--workspace-muted) !important;
+  margin-bottom: 2rem !important;
+  flex-grow: 1;
+}
 .devtool-link{display:none!important}
+/* ----------------------------------- */
+
 .devtools-note{
   border:1px solid var(--workspace-line)!important;
   border-left:3px solid var(--workspace-accent)!important;
