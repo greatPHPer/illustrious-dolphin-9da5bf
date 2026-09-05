@@ -58,11 +58,52 @@
     overlay.style.boxSizing="border-box";
   }
 
+  function isTypingTarget(target){
+    if(!target)return false;
+    var tag=(target.tagName||"").toLowerCase();
+    return tag==="input"||tag==="textarea"||tag==="select"||target.isContentEditable;
+  }
+
+  function clickImageCommand(command){
+    var selector="[data-image-command=\""+command+"\"]";
+    var item=document.querySelector(".image-toolbox "+selector)||document.querySelector(".image-menu-bar "+selector);
+    if(item){item.click();return true;}
+    return false;
+  }
+
+  function bindKeyboardShortcuts(){
+    if(window.__algolassiImageToolKeyboardShortcuts2)return;
+    window.__algolassiImageToolKeyboardShortcuts2=true;
+    document.addEventListener("keydown",function(e){
+      if(isTypingTarget(e.target))return;
+      if(e.altKey)return;
+      var key=(e.key||"").toLowerCase();
+      var command=null;
+      if((e.ctrlKey||e.metaKey)&&key==="s"){
+        command=e.shiftKey?"save-as":"save";
+      }else if((e.ctrlKey||e.metaKey)&&key==="o"){
+        command="upload";
+      }else if(!e.ctrlKey&&!e.metaKey&&!e.shiftKey){
+        if(key==="c")command="crop";
+        else if(key==="s")command="scale";
+        else if(key==="r")command="rotate";
+        else if(key==="t")command="transparent";
+        else if(key==="l")command="layers";
+      }
+      if(!command)return;
+      if(clickImageCommand(command)){
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    },true);
+  }
+
   function init(){
     var stage=q("image-preview-stage"),panel=q("image-crop-panel"),img=q("image-preview-img");
     if(!stage||!panel||!img)return;
     installStyle();
     sync();
+    bindKeyboardShortcuts();
     if(window.ResizeObserver){
       var ro=new ResizeObserver(function(){requestAnimationFrame(sync);});
       ro.observe(stage);ro.observe(img);
